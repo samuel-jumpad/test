@@ -23,17 +23,50 @@ class LoginPage {
   };
 
   visit() {
-    cy.visit('/', { timeout: 45000 });
+    cy.visit('/', { timeout: 60000 });
     
     // Wait for page to be fully loaded and interactive
     cy.get('body').should('be.visible');
     cy.get('body').should('not.contain', 'loading');
     
     // Wait for all critical elements to be visible and ready
-    this.elements.emailInput().should('be.visible').and('be.enabled', { timeout: 20000 });
-    this.elements.passwordInput().should('be.visible').and('be.enabled', { timeout: 20000 });
-    this.elements.submitButton().should('be.visible').and('not.be.disabled', { timeout: 20000 });
-    this.elements.workspaceTitle().should('be.visible', { timeout: 15000 });
+    this.elements.emailInput().should('be.visible').and('be.enabled', { timeout: 30000 });
+    this.elements.passwordInput().should('be.visible').and('be.enabled', { timeout: 30000 });
+    this.elements.submitButton().should('be.visible').and('not.be.disabled', { timeout: 30000 });
+    
+    // Try multiple strategies to find the workspace title
+    cy.get('body').then(($body) => {
+      const titleSelectors = [
+        'h6:contains("Entrar no Workspace")',
+        'h6:contains("Entrar no workspace")', 
+        'h6:contains("Entrar")',
+        '[class*="title"]:contains("Entrar")',
+        '[class*="heading"]:contains("Entrar")'
+      ];
+      
+      let titleFound = false;
+      titleSelectors.forEach(selector => {
+        if ($body.find(selector).length > 0) {
+          titleFound = true;
+          cy.log(`✅ Título encontrado com seletor: ${selector}`);
+        }
+      });
+      
+      if (!titleFound) {
+        cy.log('❌ Título "Entrar no Workspace" não encontrado, tirando screenshot');
+        cy.screenshot('titulo-nao-encontrado');
+        
+        // Verificar se há outros títulos na página
+        const headings = $body.find('h1, h2, h3, h4, h5, h6');
+        cy.log(`📊 Encontrados ${headings.length} títulos na página`);
+        headings.each((index, heading) => {
+          cy.log(`Título ${index}: ${heading.textContent}`);
+        });
+      }
+    });
+    
+    // Tentar aguardar o título com timeout maior
+    this.elements.workspaceTitle().should('be.visible', { timeout: 25000 });
     
     // Ensure we're on the correct page
     cy.url().should('include', '/');

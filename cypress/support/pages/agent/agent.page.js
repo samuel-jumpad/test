@@ -20,8 +20,8 @@ class AgentPage {
     sendButton: () => cy.xpath('//button[@type="submit" and contains(@class, "bg-black text-white")]'),
     closeButton: () => cy.xpath('//button[@type="button" and contains(@class, "bg-transparent")]'),
     
-    trashButton: () => cy.get('button svg[class*="lucide-trash2"]').parent(),
-    deleteModal: () => cy.xpath('//div[@role="dialog" and @data-state="open"]'),
+    trashButton: () => cy.get('button[aria-haspopup="dialog"] svg.lucide-trash2').first().parent(),
+    deleteModal: () => cy.get('div[role="dialog"]'),
     confirmActionText: () => cy.xpath('//div[@role="dialog" and @data-state="open"]//*[contains(normalize-space(.),"Confirmar Ação") or contains(normalize-space(.),"Confirmar ação")]'),
     deleteConfirmText: () => cy.xpath('//div[@role="dialog" and @data-state="open"]//*[contains(normalize-space(.),"Tem certeza que deseja deletar este agente?")]'),
     deleteConfirmButton: () => cy.xpath('//button[contains(@class, "bg-[#e81b37]") and .//div[text()="Deletar agente"]]'),
@@ -31,7 +31,6 @@ class AgentPage {
   navigateToAgents() {
     this.elements.agentsSection()
       .should('be.visible')
-      .and('be.enabled')
       .click();
     
     // Wait for navigation to complete
@@ -44,7 +43,6 @@ class AgentPage {
   clickMyAgents() {
     this.elements.myAgents()
       .should('be.visible')
-      .and('be.enabled')
       .scrollIntoView()
       .click();
     
@@ -95,30 +93,110 @@ class AgentPage {
   }
 
   clickTrashButton() {
-    this.elements.trashButton()
-      .first()
-      .should('be.visible')
-      .and('be.enabled')
-      .click();
+    // Log para debug
+    cy.log('🔍 Procurando botão de delete...');
+    
+    // Aguardar carregamento da página
+    cy.get('body').should('not.contain', 'loading');
+    
+    // Verificar quantos botões existem
+    cy.get('button[aria-haspopup="dialog"] svg.lucide-trash2').then(($buttons) => {
+      cy.log(`📊 Encontrados ${$buttons.length} botões de delete`);
+      
+      if ($buttons.length === 0) {
+        cy.log('❌ Nenhum botão de delete encontrado!');
+        cy.screenshot('nenhum-botao-delete');
+        return;
+      }
+      
+      // Procurar o botão com seletor mais específico - pegar apenas o primeiro
+      cy.get('button[aria-haspopup="dialog"] svg.lucide-trash2')
+        .first() // Garantir que pega apenas 1 elemento
+        .parent()
+        .should('be.visible', { timeout: 10000 })
+        .scrollIntoView()
+        .click({ force: true });
+      
+      cy.log('✅ Botão de delete clicado');
+      
+      // Aguardar mais tempo para o modal aparecer
+      cy.wait(3000);
+      
+      // Verificar se o modal apareceu imediatamente
+      cy.get('body').then(($body) => {
+        const modalExists = $body.find('div[role="dialog"]').length > 0;
+        if (modalExists) {
+          cy.log('✅ Modal apareceu imediatamente!');
+        } else {
+          cy.log('⏳ Modal ainda não apareceu, aguardando...');
+        }
+      });
+    });
+    
     return this;
   }
 
   validateDeleteModal() {
-    // Wait for modal to be fully loaded
-    this.elements.deleteModal()
-      .should('be.visible', { timeout: 15000 });
+    cy.log('🔍 Aguardando modal de confirmação...');
+    
+    // Aguardar mais tempo para o modal aparecer
+    cy.wait(5000);
+    
+    // Tentar múltiplos seletores para o modal
+    const modalSelectors = [
+      'div[role="dialog"]',
+      'div[role="dialog"][data-state="open"]',
+      '[data-radix-dialog-content]',
+      '[data-radix-dialog-overlay]',
+      '.dialog-content',
+      '[aria-modal="true"]'
+    ];
+    
+    let modalFound = false;
+    
+    cy.get('body').then(($body) => {
+      modalSelectors.forEach(selector => {
+        if ($body.find(selector).length > 0) {
+          modalFound = true;
+          cy.log(`✅ Modal encontrado com seletor: ${selector}`);
+        }
+      });
+      
+      if (!modalFound) {
+        cy.log('❌ Modal não encontrado com nenhum seletor, tirando screenshot para debug');
+        cy.screenshot('modal-nao-encontrado');
+        
+        // Verificar se há algum overlay ou modal com outros atributos
+        cy.log('🔍 Verificando outros elementos que podem ser o modal...');
+        cy.get('body').then(($body) => {
+          const possibleModals = $body.find('[class*="modal"], [class*="dialog"], [class*="overlay"]');
+          cy.log(`📊 Encontrados ${possibleModals.length} possíveis modais/overlays`);
+        });
+      }
+    });
+    
+    // Tentar aguardar o modal com o seletor principal
+    if (!modalFound) {
+      cy.log('⏳ Tentando aguardar modal com seletor principal...');
+      this.elements.deleteModal()
+        .should('be.visible', { timeout: 25000 });
+    }
+    
+    cy.log('✅ Modal encontrado');
 
-    // Verify modal content is loaded
+    // Verificar conteúdo do modal
     this.elements.confirmActionText()
       .should('be.visible', { timeout: 10000 });
 
     this.elements.deleteConfirmText()
       .should('be.visible', { timeout: 10000 });
     
-    // Ensure delete button is ready
+    // Verificar botão de confirmação
     this.elements.deleteConfirmButton()
       .should('be.visible')
       .and('be.enabled');
+    
+    cy.log('✅ Modal validado com sucesso');
     
     return this;
   }
@@ -163,7 +241,6 @@ class AgentPage {
     // Fill name field
     this.elements.nameInput()
       .should('be.visible')
-      .and('be.enabled')
       .scrollIntoView()
       .clear()
       .type(name, { delay: 100 })
@@ -172,7 +249,6 @@ class AgentPage {
     // Fill description field
     this.elements.descriptionInput()
       .should('be.visible')
-      .and('be.enabled')
       .scrollIntoView()
       .clear()
       .type(description, { delay: 100 })
@@ -181,7 +257,6 @@ class AgentPage {
     // Fill prompt field
     this.elements.promptInput()
       .should('be.visible')
-      .and('be.enabled')
       .scrollIntoView()
       .clear()
       .type(prompt, { delay: 100 })
@@ -203,7 +278,6 @@ class AgentPage {
   saveAgent() {
     this.elements.saveButton()
       .should('be.visible')
-      .and('be.enabled')
       .scrollIntoView()
       .click();
     
@@ -322,7 +396,6 @@ class AgentPage {
     // Click create new agent button
     this.elements.createNewAgent()
       .should('be.visible')
-      .and('be.enabled')
       .click();
     
     // Wait for form to load

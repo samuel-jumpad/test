@@ -153,10 +153,22 @@ Cypress.Commands.add('setupTest', () => {
   // Setup interceptors for general tests
   cy.setupInterceptors();
   
-  // Perform simple login without waiting for specific requests
+  // Perform login with better error handling
+  cy.log('🔍 Iniciando setup do teste...');
+  
   LoginPage.visit();
+  
+  // Aguardar um pouco mais para a página carregar completamente
+  cy.wait(2000);
+  
   LoginPage.loginWithValidCredentials();
-  LoginPage.validateLoginSuccess();
+  
+  // Aguardar login com timeout maior
+  cy.url({ timeout: 45000 }).should('include', '/dashboard');
+  cy.get('body').should('not.contain', 'loading');
+  cy.get('body').should('not.contain', 'Entrar no Workspace');
+  
+  cy.log('✅ Setup do teste concluído com sucesso');
 });
 
 // Custom command to setup test environment for chat tests
