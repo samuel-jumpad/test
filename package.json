@@ -1,0 +1,43 @@
+{
+  "name": "cypress-automation",
+  "version": "1.0.0",
+  "description": "Cypress automation project with screenshots, videos and reports",
+  "main": "index.js",
+  "scripts": {
+    "cy:open": "cypress open",
+    "cy:run": "cypress run",
+    "cy:run:headed": "cypress run --headed",
+    "cy:run:chrome": "cypress run --browser chrome",
+    "cy:run:firefox": "cypress run --browser firefox",
+    "cy:run:edge": "cypress run --browser edge",
+    "cy:run:record": "cypress run --record --key YOUR_RECORD_KEY",
+    "cy:run:parallel": "cypress run --record --parallel --ci-build-id $BUILD_ID",
+    "test:login": "cypress run --spec 'cypress/e2e/login/**/*.cy.js'",
+    "test:smoke": "cypress run --spec 'cypress/e2e/smoke/**/*.cy.js'",
+    "test:regression": "cypress run --spec 'cypress/e2e/**/*.cy.js'",
+    "report:generate": "node scripts/generate-report.js",
+    "test:with-report": "cypress run && node scripts/generate-report.js",
+    "report:open": "start cypress/reports/mochawesome.html",
+    "clean:reports": "rimraf cypress/reports cypress/screenshots cypress/videos",
+    "clean:all": "rimraf cypress/reports cypress/screenshots cypress/videos node_modules/.cache",
+    "test:full": "npm run clean:reports && npm run cy:run && npm run report:generate",
+    "test:debug": "npm run cy:run:headed -- --config video=true,screenshotOnRunFailure=true",
+    "test": "cypress run"
+  },
+  "keywords": [
+    "cypress",
+    "automation",
+    "testing",
+    "e2e"
+  ],
+  "author": "Your Name",
+  "license": "MIT",
+  "devDependencies": {
+    "cypress": "^13.17.0",
+    "cypress-xpath": "^2.0.1",
+    "mochawesome": "^7.1.4",
+    "mochawesome-merge": "^4.4.1",
+    "mochawesome-report-generator": "^6.3.0",
+    "rimraf": "^5.0.0"
+  }
+}

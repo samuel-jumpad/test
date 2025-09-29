@@ -1,0 +1,18 @@
+{
+  "valid": {
+    "email": "teste@email.com",
+    "password": "Jumpad@2025"
+  },
+  "invalid": {
+    "email": "email-errado@teste.com",
+    "password": "senha-errada"
+  },
+  "invalidEmail": {
+    "email": "email-errado@teste.com",
+    "password": "Jumpad@2025"
+  },
+  "invalidPassword": {
+    "email": "teste@email.com",
+    "password": "senha-errada"
+  }
+}
