@@ -1,0 +1,110 @@
+{
+  "stats": {
+    "suites": 1,
+    "tests": 1,
+    "passes": 0,
+    "pending": 0,
+    "failures": 1,
+    "start": "2025-09-29T13:29:50.842Z",
+    "end": "2025-09-29T13:30:43.803Z",
+    "duration": 52961,
+    "testsRegistered": 1,
+    "passPercent": 0,
+    "pendingPercent": 0,
+    "other": 0,
+    "hasOther": false,
+    "skipped": 0,
+    "hasSkipped": false
+  },
+  "results": [
+    {
+      "uuid": "a1058036-15d8-42dd-82b0-63be1ef661bd",
+      "title": "",
+      "fullFile": "cypress\\e2e\\agente\\accessing-old-agent.cy.js",
+      "file": "cypress\\e2e\\agente\\accessing-old-agent.cy.js",
+      "beforeHooks": [],
+      "afterHooks": [],
+      "tests": [],
+      "suites": [
+        {
+          "uuid": "0e0a9d29-6dd2-406c-ba7d-b0c2b9bf3a3a",
+          "title": "Agents - Accessing Old Agent",
+          "fullFile": "",
+          "file": "",
+          "beforeHooks": [],
+          "afterHooks": [],
+          "tests": [
+            {
+              "title": "should access old agent and send messages successfully",
+              "fullTitle": "Agents - Accessing Old Agent should access old agent and send messages successfully",
+              "timedOut": null,
+              "duration": 25287,
+              "state": "failed",
+              "speed": null,
+              "pass": false,
+              "fail": true,
+              "pending": false,
+              "context": null,
+              "code": "_agentPage.default.accessOldAgent().waitForPageLoad();",
+              "err": {
+                "message": "AssertionError: Timed out retrying after 20000ms: Expected to find element: `button[type=\"submit\"]`, but never found it.\n\nBecause this error occurred during a `before each` hook we are skipping the remaining tests in the current suite: `Agents - Accessing Old Agent`",
+                "estack": "AssertionError: Timed out retrying after 20000ms: Expected to find element: `button[type=\"submit\"]`, but never found it.\n\nBecause this error occurred during a `before each` hook we are skipping the remaining tests in the current suite: `Agents - Accessing Old Agent`\n    at LoginPage.clickSubmit (webpack://cypress-automation/./cypress/support/pages/login/login.page.js:64:33)\n    at LoginPage.loginWithCredentials (webpack://cypress-automation/./cypress/support/pages/login/login.page.js:93:9)\n    at Context.eval (webpack://cypress-automation/./cypress/support/pages/login/login.page.js:99:11)",
+                "diff": null
+              },
+              "uuid": "33b3b801-e2ae-47e9-bc2d-742f1f5379d1",
+              "parentUUID": "0e0a9d29-6dd2-406c-ba7d-b0c2b9bf3a3a",
+              "isHook": false,
+              "skipped": false
+            }
+          ],
+          "suites": [],
+          "passes": [],
+          "failures": [
+            "33b3b801-e2ae-47e9-bc2d-742f1f5379d1"
+          ],
+          "pending": [],
+          "skipped": [],
+          "duration": 25287,
+          "root": false,
+          "rootEmpty": false,
+          "_timeout": 2000
+        }
+      ],
+      "passes": [],
+      "failures": [],
+      "pending": [],
+      "skipped": [],
+      "duration": 0,
+      "root": true,
+      "rootEmpty": true,
+      "_timeout": 2000
+    }
+  ],
+  "meta": {
+    "mocha": {
+      "version": "7.0.1"
+    },
+    "mochawesome": {
+      "options": {
+        "quiet": false,
+        "reportFilename": "mochawesome",
+        "saveHtml": true,
+        "saveJson": true,
+        "consoleReporter": "spec",
+        "useInlineDiffs": false,
+        "code": true
+      },
+      "version": "7.1.4"
+    },
+    "marge": {
+      "options": {
+        "reportDir": "cypress/reports",
+        "overwrite": false,
+        "html": true,
+        "json": true,
+        "timestamp": "mmddyyyy_HHMMss"
+      },
+      "version": "6.3.0"
+    }
+  }
+}

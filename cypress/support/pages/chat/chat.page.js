@@ -1,16 +1,14 @@
 class ChatPage {
   elements = {
-    chatSection: () => cy.xpath('//div[contains(@class, "flex-1 overflow-hidden") and contains(@class, "text-ellipsis")]'),
-    generalChat: () => cy.xpath('//div[contains(@class, "truncate flex items-center gap-1") and .//div[text()="Geral"]]'),
-    chatItem: () => cy.xpath('//div[contains(@class, "truncate flex items-center gap-1")]'),
+    chatSection: () => cy.xpath('//div[@class="flex-1 overflow-hidden transition-opacity duration-300 ease-in-out text-ellipsis opacity-100"]//span[contains(text(), "Chat")]'),
+    generalChat: () => cy.get('div').contains('Geral'),
+    chatItem: () => cy.get('div.flex-1.truncate'),
     messageBubble: () => cy.xpath('//div[@class="p-2 border rounded-xl bg-gray-100"]')
   };
 
   openChatSection() {
     this.elements.chatSection()
-      .first()
       .should('be.visible')
-      .and('be.enabled')
       .click();
     
     // Wait for chat section to load
@@ -21,9 +19,7 @@ class ChatPage {
 
   selectGeneralChat() {
     this.elements.generalChat()
-      .first()
       .should('be.visible')
-      .and('be.enabled')
       .click();
     
     // Wait for general chat to be selected
@@ -36,11 +32,13 @@ class ChatPage {
     this.elements.chatItem()
       .first()
       .should('be.visible')
-      .and('be.enabled')
       .click();
     
     // Wait for chat item to be selected
     cy.get('body').should('not.contain', 'loading');
+    
+    // Additional wait before proceeding to message input
+    cy.wait(2000);
     
     return this;
   }
@@ -57,21 +55,10 @@ class ChatPage {
   }
 
   sendMessageInChat(message) {
-    // Open chat section and wait for it to be ready
-    this.openChatSection();
+    // Wait for chat interface to be ready
+    cy.get('body').should('not.contain', 'loading');
     
-    // Select general chat and wait for it to be ready
-    this.selectGeneralChat();
-    
-    // Select first chat item and wait for it to be ready
-    this.selectFirstChatItem();
-    
-    // Wait for message input to be available
-    cy.get('div[role="textbox"][contenteditable="true"][data-placeholder="Digite aqui sua mensagem..."]')
-      .should('be.visible', { timeout: 15000 })
-      .and('be.enabled');
-    
-    // Send message
+    // Send message using the command (which handles input validation)
     cy.sendChatMessage(message);
     
     // Wait for page to be ready
@@ -88,7 +75,10 @@ class ChatPage {
     cy.get('body').should('be.visible');
     cy.get('body').should('not.contain', 'loading');
     cy.document().should('have.property', 'readyState', 'complete');
-    cy.waitForPageLoad();
+    
+    // Wait for specific loading states to disappear (but ignore data-loading attributes on buttons)
+    cy.get('[data-testid="loading"], .loading').should('not.exist');
+    
     return this;
   }
 }

@@ -55,8 +55,8 @@ Cypress.on('uncaught:exception', (err, runnable) => {
 
 // Global before hook for all tests
 beforeEach(() => {
-  // Setup interceptors for all tests
-  cy.setupInterceptors();
+  // Don't setup interceptors globally - let each test handle its own
+  // This prevents conflicts with tests that need specific interceptor configurations
   
   // Take screenshot before each test
   cy.takeScreenshot('test-start');

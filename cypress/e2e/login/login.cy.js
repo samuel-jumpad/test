@@ -8,6 +8,9 @@ describe('Login-related tests', () => {
   });
 
   it('should login with valid credentials successfully', () => {
+    // Setup interceptors specifically for success test
+    cy.setupInterceptors();
+    
     LoginPage
       .visit()
       .performValidLogin()
@@ -18,30 +21,45 @@ describe('Login-related tests', () => {
   });
 
   it('should fail login with wrong email', () => {
+    // Setup interceptors specifically for failure test
+    cy.setupInterceptorsForFailure();
+    
     LoginPage
       .visit()
-      .performWrongEmailLogin()
-      .waitForPageLoad();
+      .performWrongEmailLogin();
+    
+    // Assert error message appears
+    cy.get('body').should('contain', 'O e-mail ou a senha estão incorretos. Por favor, verifique suas credenciais.');
     
     // Wait for error message to appear
     cy.wait(1500);
   });
 
   it('should fail login with wrong password', () => {
+    // Setup interceptors specifically for failure test
+    cy.setupInterceptorsForFailure();
+    
     LoginPage
       .visit()
-      .performWrongPasswordLogin()
-      .waitForPageLoad();
+      .performWrongPasswordLogin();
+    
+    // Assert error message appears
+    cy.get('body').should('contain', 'O e-mail ou a senha estão incorretos. Por favor, verifique suas credenciais.');
     
     // Wait for error message to appear
     cy.wait(1500);
   });
 
   it('should fail login with wrong credentials', () => {
+    // Setup interceptors specifically for failure test
+    cy.setupInterceptorsForFailure();
+    
     LoginPage
       .visit()
-      .performWrongCredentialsLogin()
-      .waitForPageLoad();
+      .performWrongCredentialsLogin();
+    
+    // Assert error message appears
+    cy.get('body').should('contain', 'O e-mail ou a senha estão incorretos. Por favor, verifique suas credenciais.');
     
     // Wait for error message to appear
     cy.wait(1500);

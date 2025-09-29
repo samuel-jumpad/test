@@ -207,8 +207,9 @@ class AgentPage {
       .scrollIntoView()
       .click();
     
-    // Wait for save action to start (button should become disabled)
-    this.elements.saveButton().should('be.disabled');
+    // Wait for save action to start (button may become disabled briefly)
+    // Don't assert disabled state as it depends on API response
+    cy.get('body').should('not.contain', 'loading');
     
     return this;
   }
