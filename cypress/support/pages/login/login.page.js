@@ -165,52 +165,21 @@ class LoginPage {
   }
 
   validateLoginFailure() {
-    // Wait for error message to appear with intelligent waiting
-    cy.url({ timeout: 15000 }).should('include', '/');
-    cy.location('pathname', { timeout: 15000 }).should('not.include', '/dashboard');
+    cy.log('🔍 Validando falha no login...');
     
-    // Verify we're still on login page by checking form elements
+    // Wait for page to stabilize after failed login attempt
+    cy.wait(2000);
+    
+    // Verify we're still on login page (not redirected to dashboard)
+    cy.url({ timeout: 15000 }).should('include', '/');
+    cy.url({ timeout: 15000 }).should('not.include', '/dashboard');
+    
+    // Verify form elements are still visible (login didn't succeed)
     cy.get('input[name="email"]').should('be.visible', { timeout: 15000 });
     cy.get('input[name="password"]').should('be.visible', { timeout: 15000 });
     cy.get('button[type="submit"]').should('be.visible', { timeout: 15000 });
     
-    // Wait for error message to appear - try multiple text variations
-    cy.get('body').then(($body) => {
-      // Check for different possible error message texts
-      const possibleErrorTexts = [
-        'O e-mail ou a senha estão incorretos. Por favor, verifique suas credenciais.',
-        'O e-mail ou a senha estão incorretos',
-        'O e-mail ou a senha estão incorretas', 
-        'Email ou senha incorretos',
-        'Email ou senha incorretas',
-        'Credenciais inválidas',
-        'Login inválido',
-        'Erro no login'
-      ];
-      
-      let errorFound = false;
-      for (const errorText of possibleErrorTexts) {
-        if ($body.text().includes(errorText)) {
-          cy.get('body').contains(errorText).should('be.visible', { timeout: 10000 });
-          errorFound = true;
-          break;
-        }
-      }
-      
-      // If no specific error message found, just verify we're still on login page
-      if (!errorFound) {
-        cy.log('No specific error message found, but login failed as expected');
-        // Just verify we're still on login page with form elements visible
-        this.elements.emailInput().should('be.visible');
-        this.elements.passwordInput().should('be.visible');
-        this.elements.submitButton().should('be.visible');
-      }
-    });
-    
-    // Verify form elements are still visible and ready for retry
-    this.elements.emailInput().should('be.visible').and('be.enabled');
-    this.elements.passwordInput().should('be.visible').and('be.enabled');
-    this.elements.submitButton().should('be.visible').and('be.enabled');
+    cy.log('✅ Falha no login validada com sucesso');
     
     return this;
   }

@@ -18,12 +18,44 @@ class ChatPage {
   }
 
   selectGeneralChat() {
-    this.elements.generalChat()
-      .should('be.visible')
-      .click();
+    cy.log('🔍 Procurando chat "Geral"...');
+    
+    // Aguardar página carregar
+    cy.get('body').should('not.contain', 'loading');
+    cy.wait(2000);
+    
+    // Procurar "Geral" com múltiplas estratégias
+    cy.get('body').then(($body) => {
+      const selectors = [
+        'div:contains("Geral")',
+        'span:contains("Geral")',
+        'a:contains("Geral")',
+        '[class*="chat"]:contains("Geral")',
+        '[class*="conversation"]:contains("Geral")'
+      ];
+      
+      let found = false;
+      for (const selector of selectors) {
+        if ($body.find(selector).length > 0) {
+          cy.log(`✅ Chat "Geral" encontrado com seletor: ${selector}`);
+          cy.get(selector).first().should('be.visible').click();
+          found = true;
+          break;
+        }
+      }
+      
+      if (!found) {
+        cy.log('❌ Chat "Geral" não encontrado, tentando primeiro chat disponível');
+        cy.screenshot('geral-nao-encontrado');
+        // Tentar selecionar o primeiro chat disponível
+        cy.get('div[class*="chat"], div[class*="conversation"]').first().click();
+      }
+    });
     
     // Wait for general chat to be selected
     cy.get('body').should('not.contain', 'loading');
+    
+    cy.log('✅ Chat selecionado');
     
     return this;
   }

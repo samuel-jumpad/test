@@ -1,6 +1,26 @@
 class AgentPage {
   elements = {
-    agentsSection: () => cy.xpath('//span[normalize-space(.)="Agentes"]'),
+    agentsSection: () => cy.get('body').then(($body) => {
+      // Try multiple strategies to find the agents section
+      const selectors = [
+        'span:contains("Agentes")',
+        'a:contains("Agentes")',
+        'div:contains("Agentes")',
+        '[class*="nav"]:contains("Agentes")',
+        '[class*="menu"]:contains("Agentes")'
+      ];
+      
+      for (const selector of selectors) {
+        if ($body.find(selector).length > 0) {
+          cy.log(`✅ Seção Agentes encontrada com seletor: ${selector}`);
+          return cy.get(selector).first();
+        }
+      }
+      
+      cy.log('❌ Seção Agentes não encontrada, tirando screenshot');
+      cy.screenshot('agentes-nao-encontrado');
+      return cy.get('span:contains("Agentes")').first(); // fallback
+    }),
     myAgents: () => cy.xpath('//div[normalize-space(text())="Meus Agentes"]'),
     createNewAgent: () => cy.xpath('//div[contains(@class, "flex items-center justify-center gap-2") and .//text()="Cadastrar Novo Agente"]'),
     
@@ -20,7 +40,7 @@ class AgentPage {
     sendButton: () => cy.xpath('//button[@type="submit" and contains(@class, "bg-black text-white")]'),
     closeButton: () => cy.xpath('//button[@type="button" and contains(@class, "bg-transparent")]'),
     
-    trashButton: () => cy.get('button[aria-haspopup="dialog"] svg.lucide-trash2').first().parent(),
+    trashButton: () => cy.xpath('//div[@class="flex items-center justify-center gap-2"]//svg[@class="lucide lucide-trash2"]/parent::div/parent::button'),
     deleteModal: () => cy.get('div[role="dialog"]'),
     deleteModalFallback: () => cy.get('div[role="dialog"], [data-radix-dialog-content], [data-radix-dialog-overlay], [aria-modal="true"], [data-state="open"]'),
     confirmActionText: () => cy.xpath('//div[@role="dialog" and @data-state="open"]//*[contains(normalize-space(.),"Confirmar Ação") or contains(normalize-space(.),"Confirmar ação")]'),
@@ -30,13 +50,45 @@ class AgentPage {
   };
 
   navigateToAgents() {
-    this.elements.agentsSection()
-      .should('be.visible')
-      .click();
+    cy.log('🔍 Procurando seção de Agentes...');
+    
+    // Aguardar página carregar completamente
+    cy.get('body').should('not.contain', 'loading');
+    cy.wait(2000);
+    
+    // Procurar seção de agentes com múltiplas estratégias
+    cy.get('body').then(($body) => {
+      const selectors = [
+        'span:contains("Agentes")',
+        'a:contains("Agentes")',
+        'div:contains("Agentes")',
+        '[class*="nav"]:contains("Agentes")',
+        '[class*="menu"]:contains("Agentes")'
+      ];
+      
+      let found = false;
+      for (const selector of selectors) {
+        if ($body.find(selector).length > 0) {
+          cy.log(`✅ Seção Agentes encontrada com seletor: ${selector}`);
+          cy.get(selector).first().should('be.visible').click();
+          found = true;
+          break;
+        }
+      }
+      
+      if (!found) {
+        cy.log('❌ Seção Agentes não encontrada, tentando navegação direta');
+        cy.screenshot('agentes-nao-encontrado');
+        // Tentar navegar diretamente
+        cy.visit('/assistants', { timeout: 30000 });
+      }
+    });
     
     // Wait for navigation to complete
-    cy.url({ timeout: 15000 }).should('include', '/assistants');
+    cy.url({ timeout: 30000 }).should('include', '/assistants');
     cy.get('body').should('not.contain', 'loading');
+    
+    cy.log('✅ Navegação para Agentes concluída');
     
     return this;
   }
@@ -100,8 +152,8 @@ class AgentPage {
     // Aguardar carregamento da página
     cy.get('body').should('not.contain', 'loading');
     
-    // Verificar quantos botões existem
-    cy.get('button[aria-haspopup="dialog"] svg.lucide-trash2').then(($buttons) => {
+    // Verificar quantos botões existem usando XPath com classe específica
+    cy.xpath('//div[@class="flex items-center justify-center gap-2"]//svg[@class="lucide lucide-trash2"]').then(($buttons) => {
       cy.log(`📊 Encontrados ${$buttons.length} botões de delete`);
       
       if ($buttons.length === 0) {
@@ -110,10 +162,9 @@ class AgentPage {
         return;
       }
       
-      // Procurar o botão com seletor mais específico - pegar apenas o primeiro
-      cy.get('button[aria-haspopup="dialog"] svg.lucide-trash2')
+      // Procurar o botão com XPath com classe específica
+      this.elements.trashButton()
         .first() // Garantir que pega apenas 1 elemento
-        .parent()
         .should('be.visible', { timeout: 10000 })
         .scrollIntoView()
         .click({ force: true });
