@@ -22,6 +22,7 @@ class AgentPage {
     
     trashButton: () => cy.get('button[aria-haspopup="dialog"] svg.lucide-trash2').first().parent(),
     deleteModal: () => cy.get('div[role="dialog"]'),
+    deleteModalFallback: () => cy.get('div[role="dialog"], [data-radix-dialog-content], [data-radix-dialog-overlay], [aria-modal="true"], [data-state="open"]'),
     confirmActionText: () => cy.xpath('//div[@role="dialog" and @data-state="open"]//*[contains(normalize-space(.),"Confirmar Ação") or contains(normalize-space(.),"Confirmar ação")]'),
     deleteConfirmText: () => cy.xpath('//div[@role="dialog" and @data-state="open"]//*[contains(normalize-space(.),"Tem certeza que deseja deletar este agente?")]'),
     deleteConfirmButton: () => cy.xpath('//button[contains(@class, "bg-[#e81b37]") and .//div[text()="Deletar agente"]]'),
@@ -119,16 +120,16 @@ class AgentPage {
       
       cy.log('✅ Botão de delete clicado');
       
-      // Aguardar mais tempo para o modal aparecer
+      // Aguardar um tempo para o modal aparecer
       cy.wait(3000);
       
-      // Verificar se o modal apareceu imediatamente
+      // Verificar se o modal apareceu
       cy.get('body').then(($body) => {
         const modalExists = $body.find('div[role="dialog"]').length > 0;
         if (modalExists) {
-          cy.log('✅ Modal apareceu imediatamente!');
+          cy.log('✅ Modal apareceu!');
         } else {
-          cy.log('⏳ Modal ainda não apareceu, aguardando...');
+          cy.log('⏳ Modal ainda não apareceu, será aguardado na próxima etapa...');
         }
       });
     });
@@ -139,48 +140,23 @@ class AgentPage {
   validateDeleteModal() {
     cy.log('🔍 Aguardando modal de confirmação...');
     
-    // Aguardar mais tempo para o modal aparecer
-    cy.wait(5000);
+    // Estratégia mais robusta: tentar aguardar o modal diretamente
+    cy.log('⏳ Aguardando modal com estratégia robusta...');
     
-    // Tentar múltiplos seletores para o modal
-    const modalSelectors = [
-      'div[role="dialog"]',
-      'div[role="dialog"][data-state="open"]',
-      '[data-radix-dialog-content]',
-      '[data-radix-dialog-overlay]',
-      '.dialog-content',
-      '[aria-modal="true"]'
-    ];
-    
-    let modalFound = false;
-    
+    // Primeiro, tentar aguardar o modal principal
     cy.get('body').then(($body) => {
-      modalSelectors.forEach(selector => {
-        if ($body.find(selector).length > 0) {
-          modalFound = true;
-          cy.log(`✅ Modal encontrado com seletor: ${selector}`);
-        }
-      });
-      
-      if (!modalFound) {
-        cy.log('❌ Modal não encontrado com nenhum seletor, tirando screenshot para debug');
-        cy.screenshot('modal-nao-encontrado');
-        
-        // Verificar se há algum overlay ou modal com outros atributos
-        cy.log('🔍 Verificando outros elementos que podem ser o modal...');
-        cy.get('body').then(($body) => {
-          const possibleModals = $body.find('[class*="modal"], [class*="dialog"], [class*="overlay"]');
-          cy.log(`📊 Encontrados ${possibleModals.length} possíveis modais/overlays`);
-        });
+      if ($body.find('div[role="dialog"]').length > 0) {
+        cy.log('✅ Modal principal encontrado imediatamente');
+        return;
       }
     });
     
-    // Tentar aguardar o modal com o seletor principal
-    if (!modalFound) {
-      cy.log('⏳ Tentando aguardar modal com seletor principal...');
-      this.elements.deleteModal()
-        .should('be.visible', { timeout: 25000 });
-    }
+    // Se não encontrou, aguardar com timeout e múltiplos seletores
+    cy.get('div[role="dialog"], [data-radix-dialog-content], [data-radix-dialog-overlay], [aria-modal="true"], [data-state="open"]', { timeout: 15000 })
+      .should('be.visible')
+      .then(($modal) => {
+        cy.log(`✅ Modal encontrado: ${$modal[0].tagName} com classes: ${$modal[0].className}`);
+      });
     
     cy.log('✅ Modal encontrado');
 

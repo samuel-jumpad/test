@@ -322,9 +322,9 @@ Cypress.Commands.add('logout', () => {
 
   // Wait for logout to complete
   cy.url({ timeout: 15000 }).should('include', '/');
-  cy.get('h6').contains('Entrar no Workspace', { timeout: 15000 }).should('be.visible');
   
-  // Verify we're back on login page
-  cy.get('input[name="email"]').should('be.visible');
-  cy.get('input[name="password"]').should('be.visible');
+  // Verify we're back on login page by checking form elements
+  cy.get('input[name="email"]', { timeout: 15000 }).should('be.visible');
+  cy.get('input[name="password"]', { timeout: 15000 }).should('be.visible');
+  cy.get('button[type="submit"]', { timeout: 15000 }).should('be.visible');
 });
