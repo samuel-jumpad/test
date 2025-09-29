@@ -12,6 +12,8 @@ class LoginPage {
 
   visit() {
     cy.visit('/', { timeout: 30000 });
+    // Wait for page to fully load
+    cy.wait(2000);
     this.elements.emailInput().should('be.visible', { timeout: 15000 });
     this.elements.passwordInput().should('be.visible', { timeout: 15000 });
     this.elements.submitButton().should('be.visible');
@@ -24,6 +26,7 @@ class LoginPage {
     this.elements.emailInput()
       .should('be.visible')
       .clear()
+      .wait(500)
       .type(email, { delay: 150 })
       .should('have.value', email);
     return this;
@@ -33,17 +36,20 @@ class LoginPage {
     this.elements.passwordInput()
       .should('be.visible')
       .clear()
+      .wait(500)
       .type(password, { delay: 150 })
       .should('have.value', password);
     return this;
   }
 
   clickSubmit() {
-    cy.wait(500);
+    cy.wait(1000);
     this.elements.submitButton()
       .should('be.visible')
       .should('be.enabled')
       .click();
+    // Wait for form submission
+    cy.wait(2000);
     return this;
   }
 
@@ -99,6 +105,8 @@ class LoginPage {
 
 
   validateLoginSuccess() {
+    // Wait for redirect to complete
+    cy.wait(3000);
     cy.location('pathname', { timeout: 30000 }).should('include', '/dashboard');
     cy.url().should('include', '/dashboard');
     cy.get('[data-slot="avatar-fallback"]').should('be.visible');
@@ -108,6 +116,8 @@ class LoginPage {
   }
 
   validateLoginFailure() {
+    // Wait for error message to appear
+    cy.wait(2000);
     cy.url().should('include', '/');
     this.elements.workspaceTitle().should('be.visible');
     this.elements.errorMessage().should('be.visible');
@@ -119,7 +129,7 @@ class LoginPage {
   }
 
   waitForPageLoad() {
-    cy.wait(1000);
+    cy.wait(2000);
     return this;
   }
 
