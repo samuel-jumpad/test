@@ -1,0 +1,10 @@
+{
+  "success": true,
+  "agent": {
+    "id": "agent-123",
+    "name": "Test Agent",
+    "description": "Agent created by automated test",
+    "status": "active"
+  },
+  "message": "Agent created successfully"
+}

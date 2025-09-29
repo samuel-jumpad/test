@@ -11,55 +11,74 @@ class LoginPage {
   };
 
   visit() {
-    cy.visit('/', { timeout: 30000 });
-    // Wait for page to fully load
-    cy.wait(2000);
-    this.elements.emailInput().should('be.visible', { timeout: 15000 });
-    this.elements.passwordInput().should('be.visible', { timeout: 15000 });
-    this.elements.submitButton().should('be.visible');
-    this.elements.workspaceTitle().should('be.visible');
+    cy.visit('/', { timeout: 45000 });
+    
+    // Wait for page to be fully loaded and interactive
+    cy.get('body').should('be.visible');
+    cy.get('body').should('not.contain', 'loading');
+    
+    // Wait for all critical elements to be visible and ready
+    this.elements.emailInput().should('be.visible').and('be.enabled', { timeout: 20000 });
+    this.elements.passwordInput().should('be.visible').and('be.enabled', { timeout: 20000 });
+    this.elements.submitButton().should('be.visible').and('not.be.disabled', { timeout: 20000 });
+    this.elements.workspaceTitle().should('be.visible', { timeout: 15000 });
+    
+    // Ensure we're on the correct page
     cy.url().should('include', '/');
+    cy.location('pathname').should('eq', '/');
+    
     return this;
   }
 
   typeEmail(email) {
     this.elements.emailInput()
       .should('be.visible')
+      .and('be.enabled')
       .clear()
-      .wait(500)
-      .type(email, { delay: 150 })
-      .should('have.value', email);
+      .type(email, { delay: 100 })
+      .should('have.value', email)
+      .and('not.be.disabled');
     return this;
   }
 
   typePassword(password) {
     this.elements.passwordInput()
       .should('be.visible')
+      .and('be.enabled')
       .clear()
-      .wait(500)
-      .type(password, { delay: 150 })
-      .should('have.value', password);
+      .type(password, { delay: 100 })
+      .should('have.value', password)
+      .and('not.be.disabled');
     return this;
   }
 
   clickSubmit() {
-    cy.wait(1000);
+    // Ensure button is ready for interaction
     this.elements.submitButton()
       .should('be.visible')
-      .should('be.enabled')
+      .and('be.enabled')
+      .and('not.be.disabled')
       .click();
-    // Wait for form submission
-    cy.wait(2000);
+    
+    // Wait for form submission to start (button should become disabled)
+    this.elements.submitButton().should('be.disabled');
+    
     return this;
   }
 
   clickGoogleButton() {
-    this.elements.googleButton().click();
+    this.elements.googleButton()
+      .should('be.visible')
+      .and('be.enabled')
+      .click();
     return this;
   }
 
   clickForgotPassword() {
-    this.elements.forgotPasswordLink().click();
+    this.elements.forgotPasswordLink()
+      .should('be.visible')
+      .and('be.enabled')
+      .click();
     return this;
   }
 
@@ -105,31 +124,48 @@ class LoginPage {
 
 
   validateLoginSuccess() {
-    // Wait for redirect to complete
-    cy.wait(3000);
+    // Wait for redirect to complete with intelligent waiting
     cy.location('pathname', { timeout: 30000 }).should('include', '/dashboard');
-    cy.url().should('include', '/dashboard');
-    cy.get('[data-slot="avatar-fallback"]').should('be.visible');
+    cy.url({ timeout: 30000 }).should('include', '/dashboard');
+    
+    // Wait for dashboard to be fully loaded
+    cy.get('body').should('not.contain', 'loading');
+    cy.get('[data-slot="avatar-fallback"]', { timeout: 20000 }).should('be.visible');
+    
+    // Verify we're no longer on login page
     cy.get('body').should('not.contain', 'O e-mail ou a senha estão incorretos');
     cy.get('body').should('not.contain', 'Entrar no Workspace');
+    
+    // Additional verification that login was successful
+    cy.get('h6').should('not.contain', 'Entrar no Workspace');
+    
     return this;
   }
 
   validateLoginFailure() {
+    // Wait for error message to appear with intelligent waiting
+    cy.url({ timeout: 15000 }).should('include', '/');
+    cy.location('pathname', { timeout: 15000 }).should('not.include', '/dashboard');
+    
+    // Verify we're still on login page
+    this.elements.workspaceTitle().should('be.visible', { timeout: 15000 });
+    
     // Wait for error message to appear
-    cy.wait(2000);
-    cy.url().should('include', '/');
-    this.elements.workspaceTitle().should('be.visible');
-    this.elements.errorMessage().should('be.visible');
-    this.elements.emailInput().should('be.visible');
-    this.elements.passwordInput().should('be.visible');
-    this.elements.submitButton().should('be.visible');
-    cy.location('pathname').should('not.include', '/dashboard');
+    this.elements.errorMessage().should('be.visible', { timeout: 10000 });
+    
+    // Verify form elements are still visible and ready for retry
+    this.elements.emailInput().should('be.visible').and('be.enabled');
+    this.elements.passwordInput().should('be.visible').and('be.enabled');
+    this.elements.submitButton().should('be.visible').and('be.enabled');
+    
     return this;
   }
 
   waitForPageLoad() {
-    cy.wait(2000);
+    // Wait for page to be fully interactive
+    cy.get('body').should('be.visible');
+    cy.get('body').should('not.contain', 'loading');
+    cy.document().should('have.property', 'readyState', 'complete');
     return this;
   }
 

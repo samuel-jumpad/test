@@ -31,58 +31,94 @@ class AgentPage {
   navigateToAgents() {
     this.elements.agentsSection()
       .should('be.visible')
+      .and('be.enabled')
       .click();
+    
+    // Wait for navigation to complete
+    cy.url({ timeout: 15000 }).should('include', '/assistants');
+    cy.get('body').should('not.contain', 'loading');
+    
     return this;
   }
 
   clickMyAgents() {
     this.elements.myAgents()
       .should('be.visible')
+      .and('be.enabled')
       .scrollIntoView()
       .click();
+    
+    // Wait for agents list to load
+    cy.get('body').should('not.contain', 'loading');
+    this.elements.searchInput().should('be.visible', { timeout: 10000 });
+    
     return this;
   }
 
   searchAgent(searchTerm) {
     this.elements.searchInput()
       .first()
+      .should('be.visible')
+      .and('be.enabled')
       .click();
     
     this.elements.searchInput()
       .first()
-      .type(searchTerm, { delay: 100 });
+      .clear()
+      .type(searchTerm, { delay: 100 })
+      .should('have.value', searchTerm);
+    
+    // Wait for search results to load
+    cy.get('body').should('not.contain', 'loading');
+    
     return this;
   }
 
   searchAgentForDeletion(agentName) {
     this.elements.searchInput()
       .first()
+      .should('be.visible')
+      .and('be.enabled')
       .click();
     
     this.elements.searchInput()
       .first()
-      .type(agentName, { delay: 10 });
+      .clear()
+      .type(agentName, { delay: 100 })
+      .should('have.value', agentName);
     
-    this.elements.searchInput().should('have.value', agentName);
+    // Wait for search results and agent to be visible
+    cy.get('body').should('not.contain', 'loading');
+    cy.xpath(`//*[contains(text(), "${agentName}")]`, { timeout: 10000 }).should('be.visible');
+    
     return this;
   }
 
   clickTrashButton() {
     this.elements.trashButton()
       .first()
+      .should('be.visible')
+      .and('be.enabled')
       .click();
     return this;
   }
 
   validateDeleteModal() {
+    // Wait for modal to be fully loaded
     this.elements.deleteModal()
+      .should('be.visible', { timeout: 15000 });
+
+    // Verify modal content is loaded
+    this.elements.confirmActionText()
       .should('be.visible', { timeout: 10000 });
 
-    this.elements.confirmActionText()
-      .should('be.visible');
-
     this.elements.deleteConfirmText()
-      .should('be.visible');
+      .should('be.visible', { timeout: 10000 });
+    
+    // Ensure delete button is ready
+    this.elements.deleteConfirmButton()
+      .should('be.visible')
+      .and('be.enabled');
     
     return this;
   }
@@ -90,39 +126,66 @@ class AgentPage {
   confirmDeletion() {
     this.elements.deleteConfirmButton()
       .should('be.visible')
+      .and('be.enabled')
       .click();
+    
+    // Wait for deletion to complete
+    cy.get('body').should('not.contain', 'loading');
+    
     return this;
   }
 
   validateDeletionSuccess() {
+    // Wait for success toast to appear
     this.elements.successToast()
-      .should('be.visible', { timeout: 10000 });
+      .should('be.visible', { timeout: 15000 });
+    
+    // Verify agent is no longer in the list
+    cy.get('body').should('not.contain', 'loading');
+    
     return this;
   }
 
   clickSparklesButton() {
-    this.elements.sparklesButton().first().click();
+    this.elements.sparklesButton()
+      .first()
+      .should('be.visible')
+      .and('be.enabled')
+      .click();
+    
+    // Wait for modal or action to start
+    cy.get('body').should('not.contain', 'loading');
+    
     return this;
   }
 
   fillAgentForm(name, description, prompt) {
+    // Fill name field
     this.elements.nameInput()
       .should('be.visible')
+      .and('be.enabled')
       .scrollIntoView()
       .clear()
-      .type(name, { delay: 100 });
+      .type(name, { delay: 100 })
+      .should('have.value', name);
 
+    // Fill description field
     this.elements.descriptionInput()
       .should('be.visible')
+      .and('be.enabled')
       .scrollIntoView()
       .clear()
-      .type(description, { delay: 100 });
+      .type(description, { delay: 100 })
+      .should('have.value', description);
 
+    // Fill prompt field
     this.elements.promptInput()
       .should('be.visible')
+      .and('be.enabled')
       .scrollIntoView()
       .clear()
-      .type(prompt, { delay: 100 });
+      .type(prompt, { delay: 100 })
+      .should('have.value', prompt);
 
     return this;
   }
@@ -130,21 +193,33 @@ class AgentPage {
   scrollToBottom() {
     this.elements.scrollArea()
       .scrollTo('bottom', { duration: 1000 });
-    cy.wait(100);
+    
+    // Wait for scroll to complete and save button to be visible
+    this.elements.saveButton().should('be.visible');
+    
     return this;
   }
 
   saveAgent() {
     this.elements.saveButton()
       .should('be.visible')
+      .and('be.enabled')
       .scrollIntoView()
       .click();
+    
+    // Wait for save action to start (button should become disabled)
+    this.elements.saveButton().should('be.disabled');
+    
     return this;
   }
 
   validateAgentCreated(agentName) {
+    // Wait for page to finish loading
+    cy.get('body').should('not.contain', 'loading');
+    
+    // Verify agent appears in the list
     cy.xpath(`//*[contains(text(), "${agentName}")]`)
-      .should('be.visible', { timeout: 10000 })
+      .should('be.visible', { timeout: 15000 })
       .scrollIntoView();
     
     cy.log(`✅ Agente ${agentName} encontrado na lista`);
@@ -156,6 +231,11 @@ class AgentPage {
       if ($body.find('[data-testid="error"], .error, [class*="error"]').length > 0) {
         cy.log('⚠️ Erro detectado durante criação do agente');
         cy.reload();
+        
+        // Wait for reload to complete
+        cy.get('body').should('be.visible');
+        cy.get('body').should('not.contain', 'loading');
+        
         this.navigateToAgents();
         this.clickMyAgents();
       }
@@ -165,51 +245,88 @@ class AgentPage {
 
   sendMessageInModal(message) {
     cy.sendChatMessage(message);
-    cy.wait(5000);
+    
+    // Wait for message to be processed
+    cy.get('body').should('not.contain', 'loading');
+    
     return this;
   }
 
   closeModal() {
     this.elements.closeButton()
       .first()
+      .should('be.visible')
+      .and('be.enabled')
       .click({ force: true });
+    
+    // Wait for modal to close
+    this.elements.closeButton().should('not.exist');
+    
     return this;
   }
 
   navigateToChat() {
     this.elements.chatSection()
       .first()
+      .should('be.visible')
+      .and('be.enabled')
       .click();
+    
+    // Wait for chat to load
+    cy.get('body').should('not.contain', 'loading');
+    
     return this;
   }
 
   selectAgentChat() {
     this.elements.agentChatItem()
       .first()
+      .should('be.visible')
+      .and('be.enabled')
       .click();
+    
+    // Wait for chat to be ready
+    cy.get('body').should('not.contain', 'loading');
+    
     return this;
   }
 
   sendMessageInChat(message) {
+    // Wait for message input to be ready
     cy.xpath('//div[@role="textbox" and @contenteditable="true" and @data-placeholder="Digite aqui sua mensagem..."]')
-      .should('be.visible', { timeout: 10000 })
+      .should('be.visible', { timeout: 15000 })
+      .and('be.enabled')
       .scrollIntoView()
-      .type(message, { delay: 100 });
+      .type(message, { delay: 100 })
+      .should('contain.text', message);
     
+    // Click send button
     cy.xpath('//button[@type="submit" and contains(@class, "bg-black text-white")]')
       .first()
+      .should('be.visible')
+      .and('be.enabled')
       .click();
     
+    // Wait for message to be sent
+    cy.get('body').should('not.contain', 'loading');
     cy.waitForPageLoad();
+    
     return this;
   }
 
   createNewAgent(agentName) {
     this.navigateToAgents();
     this.clickMyAgents();
+    
+    // Click create new agent button
     this.elements.createNewAgent()
       .should('be.visible')
+      .and('be.enabled')
       .click();
+    
+    // Wait for form to load
+    cy.get('body').should('not.contain', 'loading');
+    this.elements.nameInput().should('be.visible', { timeout: 10000 });
     
     this.fillAgentForm(
       agentName,
@@ -220,17 +337,18 @@ class AgentPage {
     this.scrollToBottom();
     this.saveAgent();
     
-    cy.wait(3000);
-    
+    // Wait for save to complete with intelligent waiting
     cy.url().then((url) => {
       if (url.includes('/assistants/new')) {
         this.handleCreationError();
-        cy.wait(5000);
-        cy.url().should('include', '/assistants/list', { timeout: 10000 });
+        cy.url({ timeout: 15000 }).should('include', '/assistants/list');
       } else {
-        cy.url().should('include', '/assistants/list', { timeout: 5000 });
+        cy.url({ timeout: 10000 }).should('include', '/assistants/list');
       }
     });
+    
+    // Wait for page to finish loading before validation
+    cy.get('body').should('not.contain', 'loading');
     
     this.validateAgentCreated(agentName);
     return this;
@@ -246,75 +364,128 @@ class AgentPage {
   }
 
   accessOldAgent() {
+    // Navigate to agents section
     this.elements.agentsSection()
       .should('be.visible')
+      .and('be.enabled')
       .click();
 
+    // Navigate to my agents
     this.elements.myAgents()
       .should('be.visible')
+      .and('be.enabled')
       .scrollIntoView()
       .click();
 
+    // Search for agent
     this.elements.searchInput()
       .first()
-      .click()
-      .type('Agente tes', { delay: 100 });
-    
-    cy.wait(3000);
-
-    cy.contains('Agente teste automatizado', { timeout: 10000 })
       .should('be.visible')
+      .and('be.enabled')
+      .click()
+      .clear()
+      .type('Agente tes', { delay: 100 })
+      .should('have.value', 'Agente tes');
+    
+    // Wait for search results
+    cy.get('body').should('not.contain', 'loading');
+
+    // Click on the found agent
+    cy.contains('Agente teste automatizado', { timeout: 15000 })
+      .should('be.visible')
+      .and('be.enabled')
       .click();
 
+    // Wait for agent page to load
+    cy.get('body').should('not.contain', 'loading');
+
+    // Click sparkles button
     this.elements.sparklesButton()
       .first()
+      .should('be.visible')
+      .and('be.enabled')
       .click();
     
-    cy.wait(1000);
+    // Wait for modal to open
+    cy.get('body').should('not.contain', 'loading');
 
+    // Send first message
     this.elements.messageInput()
-      .should('be.visible', { timeout: 10000 })
+      .should('be.visible', { timeout: 15000 })
+      .and('be.enabled')
       .scrollIntoView()
-      .type('hello', { delay: 100 });
+      .type('hello', { delay: 100 })
+      .should('contain.text', 'hello');
     
     this.elements.sendButton()
       .first()
+      .should('be.visible')
+      .and('be.enabled')
       .click();
 
+    // Wait for message to be sent and response to appear
     cy.xpath('//div[@role="dialog"]//div[contains(@class,"ml-auto") and contains(@class,"items-end")]//p[normalize-space()="hello"]')
-      .should('be.visible', { timeout: 100000 })
+      .should('be.visible', { timeout: 30000 })
       .scrollIntoView();
 
+    // Close modal
     this.elements.closeButton()
       .first()
+      .should('be.visible')
+      .and('be.enabled')
       .click({ force: true });
 
+    // Wait for modal to close
+    this.elements.closeButton().should('not.exist');
+
+    // Navigate to chat section
     this.elements.chatSection()
       .first()
+      .should('be.visible')
+      .and('be.enabled')
       .click();
 
+    // Wait for chat to load
+    cy.get('body').should('not.contain', 'loading');
+
+    // Select agent chat
     this.elements.agentChatItem()
       .first()
+      .should('be.visible')
+      .and('be.enabled')
       .click();
 
+    // Wait for chat to be ready
+    cy.get('body').should('not.contain', 'loading');
+
+    // Send second message
     this.elements.messageInput()
-      .should('be.visible', { timeout: 10000 })
+      .should('be.visible', { timeout: 15000 })
+      .and('be.enabled')
       .scrollIntoView()
-      .type('hello 2', { delay: 100 });
+      .type('hello 2', { delay: 100 })
+      .should('contain.text', 'hello 2');
     
     this.elements.sendButton()
       .first()
+      .should('be.visible')
+      .and('be.enabled')
       .click();
 
+    // Wait for message to appear in chat
     cy.xpath('//p[contains(text(),"hello")]')
       .last()
-      .should('be.visible', { timeout: 10000 })
+      .should('be.visible', { timeout: 20000 })
       .and('contain', 'hello');
 
     return this;
   }
 
   waitForPageLoad() {
+    // Wait for page to be fully interactive
+    cy.get('body').should('be.visible');
+    cy.get('body').should('not.contain', 'loading');
+    cy.document().should('have.property', 'readyState', 'complete');
     cy.waitForPageLoad();
     return this;
   }

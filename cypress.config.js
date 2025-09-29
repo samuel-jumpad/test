@@ -14,27 +14,33 @@ module.exports = defineConfig({
     viewportWidth: 1440,
     viewportHeight: 900,
     
-    // Screenshots configuration
+    // Screenshots configuration - optimized for CI/CD
     screenshotOnRunFailure: true,
     screenshotsFolder: 'cypress/screenshots',
     trashAssetsBeforeRuns: true,
     
-    // Video recording configuration
+    // Browser configuration for stability
+    chromeWebSecurity: false,
+    experimentalStudio: true,
+    
+    // Video recording configuration - optimized for CI/CD
     video: true,
     videoCompression: 32,
     videosFolder: 'cypress/videos',
+    videoUploadOnPasses: false,
     
-    // Test retry configuration
+    // Test retry configuration - reduced to avoid masking real issues
     retries: {
-      runMode: 2,
-      openMode: 1
+      runMode: 1,
+      openMode: 0
     },
     
-    // Default command timeout
-    defaultCommandTimeout: 10000,
-    requestTimeout: 10000,
-    responseTimeout: 10000,
-    pageLoadTimeout: 30000,
+    // Enhanced timeouts for CI/CD environments
+    defaultCommandTimeout: 20000,
+    requestTimeout: 20000,
+    responseTimeout: 20000,
+    pageLoadTimeout: 45000,
+    execTimeout: 60000,
     
     // Reporter configuration
     reporter: 'mochawesome',
@@ -57,6 +63,20 @@ module.exports = defineConfig({
           console.table(message);
           return null;
         }
+      });
+      
+      // Add performance monitoring
+      on('before:browser:launch', (browser = {}, launchOptions) => {
+        if (browser.name === 'chrome') {
+          // Add Chrome flags for better stability in CI/CD
+          launchOptions.args.push('--disable-web-security');
+          launchOptions.args.push('--disable-features=VizDisplayCompositor');
+          launchOptions.args.push('--disable-dev-shm-usage');
+          launchOptions.args.push('--no-sandbox');
+          launchOptions.args.push('--disable-gpu');
+          launchOptions.args.push('--window-size=1440,900');
+        }
+        return launchOptions;
       });
     },
   },

@@ -1,0 +1,9 @@
+{
+  "success": true,
+  "message": {
+    "id": "msg-123",
+    "content": "Response from agent",
+    "timestamp": "2024-01-01T00:00:00Z"
+  },
+  "response": "Agent response received"
+}

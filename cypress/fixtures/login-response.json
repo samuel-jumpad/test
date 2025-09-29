@@ -1,0 +1,10 @@
+{
+  "success": true,
+  "token": "mock-jwt-token",
+  "user": {
+    "id": "123",
+    "email": "teste@email.com",
+    "name": "Test User"
+  },
+  "redirect": "/dashboard"
+}
