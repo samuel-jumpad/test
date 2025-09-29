@@ -65,6 +65,7 @@ module.exports = defineConfig({
         }
       });
       
+      
       // Add performance monitoring
       on('before:browser:launch', (browser = {}, launchOptions) => {
         if (browser.name === 'chrome') {

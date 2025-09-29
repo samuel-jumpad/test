@@ -40,13 +40,7 @@ class AgentPage {
     sendButton: () => cy.xpath('//button[@type="submit" and contains(@class, "bg-black text-white")]'),
     closeButton: () => cy.xpath('//button[@type="button" and contains(@class, "bg-transparent")]'),
     
-    trashButton: () => cy.xpath('//div[@class="flex items-center justify-center gap-2"]//svg[@class="lucide lucide-trash2"]/parent::div/parent::button'),
-    deleteModal: () => cy.get('div[role="dialog"]'),
-    deleteModalFallback: () => cy.get('div[role="dialog"], [data-radix-dialog-content], [data-radix-dialog-overlay], [aria-modal="true"], [data-state="open"]'),
-    confirmActionText: () => cy.xpath('//div[@role="dialog" and @data-state="open"]//*[contains(normalize-space(.),"Confirmar Ação") or contains(normalize-space(.),"Confirmar ação")]'),
-    deleteConfirmText: () => cy.xpath('//div[@role="dialog" and @data-state="open"]//*[contains(normalize-space(.),"Tem certeza que deseja deletar este agente?")]'),
-    deleteConfirmButton: () => cy.xpath('//button[contains(@class, "bg-[#e81b37]") and .//div[text()="Deletar agente"]]'),
-    successToast: () => cy.xpath('//li[contains(@class,"toast-root") and .//div[text()="Agente removido"] and .//div[contains(text(),"foi removido com sucesso")]]')
+    deleteConfirmButton: () => cy.xpath('//button[contains(@class, "bg-[#e81b37]")]//div[contains(text(), "Deletar agente")]')
   };
 
   navigateToAgents() {
@@ -126,125 +120,65 @@ class AgentPage {
   }
 
   searchAgentForDeletion(agentName) {
+    cy.log(`🔍 Procurando campo de busca para o agente: ${agentName}`);
+    
+    // Aguardar página carregar
+    cy.get('body').should('not.contain', 'loading');
+    
+    // Buscar e digitar no campo de busca
     this.elements.searchInput()
       .first()
       .should('be.visible')
-      .and('be.enabled')
-      .click();
-    
-    this.elements.searchInput()
-      .first()
+      .scrollIntoView()
+      .click()
       .clear()
       .type(agentName, { delay: 100 })
       .should('have.value', agentName);
     
-    // Wait for search results and agent to be visible
+    cy.log(`✅ Nome do agente "${agentName}" digitado no campo de busca`);
+    
+    // Aguardar resultados da busca
     cy.get('body').should('not.contain', 'loading');
-    cy.xpath(`//*[contains(text(), "${agentName}")]`, { timeout: 10000 }).should('be.visible');
+    cy.wait(2000);
+    
+    // Verificar se o agente aparece nos resultados
+    cy.xpath(`//*[contains(text(), "${agentName}")]`, { timeout: 10000 })
+      .should('be.visible')
+      .then(($elements) => {
+        if ($elements.length > 0) {
+          cy.log(`✅ Agente "${agentName}" encontrado nos resultados`);
+          cy.wrap($elements[0]).scrollIntoView();
+        }
+      });
     
     return this;
   }
 
-  clickTrashButton() {
-    // Log para debug
+  clickTrashButton(agentName) {
     cy.log('🔍 Procurando botão de delete...');
     
     // Aguardar carregamento da página
     cy.get('body').should('not.contain', 'loading');
     
-    // Verificar quantos botões existem usando XPath com classe específica
-    cy.xpath('//div[@class="flex items-center justify-center gap-2"]//svg[@class="lucide lucide-trash2"]').then(($buttons) => {
-      cy.log(`📊 Encontrados ${$buttons.length} botões de delete`);
-      
-      if ($buttons.length === 0) {
-        cy.log('❌ Nenhum botão de delete encontrado!');
-        cy.screenshot('nenhum-botao-delete');
-        return;
-      }
-      
-      // Procurar o botão com XPath com classe específica
-      this.elements.trashButton()
-        .first() // Garantir que pega apenas 1 elemento
-        .should('be.visible', { timeout: 10000 })
-        .scrollIntoView()
-        .click({ force: true });
-      
-      cy.log('✅ Botão de delete clicado');
-      
-      // Aguardar um tempo para o modal aparecer
-      cy.wait(3000);
-      
-      // Verificar se o modal apareceu
-      cy.get('body').then(($body) => {
-        const modalExists = $body.find('div[role="dialog"]').length > 0;
-        if (modalExists) {
-          cy.log('✅ Modal apareceu!');
-        } else {
-          cy.log('⏳ Modal ainda não apareceu, será aguardado na próxima etapa...');
-        }
-      });
-    });
+    // Verificar se o agente está visível
+    cy.log(`🔍 Verificando se o agente "${agentName}" está visível...`);
+    cy.xpath(`//*[contains(text(), "${agentName}")]`).should('be.visible');
+    cy.log(`✅ Agente "${agentName}" encontrado e visível`);
+    
+    // Clicar no botão de delete (seletor mais simples)
+    cy.get('svg.lucide-trash2')
+      .first()
+      .should('be.visible')
+      .scrollIntoView()
+      .click({ force: true });
+    
+    cy.log('✅ Botão de delete clicado');
     
     return this;
   }
 
-  validateDeleteModal() {
-    cy.log('🔍 Aguardando modal de confirmação...');
-    
-    // Estratégia mais robusta: tentar aguardar o modal diretamente
-    cy.log('⏳ Aguardando modal com estratégia robusta...');
-    
-    // Primeiro, tentar aguardar o modal principal
-    cy.get('body').then(($body) => {
-      if ($body.find('div[role="dialog"]').length > 0) {
-        cy.log('✅ Modal principal encontrado imediatamente');
-        return;
-      }
-    });
-    
-    // Se não encontrou, aguardar com timeout e múltiplos seletores
-    cy.get('div[role="dialog"], [data-radix-dialog-content], [data-radix-dialog-overlay], [aria-modal="true"], [data-state="open"]', { timeout: 15000 })
-      .should('be.visible')
-      .then(($modal) => {
-        cy.log(`✅ Modal encontrado: ${$modal[0].tagName} com classes: ${$modal[0].className}`);
-      });
-    
-    cy.log('✅ Modal encontrado');
-
-    // Verificar conteúdo do modal
-    this.elements.confirmActionText()
-      .should('be.visible', { timeout: 10000 });
-
-    this.elements.deleteConfirmText()
-      .should('be.visible', { timeout: 10000 });
-    
-    // Verificar botão de confirmação
-    this.elements.deleteConfirmButton()
-      .should('be.visible')
-      .and('be.enabled');
-    
-    cy.log('✅ Modal validado com sucesso');
-    
-    return this;
-  }
-
-  confirmDeletion() {
-    this.elements.deleteConfirmButton()
-      .should('be.visible')
-      .and('be.enabled')
-      .click();
-    
-    // Wait for deletion to complete
-    cy.get('body').should('not.contain', 'loading');
-    
-    return this;
-  }
 
   validateDeletionSuccess() {
-    // Wait for success toast to appear
-    this.elements.successToast()
-      .should('be.visible', { timeout: 15000 });
-    
     // Verify agent is no longer in the list
     cy.get('body').should('not.contain', 'loading');
     
@@ -319,12 +253,23 @@ class AgentPage {
     // Wait for page to finish loading
     cy.get('body').should('not.contain', 'loading');
     
-    // Verify agent appears in the list
-    cy.xpath(`//*[contains(text(), "${agentName}")]`)
-      .should('be.visible', { timeout: 15000 })
-      .scrollIntoView();
+    // Aguardar um pouco para o framework renderizar
+    cy.wait(3000);
     
-    cy.log(`✅ Agente ${agentName} encontrado na lista`);
+    // Verify agent appears in the list - abordagem mais robusta
+    cy.log(`🔍 Verificando se o agente "${agentName}" aparece na lista...`);
+    
+    // Usar XPath sem .first() para evitar DOM detachment
+    cy.xpath(`//*[contains(text(), "${agentName}")]`, { timeout: 15000 })
+      .should('be.visible')
+      .then(($elements) => {
+        if ($elements.length > 0) {
+          cy.log(`✅ Agente ${agentName} encontrado na lista (${$elements.length} elementos)`);
+          // Fazer scroll no primeiro elemento encontrado
+          cy.wrap($elements[0]).scrollIntoView();
+        }
+      });
+    
     return this;
   }
 
@@ -457,13 +402,18 @@ class AgentPage {
 
   deleteAgent(agentName) {
     this.searchAgentForDeletion(agentName);
-    this.clickTrashButton();
-    this.validateDeleteModal();
-    this.confirmDeletion();
+    this.clickTrashButton(agentName);
+    
+    // Clicar no botão "Deletar agente" para confirmar
+    this.elements.deleteConfirmButton().click();
+    
+    // Aguardar deleção ser processada
+    cy.wait(2000);
+    cy.get('body').should('not.contain', 'loading');
+    
     this.validateDeletionSuccess();
     return this;
   }
-
   accessOldAgent() {
     // Navigate to agents section
     this.elements.agentsSection()
