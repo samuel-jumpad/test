@@ -340,3 +340,140 @@ Cypress.Commands.add('logout', () => {
   cy.get('input[name="password"]', { timeout: 15000 }).should('be.visible');
   cy.get('button[type="submit"]', { timeout: 15000 }).should('be.visible');
 });
+
+// Comando para aguardar elemento com múltiplas tentativas
+Cypress.Commands.add('waitForElementWithRetry', (selector, options = {}) => {
+  const { timeout = 10000, retries = 3, interval = 2000 } = options;
+  
+  for (let i = 0; i < retries; i++) {
+    cy.log(`🔍 Tentativa ${i + 1}/${retries} para encontrar elemento: ${selector}`);
+    
+    cy.get('body').then(($body) => {
+      if ($body.find(selector).length > 0) {
+        cy.log(`✅ Elemento encontrado na tentativa ${i + 1}`);
+        return cy.get(selector).first();
+      } else {
+        cy.log(`❌ Elemento não encontrado na tentativa ${i + 1}`);
+        if (i < retries - 1) {
+          cy.wait(interval);
+        }
+      }
+    });
+  }
+  
+  cy.log('❌ Elemento não encontrado após todas as tentativas');
+  cy.screenshot(`elemento-nao-encontrado-${selector.replace(/[^a-zA-Z0-9]/g, '-')}`);
+  throw new Error(`Elemento ${selector} não foi encontrado após ${retries} tentativas`);
+});
+
+// Comando para aguardar página carregar completamente
+Cypress.Commands.add('waitForPageToLoad', (options = {}) => {
+  const { timeout = 30000 } = options;
+  
+  cy.log('⏳ Aguardando página carregar completamente...');
+  
+  // Aguardar body estar visível
+  cy.get('body').should('be.visible');
+  
+  // Aguardar loading desaparecer
+  cy.get('body').should('not.contain', 'loading');
+  
+  // Aguardar document estar completo
+  cy.document().should('have.property', 'readyState', 'complete');
+  
+  // Aguardar um pouco mais para garantir que tudo carregou
+  cy.wait(2000);
+  
+  cy.log('✅ Página carregada completamente');
+});
+
+// Comando para clicar em elemento com espera inteligente
+Cypress.Commands.add('clickWithSmartWait', (selector, options = {}) => {
+  const { timeout = 10000, retries = 3 } = options;
+  
+  cy.log(`🔍 Procurando elemento para clicar: ${selector}`);
+  
+  for (let i = 0; i < retries; i++) {
+    cy.get('body').then(($body) => {
+      if ($body.find(selector).length > 0) {
+        cy.log(`✅ Elemento encontrado, clicando...`);
+        cy.get(selector).first()
+          .should('be.visible')
+          .scrollIntoView()
+          .click();
+        
+        // Aguardar ação completar
+        cy.get('body').should('not.contain', 'loading');
+        cy.wait(1000);
+        return;
+      } else {
+        cy.log(`❌ Elemento não encontrado na tentativa ${i + 1}`);
+        if (i < retries - 1) {
+          cy.wait(2000);
+        }
+      }
+    });
+  }
+  
+  cy.log('❌ Elemento não encontrado após todas as tentativas');
+  cy.screenshot(`elemento-nao-encontrado-${selector.replace(/[^a-zA-Z0-9]/g, '-')}`);
+  throw new Error(`Elemento ${selector} não foi encontrado para clicar`);
+});
+
+// Comando para navegar para agentes com tratamento robusto
+Cypress.Commands.add('navigateToAgentsRobust', () => {
+  cy.log('🚀 Navegando para página de agentes...');
+  
+  // Navegar diretamente para a página de agentes
+  cy.visit('/assistants', { timeout: 30000 });
+  
+  // Aguardar página carregar
+  cy.waitForPageToLoad();
+  
+  // Verificar se chegou na página correta
+  cy.url().should('include', '/assistants');
+  cy.log('✅ Navegação para agentes concluída');
+});
+
+// Comando para encontrar e clicar no botão "Cadastrar novo agente"
+Cypress.Commands.add('clickCreateNewAgent', () => {
+  cy.log('🔍 Procurando botão "Cadastrar novo agente"...');
+  
+  const createButtonSelectors = [
+    '//div[contains(@class, "flex items-center justify-center gap-2") and .//text()="Cadastrar Novo Agente"]',
+    '//button[contains(text(), "Cadastrar")]',
+    '//div[contains(text(), "Cadastrar")]',
+    '//span[contains(text(), "Cadastrar")]',
+    '//*[contains(text(), "Cadastrar novo agente")]',
+    '//*[contains(text(), "Cadastrar Novo Agente")]',
+    '//*[contains(text(), "Novo Agente")]',
+    '//*[contains(text(), "novo agente")]'
+  ];
+  
+  let buttonFound = false;
+  for (const selector of createButtonSelectors) {
+    cy.get('body').then(($body) => {
+      if ($body.find(selector).length > 0) {
+        cy.log(`✅ Botão "Cadastrar novo agente" encontrado: ${selector}`);
+        cy.xpath(selector).first()
+          .should('be.visible')
+          .scrollIntoView()
+          .click();
+        buttonFound = true;
+      }
+    });
+    
+    if (buttonFound) break;
+    cy.wait(1000);
+  }
+  
+  if (!buttonFound) {
+    cy.log('❌ Botão "Cadastrar novo agente" não encontrado, tirando screenshot');
+    cy.screenshot('cadastrar-novo-agente-nao-encontrado');
+    throw new Error('Botão "Cadastrar novo agente" não foi encontrado');
+  }
+  
+  // Aguardar formulário carregar
+  cy.waitForPageToLoad();
+  cy.log('✅ Botão "Cadastrar novo agente" clicado com sucesso');
+});

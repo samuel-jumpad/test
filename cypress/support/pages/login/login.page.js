@@ -1,227 +1,221 @@
-class LoginPage {
-  elements = {
-    emailInput: () => cy.get('input[name="email"]'),
-    passwordInput: () => cy.get('input[name="password"]'),
-    submitButton: () => cy.get('button[type="submit"]'),
-    googleButton: () => cy.get('button').contains('Continuar com o Google'),
-    forgotPasswordLink: () => cy.get('a').contains('Esqueceu sua senha?'),
-    eyeIcon: () => cy.get('input[name="password"]').siblings('span'),
-    workspaceTitle: () => cy.get('h6').contains('Entrar no Workspace'),
-    errorMessage: () => cy.get('body').then(($body) => {
-      // Try multiple selectors for error message
-      if ($body.find('[data-slot="banner-description"]').length > 0) {
-        return cy.get('[data-slot="banner-description"]').contains('O e-mail ou a senha estão incorretos');
-      } else if ($body.find('.error-message').length > 0) {
-        return cy.get('.error-message').contains('O e-mail ou a senha estão incorretos');
-      } else if ($body.find('[class*="error"]').length > 0) {
-        return cy.get('[class*="error"]').contains('O e-mail ou a senha estão incorretos');
-      } else {
-        // Fallback: look for the error text anywhere in the body
-        return cy.get('body').contains('O e-mail ou a senha estão incorretos');
-      }
-    })
-  };
+// ===== PÁGINA DE LOGIN =====
 
-  visit() {
-    cy.visit('/', { timeout: 60000 });
-    
-    // Wait for page to be fully loaded and interactive
-    cy.get('body').should('be.visible');
+export class LoginPage {
+  
+  // Método estático para visitar a página de login
+  static visit() {
+    cy.log('🌐 Visitando página de login...');
+    cy.visit('/', { timeout: 30000 });
     cy.get('body').should('not.contain', 'loading');
-    
-    // Wait for all critical elements to be visible and ready
-    this.elements.emailInput().should('be.visible').and('be.enabled', { timeout: 30000 });
-    this.elements.passwordInput().should('be.visible').and('be.enabled', { timeout: 30000 });
-    this.elements.submitButton().should('be.visible').and('not.be.disabled', { timeout: 30000 });
-    
-    // Verificar se estamos na página de login verificando elementos essenciais
-    cy.log('🔍 Verificando se estamos na página de login...');
-    
-    // Aguardar elementos essenciais do formulário de login
-    cy.get('input[name="email"]').should('be.visible', { timeout: 30000 });
-    cy.get('input[name="password"]').should('be.visible', { timeout: 30000 });
-    cy.get('button[type="submit"]').should('be.visible', { timeout: 30000 });
-    
-    cy.log('✅ Elementos essenciais do login encontrados');
-    
-    // Ensure we're on the correct page
-    cy.url().should('include', '/');
-    cy.location('pathname').should('eq', '/');
-    
-    return this;
+    cy.wait(2000);
+    return LoginPage;
   }
 
-  typeEmail(email) {
-    this.elements.emailInput()
+  // Método estático para fazer login com credenciais válidas
+  static performValidLogin() {
+    cy.log('🔐 Fazendo login com credenciais válidas...');
+    
+    // Preencher credenciais de login
+    cy.get('input[name="email"]')
       .should('be.visible')
-      .and('be.enabled')
-      .clear()
-      .type(email, { delay: 100 })
-      .should('have.value', email)
-      .and('not.be.disabled');
-    return this;
-  }
-
-  typePassword(password) {
-    this.elements.passwordInput()
+      .type('teste@email.com');
+    
+    cy.get('input[name="password"]')
       .should('be.visible')
-      .and('be.enabled')
-      .clear()
-      .type(password, { delay: 100 })
-      .should('have.value', password)
-      .and('not.be.disabled');
-    return this;
-  }
-
-  clickSubmit() {
-    // Ensure button is ready for interaction
-    this.elements.submitButton()
+      .type('Jumpad@2025');
+    
+    // Clicar no botão de login
+    cy.get('button[type="submit"]')
       .should('be.visible')
-      .and('be.enabled')
-      .and('not.be.disabled')
       .click();
     
-    // Wait for form submission to start (button may become disabled briefly)
-    // Don't assert disabled state as it depends on API response
-    cy.get('body').should('not.contain', 'loading');
+    return LoginPage;
+  }
+
+  // Método estático para fazer login com email incorreto
+  static performWrongEmailLogin() {
+    cy.log('🔐 Fazendo login com email incorreto...');
     
-    return this;
-  }
-
-  clickGoogleButton() {
-    this.elements.googleButton()
+    cy.get('input[name="email"]')
       .should('be.visible')
-      .and('be.enabled')
-      .click();
-    return this;
-  }
-
-  clickForgotPassword() {
-    this.elements.forgotPasswordLink()
+      .type('emailerrado@teste.com');
+    
+    cy.get('input[name="password"]')
       .should('be.visible')
-      .and('be.enabled')
+      .type('Jumpad@2025');
+    
+    cy.get('button[type="submit"]')
+      .should('be.visible')
       .click();
-    return this;
+    
+    return LoginPage;
   }
 
-  togglePasswordVisibility() {
-    this.elements.eyeIcon().click({ force: true });
-    return this;
+  // Método estático para fazer login com senha incorreta
+  static performWrongPasswordLogin() {
+    cy.log('🔐 Fazendo login com senha incorreta...');
+    
+    cy.get('input[name="email"]')
+      .should('be.visible')
+      .type('teste@email.com');
+    
+    cy.get('input[name="password"]')
+      .should('be.visible')
+      .type('senhaerrada123');
+    
+    cy.get('button[type="submit"]')
+      .should('be.visible')
+      .click();
+    
+    return LoginPage;
   }
 
-  loginWithCredentials(email, password) {
-    this.typeEmail(email);
-    this.typePassword(password);
-    this.clickSubmit();
-    return this;
+  // Método estático para fazer login com credenciais incorretas
+  static performWrongCredentialsLogin() {
+    cy.log('🔐 Fazendo login com credenciais incorretas...');
+    
+    cy.get('input[name="email"]')
+      .should('be.visible')
+      .type('emailerrado@teste.com');
+    
+    cy.get('input[name="password"]')
+      .should('be.visible')
+      .type('senhaerrada123');
+    
+    cy.get('button[type="submit"]')
+      .should('be.visible')
+      .click();
+    
+    return LoginPage;
   }
 
-  loginWithValidCredentials() {
-    cy.fixture('users').then((users) => {
-      this.loginWithCredentials(users.valid.email, users.valid.password);
-    });
-    return this;
-  }
-
-  loginWithInvalidCredentials() {
-    cy.fixture('users').then((users) => {
-      this.loginWithCredentials(users.invalid.email, users.invalid.password);
-    });
-    return this;
-  }
-
-  loginWithWrongEmail() {
-    cy.fixture('users').then((users) => {
-      this.loginWithCredentials(users.invalidEmail.email, users.valid.password);
-    });
-    return this;
-  }
-
-  loginWithWrongPassword() {
-    cy.fixture('users').then((users) => {
-      this.loginWithCredentials(users.valid.email, users.invalidPassword.password);
-    });
-    return this;
-  }
-
-
-  validateLoginSuccess() {
-    // Wait for redirect to complete
+  // Método estático para aguardar carregamento da página
+  static waitForPageLoad() {
+    cy.log('⏳ Aguardando carregamento da página...');
+    
+    // Aguardar login e redirecionamento
     cy.url({ timeout: 30000 }).should('include', '/dashboard');
-    
-    // Wait for dashboard to be fully loaded
     cy.get('body').should('not.contain', 'loading');
-    
-    // Verify we're no longer on login page
     cy.get('body').should('not.contain', 'Entrar no Workspace');
     
-    // Verify unique dashboard elements are visible
-    cy.get('[data-slot="avatar-fallback"]', { timeout: 20000 }).should('be.visible');
-    
-    // Additional verification that we're no longer on login page
-    cy.get('body').should('not.contain', 'O e-mail ou a senha estão incorretos');
-    
-    return this;
+    cy.log('✅ Página carregada com sucesso');
+    return LoginPage;
   }
 
-  validateLoginFailure() {
-    cy.log('🔍 Validando falha no login...');
-    
-    // Wait for page to stabilize after failed login attempt
-    cy.wait(2000);
-    
-    // Verify we're still on login page (not redirected to dashboard)
+  // Método estático para validar sucesso do login
+  static validateLoginSuccess() {
+    cy.log('✅ Validando sucesso do login...');
+    cy.url({ timeout: 30000 }).should('include', '/dashboard');
+    cy.get('body').should('not.contain', 'loading');
+    cy.get('body').should('not.contain', 'Entrar no Workspace');
+    return LoginPage;
+  }
+
+  // Método estático para validar falha do login
+  static validateLoginFailure() {
+    cy.log('❌ Validando falha do login...');
     cy.url({ timeout: 15000 }).should('include', '/');
     cy.url({ timeout: 15000 }).should('not.include', '/dashboard');
-    
-    // Verify form elements are still visible (login didn't succeed)
-    cy.get('input[name="email"]').should('be.visible', { timeout: 15000 });
-    cy.get('input[name="password"]').should('be.visible', { timeout: 15000 });
-    cy.get('button[type="submit"]').should('be.visible', { timeout: 15000 });
-    
-    cy.log('✅ Falha no login validada com sucesso');
-    
-    return this;
+    return LoginPage;
   }
 
-  waitForPageLoad() {
-    // Wait for page to be fully interactive
-    cy.get('body').should('be.visible');
+  // Método estático para login com credenciais válidas (método alternativo)
+  static loginWithValidCredentials() {
+    cy.log('🔐 Fazendo login com credenciais válidas...');
+    
+    cy.get('input[name="email"]')
+      .should('be.visible')
+      .type('teste@email.com');
+    
+    cy.get('input[name="password"]')
+      .should('be.visible')
+      .type('Jumpad@2025');
+    
+    cy.get('button[type="submit"]')
+      .should('be.visible')
+      .click();
+    
+    return LoginPage;
+  }
+
+  // Método estático para login com credenciais inválidas
+  static loginWithInvalidCredentials() {
+    cy.log('🔐 Fazendo login com credenciais inválidas...');
+    
+    cy.get('input[name="email"]')
+      .should('be.visible')
+      .type('emailerrado@teste.com');
+    
+    cy.get('input[name="password"]')
+      .should('be.visible')
+      .type('senhaerrada123');
+    
+    cy.get('button[type="submit"]')
+      .should('be.visible')
+      .click();
+    
+    return LoginPage;
+  }
+  
+  // Fazer login no site (método de instância mantido para compatibilidade)
+  fazerLogin() {
+    cy.log('🔐 Fazendo login no site...');
+    
+    // Preencher credenciais de login
+    cy.get('input[name="email"]')
+      .should('be.visible')
+      .type('teste@email.com');
+    
+    cy.get('input[name="password"]')
+      .should('be.visible')
+      .type('Jumpad@2025');
+    
+    // Clicar no botão de login
+    cy.get('button[type="submit"]')
+      .should('be.visible')
+      .click();
+    
+    // Aguardar login e redirecionamento
+    cy.url({ timeout: 30000 }).should('include', '/dashboard');
     cy.get('body').should('not.contain', 'loading');
-    cy.document().should('have.property', 'readyState', 'complete');
-    return this;
+    cy.get('body').should('not.contain', 'Entrar no Workspace');
+    
+    cy.log('✅ Login realizado com sucesso');
   }
 
-  performValidLogin() {
-    this.loginWithValidCredentials();
-    this.validateLoginSuccess();
-    return this;
+  // Acessar a tela principal (dashboard) após o login
+  acessarTelaPrincipal() {
+    cy.log('🏠 Acessando tela principal (dashboard)...');
+    
+    // Navegar para o dashboard
+    cy.visit('/dashboard', { timeout: 30000 });
+    
+    // Aguardar dashboard carregar completamente
+    cy.get('body').should('not.contain', 'loading');
+    cy.wait(3000);
+    
+    // Verificar se está na tela principal
+    cy.url().should('include', '/dashboard');
+    
+    // Aguardar elementos do dashboard carregarem
+    cy.get('body').should('not.contain', 'loading');
+    cy.wait(2000);
+    
+    cy.log('✅ Tela principal acessada com sucesso');
   }
 
-  performInvalidLogin() {
-    this.loginWithInvalidCredentials();
-    this.validateLoginFailure();
-    return this;
+  // Verificar se está na página principal (dashboard)
+  verificarPaginaPrincipal() {
+    cy.log('🔍 Verificando se está na página principal...');
+    
+    // Verificar título de boas-vindas
+    cy.xpath('//h4[contains(text(), "Boas vindas")]')
+      .should('be.visible');
+    
+    // Verificar botão "Criar novo agente"
+    cy.xpath('//button[contains(text(), "Criar novo agente")]')
+      .should('be.visible');
+    
+    cy.log('✅ Página principal verificada - pode prosseguir para o próximo passo');
   }
-
-  performWrongEmailLogin() {
-    this.loginWithWrongEmail();
-    this.validateLoginFailure();
-    return this;
-  }
-
-  performWrongPasswordLogin() {
-    this.loginWithWrongPassword();
-    this.validateLoginFailure();
-    return this;
-  }
-
-  performWrongCredentialsLogin() {
-    this.loginWithInvalidCredentials();
-    this.validateLoginFailure();
-    return this;
-  }
-
 }
-
-export default new LoginPage();

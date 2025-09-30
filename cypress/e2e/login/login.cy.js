@@ -1,4 +1,4 @@
-import LoginPage from '../../support/pages/login/login.page.js';
+import { LoginPage } from '../../support/pages/login/login.page.js';
 
 describe('Login-related tests', () => {
   beforeEach(() => {
