@@ -5,10 +5,13 @@ describe("Agents - Create and Delete Agent", () => {
   let agentName = '';
 
   beforeEach(() => {
+    cy.log('🔍 Iniciando setup do teste create-delete-agent...');
     cy.setupTest();
+    cy.log('✅ Setup concluído, iniciando teste...');
   });
 
   it("should create and delete agent successfully", () => {
+    // Generate unique agent name
     const count = Cypress.env('agentCounter') || 1;
     Cypress.env('agentCounter', count + 1);
     
@@ -18,9 +21,22 @@ describe("Agents - Create and Delete Agent", () => {
     const randomNoun = nouns[Math.floor(Math.random() * nouns.length)];
     agentName = `${count} - Agent ${randomAdj} ${randomNoun}`;
 
-    AgentPage
-      .createNewAgent(agentName)
-      .deleteAgent(agentName);
+    cy.log(`🤖 Testando criação e exclusão do agente: ${agentName}`);
+
+    // Step 1: Create Agent
+    cy.log('📝 Passo 1: Criando novo agente...');
+    AgentPage.createNewAgent(agentName);
+    cy.log('✅ Agente criado com sucesso');
+
+    // Wait a bit before deletion
+    cy.wait(3000);
+
+    // Step 2: Delete Agent
+    cy.log('🗑️ Passo 2: Excluindo agente...');
+    AgentPage.deleteAgent(agentName);
+    cy.log('✅ Agente excluído com sucesso');
+
+    cy.log(`🎉 Teste concluído com sucesso para o agente: ${agentName}`);
   });
 });
 
