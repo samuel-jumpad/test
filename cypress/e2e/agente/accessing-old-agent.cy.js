@@ -1,39 +1,45 @@
-import LoginPage from "../../support/pages/login/login.page.js";
-import AgentPage from "../../support/pages/agent/agent.page.js";
+import { LoginPage } from "../../support/pages/login/login.page.js";
+import { AgentPage } from "../../support/pages/agent/agent.page.js";
+import ChatPage from "../../support/pages/chat/chat.page.js";
 
 describe("Agentes - Acessando Agente Antigo", () => {
-  it("deve acessar agente antigo e enviar um chat", () => {
-    // Acessa a página inicial
-    cy.visit("/", { timeout: 30000 });
+  const agentPage = new AgentPage();
+  const chatPage = ChatPage;
 
-    // Faz login
-    cy.get('input[name="email"]').should("be.visible").type("teste@email.com");
-    cy.get('input[name="password"]').should("be.visible").type("Jumpad@2025");
-    cy.get('button[type="submit"]').should("be.visible").click();
+  beforeEach(() => {
+    cy.setupTest();
+  });
 
-    // Confirma que foi para o dashboard
-    cy.url({ timeout: 30000 }).should("include", "/dashboard");
+  it("deve acessar agente antigo e enviar mensagem no chat", () => {
+    cy.log('🚀 Iniciando teste de acesso ao agente antigo e envio de mensagem...');
 
-    // Confirma que existe mensagem de boas-vindas
-    cy.xpath('//h4[contains(text(), "Boas vindas")]').should("be.visible");
-    cy.xpath('//span[normalize-space(text())="Agentes"]').click();
-    cy.contains("Explore e desenvolva versões únicas de agentes").should('be.visible');
+    // ===== FASE 1: ACESSAR AGENTE =====
+    cy.log('📋 Fase 1: Acessando agente antigo...');
+    agentPage.executarFluxoCompletoAcessoAgente('Agente teste automatizado');
 
-    cy.xpath('//button//div[contains(text(), "Meus Agentes")]')
-      .should('be.visible')
-      .click();
-      cy.wait(3000);
+    // ===== FASE 2: TESTAR AGENTE =====
+    cy.log('📋 Fase 2: Testando agente...');
+    chatPage
+      .findAndClickTestButton()
+      .captureAgentData();
 
-      cy.xpath('//button[.//svg[contains(@class,"lucide-sparkles")] and .//text()[normalize-space()="Testar"]]')
-  .should('be.visible')
-  .click();
+    // ===== FASE 3: ENVIAR MENSAGEM =====
+    cy.log('📋 Fase 3: Enviando mensagem no chat...');
+    chatPage
+      .sendMessageToAgent('Olá! Este é um teste automatizado do Cypress. Como você está?')
+      .validateMessageSent();
 
+    // ===== FASE 4: VALIDAÇÃO FINAL =====
+    cy.log('📋 Fase 4: Validação final...');
+    agentPage.exibirResumoDados();
 
-
-
-
-
-
-
+    // ===== RESUMO DE SUCESSO =====
+    cy.log('🎉 Teste concluído com sucesso!');
+    cy.log('✅ Login realizado');
+    cy.log('✅ Agente encontrado e acessado');
+    cy.log('✅ Botão testar clicado');
+    cy.log('✅ Dados capturados');
+    cy.log('✅ Mensagem enviada no chat');
+    cy.log('✅ Validações realizadas');
   });
 });

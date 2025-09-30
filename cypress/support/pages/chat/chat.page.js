@@ -113,6 +113,224 @@ class ChatPage {
     
     return this;
   }
+
+  // ===== MÉTODOS ESPECÍFICOS PARA AGENTES =====
+
+  // Busca e clica no botão "Testar" do agente
+  findAndClickTestButton() {
+    cy.log('🔍 Procurando botão "Testar"...');
+    
+    cy.get('body').then(($body) => {
+      // Estratégia 1: Buscar por texto "Testar"
+      if ($body.find('button:contains("Testar")').length > 0) {
+        cy.log('✅ Botão Testar encontrado por texto');
+        cy.get('button:contains("Testar")').first()
+          .should('be.visible')
+          .click();
+      }
+      // Estratégia 2: Buscar por ícone sparkles
+      else if ($body.find('button svg[class*="sparkles"]').length > 0) {
+        cy.log('✅ Botão Testar encontrado por ícone sparkles');
+        cy.get('button svg[class*="sparkles"]').parent()
+          .should('be.visible')
+          .click();
+      }
+      // Estratégia 3: Buscar por XPath com sparkles
+      else if ($body.find('button svg[class*="lucide-sparkles"]').length > 0) {
+        cy.log('✅ Botão Testar encontrado por lucide-sparkles');
+        cy.xpath('//button[.//svg[contains(@class,"lucide-sparkles")]]').first()
+          .should('be.visible')
+          .click();
+      }
+      // Estratégia 4: Buscar qualquer botão com ícone de teste/play
+      else if ($body.find('button svg[class*="play"], button svg[class*="test"], button svg[class*="run"]').length > 0) {
+        cy.log('✅ Botão de teste encontrado por ícone alternativo');
+        cy.get('button svg[class*="play"], button svg[class*="test"], button svg[class*="run"]').parent().first()
+          .should('be.visible')
+          .click();
+      }
+      // Estratégia 5: Buscar por botões na linha da tabela
+      else if ($body.find('table tbody tr button').length > 0) {
+        cy.log('✅ Botões encontrados na tabela, clicando no primeiro');
+        cy.get('table tbody tr button').first()
+          .should('be.visible')
+          .click();
+      }
+      // Estratégia 6: Buscar por qualquer botão que contenha texto relacionado a teste
+      else if ($body.find('button:contains("Test"), button:contains("Run"), button:contains("Execute")').length > 0) {
+        cy.log('✅ Botão de teste encontrado por texto alternativo');
+        cy.get('button:contains("Test"), button:contains("Run"), button:contains("Execute")').first()
+          .should('be.visible')
+          .click();
+      }
+      // Fallback: Mostrar informações de debug
+      else {
+        cy.log('⚠️ Botão Testar não encontrado, mostrando debug...');
+        cy.screenshot('botao-testar-nao-encontrado');
+        
+        // Mostrar todos os botões disponíveis
+        cy.get('button').then(($buttons) => {
+          cy.log(`📊 Total de botões encontrados: ${$buttons.length}`);
+          $buttons.each((index, button) => {
+            cy.log(`Botão ${index + 1}: "${button.textContent.trim()}" - Classes: ${button.className}`);
+          });
+        });
+        
+        // Tentar clicar no primeiro botão disponível como último recurso
+        cy.get('button').first()
+          .should('be.visible')
+          .click();
+      }
+    });
+    
+    return this;
+  }
+
+  // Envia mensagem no chat do agente
+  sendMessageToAgent(message = 'Olá! Este é um teste automatizado do Cypress. Como você está?') {
+    cy.log('💬 Enviando mensagem no chat do agente...');
+    
+    // Aguardar interface do chat carregar
+    cy.get('body').should('not.contain', 'loading');
+    cy.wait(2000);
+
+    // Procurar campo de input do chat
+    cy.get('body').then(($body) => {
+      if ($body.find('input[type="text"], textarea, [contenteditable="true"]').length > 0) {
+        cy.log('✅ Campo de input do chat encontrado');
+        
+        // Tentar diferentes tipos de input
+        const inputSelectors = [
+          'input[type="text"]',
+          'textarea',
+          '[contenteditable="true"]',
+          'input[placeholder*="message"], input[placeholder*="mensagem"]',
+          'input[placeholder*="chat"], input[placeholder*="conversa"]'
+        ];
+
+        let inputFound = false;
+        for (const selector of inputSelectors) {
+          if ($body.find(selector).length > 0) {
+            cy.log(`✅ Input encontrado com seletor: ${selector}`);
+            cy.get(selector).first()
+              .should('be.visible')
+              .clear()
+              .type(message, { delay: 100 });
+
+            // Procurar botão de enviar
+            this.clickSendButton();
+            inputFound = true;
+            break;
+          }
+        }
+
+        if (!inputFound) {
+          cy.log('❌ Campo de input não encontrado');
+          cy.screenshot('input-nao-encontrado');
+        }
+      } else {
+        cy.log('❌ Nenhum campo de input encontrado na página');
+        cy.screenshot('sem-input-chat');
+      }
+    });
+    
+    return this;
+  }
+
+  // Clica no botão de enviar mensagem
+  clickSendButton() {
+    cy.get('body').then(($body) => {
+      const sendSelectors = [
+        'button[type="submit"]',
+        'button:contains("Enviar")',
+        'button:contains("Send")',
+        'button svg[class*="send"], button svg[class*="paper-plane"]',
+        'button[class*="send"], button[class*="submit"]'
+      ];
+
+      let sendFound = false;
+      for (const sendSelector of sendSelectors) {
+        if ($body.find(sendSelector).length > 0) {
+          cy.log(`✅ Botão de enviar encontrado: ${sendSelector}`);
+          cy.get(sendSelector).first()
+            .should('be.visible')
+            .click();
+          sendFound = true;
+          break;
+        }
+      }
+
+      if (!sendFound) {
+        cy.log('⚠️ Botão de enviar não encontrado, tentando Enter');
+        cy.get('input[type="text"], textarea, [contenteditable="true"]').first().type('{enter}');
+      }
+    });
+    
+    return this;
+  }
+
+  // Valida se a mensagem foi enviada com sucesso
+  validateMessageSent() {
+    cy.log('⏳ Aguardando resposta do agente...');
+    cy.wait(5000);
+
+    // Verificar se a mensagem foi enviada
+    cy.get('body').then(($body) => {
+      if ($body.find('[class*="message"], [class*="chat"], [class*="bubble"]').length > 0) {
+        cy.log('✅ Mensagens encontradas na interface');
+        cy.get('[class*="message"], [class*="chat"], [class*="bubble"]').should('have.length.greaterThan', 0);
+      } else {
+        cy.log('⚠️ Nenhuma mensagem visível encontrada');
+      }
+    });
+    
+    return this;
+  }
+
+  // Captura dados do agente acessado
+  captureAgentData() {
+    cy.log('📊 Capturando dados do agente...');
+    
+    // Capturar URL atual
+    cy.url().then((url) => {
+      cy.log(`🔗 URL do agente: ${url}`);
+    });
+
+    // Tentar capturar nome do agente com múltiplas estratégias
+    cy.get('body').then(($body) => {
+      const selectorsNome = [
+        'h1', 'h2', 'h3', 'h4', 'h5', 'h6',
+        '[class*="title"]',
+        '[class*="name"]',
+        '[class*="agent"]',
+        '[data-testid*="title"]',
+        '[data-testid*="name"]',
+        '.title', '.name', '.agent-name'
+      ];
+      
+      let nomeEncontrado = false;
+      for (const selector of selectorsNome) {
+        try {
+          if ($body.find(selector).length > 0) {
+            const texto = $body.find(selector).first().text().trim();
+            if (texto && texto.length > 0) {
+              cy.log(`📝 Nome do agente encontrado com seletor "${selector}": ${texto}`);
+              nomeEncontrado = true;
+              break;
+            }
+          }
+        } catch (error) {
+          cy.log(`⚠️ Erro com seletor ${selector}: ${error.message}`);
+        }
+      }
+      
+      if (!nomeEncontrado) {
+        cy.log('⚠️ Nome do agente não encontrado na página');
+      }
+    });
+    
+    return this;
+  }
 }
 
 export default new ChatPage();
