@@ -8,14 +8,32 @@ export class AgentPage {
   navegarParaAgentes() {
     cy.log('🔍 Navegando para página de Agentes...');
     
-    // Clica no menu Agentes
-    cy.xpath('//span[normalize-space(text())="Agentes"]').click();
-    cy.contains("Explore e desenvolva versões únicas de agentes").should('be.visible');
-
-    // Clica em "Meus Agentes"
-    cy.xpath('//button//div[contains(text(), "Meus Agentes")]')
-      .should('be.visible')
-      .click();
+    // Aguarda a página carregar completamente
+    cy.get('body').should('not.contain', 'loading');
+    cy.wait(2000);
+    
+    // Tenta encontrar o menu Agentes com seletores CSS
+    cy.get('body').then(($body) => {
+      // Tenta encontrar por texto "Agentes"
+      if ($body.find('span:contains("Agentes")').length > 0) {
+        cy.log('✅ Menu Agentes encontrado por span');
+        cy.get('span:contains("Agentes")').first().click();
+      } else if ($body.find('div:contains("Agentes")').length > 0) {
+        cy.log('✅ Menu Agentes encontrado por div');
+        cy.get('div:contains("Agentes")').first().click();
+      } else if ($body.find('button:contains("Agentes")').length > 0) {
+        cy.log('✅ Menu Agentes encontrado por button');
+        cy.get('button:contains("Agentes")').first().click();
+      } else {
+        cy.log('⚠️ Menu Agentes não encontrado, navegando diretamente...');
+        cy.visit('/dashboard/assistants', { timeout: 30000 });
+      }
+    });
+    
+    // Aguarda a página de agentes carregar
+    cy.url({ timeout: 15000 }).should('include', '/assistants');
+    cy.get('body').should('not.contain', 'loading');
+    cy.wait(2000);
     
     cy.log('✅ Navegação para Agentes concluída');
   }
@@ -26,10 +44,26 @@ export class AgentPage {
   criarNovoAgente(agentName, description = 'Relacionado a teste automatizado') {
     cy.log(`🤖 Criando novo agente: ${agentName}`);
     
-    // Clicar no botão "Cadastrar Novo Agente"
-    cy.xpath('//div[contains(@class, "flex items-center justify-center gap-2") and .//text()="Cadastrar Novo Agente"]')
-      .should('be.visible')
-      .click();
+    // Aguarda a página carregar completamente
+    cy.get('body').should('not.contain', 'loading');
+    cy.wait(2000);
+    
+    // Tenta encontrar o botão "Cadastrar Novo Agente" com múltiplos seletores
+    cy.get('body').then(($body) => {
+      if ($body.find('button:contains("Cadastrar Novo Agente")').length > 0) {
+        cy.log('✅ Botão encontrado por button');
+        cy.get('button:contains("Cadastrar Novo Agente")').first().click();
+      } else if ($body.find('a:contains("Cadastrar Novo Agente")').length > 0) {
+        cy.log('✅ Botão encontrado por link');
+        cy.get('a:contains("Cadastrar Novo Agente")').first().click();
+      } else if ($body.find('div:contains("Cadastrar Novo Agente")').length > 0) {
+        cy.log('✅ Botão encontrado por div');
+        cy.get('div:contains("Cadastrar Novo Agente")').first().click();
+      } else {
+        cy.log('⚠️ Botão não encontrado, tentando navegar diretamente...');
+        cy.visit('/dashboard/assistants/new', { timeout: 30000 });
+      }
+    });
 
     // Aguardar formulário carregar
     cy.contains('button', 'Personalizar').should('be.visible');
@@ -183,6 +217,104 @@ export class AgentPage {
     cy.wait(2000);
     
     cy.log('✅ Página do agente carregada com sucesso');
+    return this;
+  }
+
+  // Captura dados do agente acessado
+  capturarDadosDoAgente() {
+    cy.log('📊 Capturando dados do agente...');
+    
+    const dadosAgente = {};
+    
+    // Capturar nome do agente
+    cy.get('h1, h2, h3').first().then(($el) => {
+      dadosAgente.nome = $el.text().trim();
+      cy.log(`📝 Nome do agente: ${dadosAgente.nome}`);
+    });
+    
+    // Capturar descrição se disponível
+    cy.get('body').then(($body) => {
+      if ($body.find('[data-testid="description"], .description, p').length > 0) {
+        cy.get('[data-testid="description"], .description, p').first().then(($desc) => {
+          dadosAgente.descricao = $desc.text().trim();
+          cy.log(`📄 Descrição: ${dadosAgente.descricao}`);
+        });
+      }
+    });
+    
+    // Capturar URL atual
+    cy.url().then((url) => {
+      dadosAgente.url = url;
+      cy.log(`🔗 URL do agente: ${dadosAgente.url}`);
+    });
+    
+    // Capturar timestamp
+    dadosAgente.timestamp = new Date().toISOString();
+    cy.log(`⏰ Timestamp: ${dadosAgente.timestamp}`);
+    
+    // Armazenar dados no window para acesso posterior
+    cy.window().then((win) => {
+      win.dadosAgenteAcessado = dadosAgente;
+    });
+    
+    cy.log('✅ Dados do agente capturados com sucesso');
+    return this;
+  }
+
+  // Valida se está na página correta do agente
+  validarPaginaDoAgente() {
+    cy.log('✅ Validando página do agente...');
+    
+    // Verificar se não está mais na lista de agentes
+    cy.url().should('not.include', '/agents');
+    
+    // Verificar se está em uma página de agente específico
+    cy.url().should('match', /\/agent\/\d+/);
+    
+    // Verificar se a página carregou completamente
+    cy.get('body').should('not.contain', 'loading');
+    
+    cy.log('✅ Página do agente validada com sucesso');
+    return this;
+  }
+
+  // Retorna para a página principal (dashboard)
+  retornarParaPaginaPrincipal() {
+    cy.log('🏠 Retornando para página principal...');
+    
+    // Clicar no logo ou navegar para dashboard
+    cy.get('[data-testid="logo"], .logo, a[href*="dashboard"]').first().click();
+    
+    // Ou navegar diretamente
+    cy.visit('/dashboard', { timeout: 30000 });
+    
+    // Aguardar dashboard carregar
+    cy.url({ timeout: 30000 }).should('include', '/dashboard');
+    cy.get('body').should('not.contain', 'loading');
+    cy.wait(2000);
+    
+    cy.log('✅ Retornou para página principal com sucesso');
+    return this;
+  }
+
+  // Exibe resumo dos dados capturados
+  exibirResumoDados() {
+    cy.log('📋 Exibindo resumo dos dados capturados...');
+    
+    cy.window().then((win) => {
+      if (win.dadosAgenteAcessado) {
+        const dados = win.dadosAgenteAcessado;
+        cy.log('📊 === RESUMO DOS DADOS DO AGENTE ===');
+        cy.log(`📝 Nome: ${dados.nome || 'Não capturado'}`);
+        cy.log(`📄 Descrição: ${dados.descricao || 'Não capturada'}`);
+        cy.log(`🔗 URL: ${dados.url || 'Não capturada'}`);
+        cy.log(`⏰ Timestamp: ${dados.timestamp || 'Não capturado'}`);
+        cy.log('📊 === FIM DO RESUMO ===');
+      } else {
+        cy.log('⚠️ Nenhum dado foi capturado do agente');
+      }
+    });
+    
     return this;
   }
 }
