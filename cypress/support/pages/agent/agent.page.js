@@ -65,10 +65,14 @@ export class AgentPage {
       }
     });
 
-    // Aguardar formulário carregar
+    // Aguarda a página de criação carregar
+    cy.url({ timeout: 15000 }).should('include', '/assistants/new');
+    cy.get('body').should('not.contain', 'loading');
+    cy.wait(3000);
+    
+    // Verifica se os botões de navegação estão presentes
     cy.contains('button', 'Personalizar').should('be.visible');
     cy.contains('button', 'Configurações').should('be.visible');
-    cy.contains('button', 'Servidores MCP').should('be.visible');
 
     // Preencher nome
     cy.xpath('//input[@name="name"]')

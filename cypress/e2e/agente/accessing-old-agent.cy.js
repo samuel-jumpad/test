@@ -22,5 +22,18 @@ describe("Agentes - Acessando Agente Antigo", () => {
     cy.xpath('//button//div[contains(text(), "Meus Agentes")]')
       .should('be.visible')
       .click();
+      cy.wait(3000);
+
+      cy.xpath('//button[.//svg[contains(@class,"lucide-sparkles")] and .//text()[normalize-space()="Testar"]]')
+  .should('be.visible')
+  .click();
+
+
+
+
+
+
+
+
   });
 });
