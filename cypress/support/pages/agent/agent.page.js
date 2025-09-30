@@ -151,4 +151,38 @@ export class AgentPage {
     
     cy.log('✅ Agente deletado com sucesso');
   }
+
+  // ===== FUNÇÕES DE ACESSO A AGENTES ANTIGOS =====
+
+  // Acessa um agente antigo existente
+  accessOldAgent() {
+    cy.log('🔍 Acessando agente antigo...');
+    
+    // Navegar para a página de agentes
+    this.navegarParaAgentes();
+    
+    // Aguardar a lista de agentes carregar
+    cy.wait(3000);
+    
+    // Clicar no primeiro agente da lista (assumindo que existe pelo menos um)
+    cy.get('table tbody tr')
+      .first()
+      .should('be.visible')
+      .click();
+    
+    cy.log('✅ Agente antigo acessado com sucesso');
+    return this;
+  }
+
+  // Aguarda o carregamento da página do agente
+  waitForPageLoad() {
+    cy.log('⏳ Aguardando carregamento da página do agente...');
+    
+    // Aguardar elementos específicos da página do agente carregarem
+    cy.get('body').should('not.contain', 'loading');
+    cy.wait(2000);
+    
+    cy.log('✅ Página do agente carregada com sucesso');
+    return this;
+  }
 }

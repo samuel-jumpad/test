@@ -1,4 +1,4 @@
-import LoginPage from '../../support/pages/login/login.page.js';
+import { LoginPage } from '../../support/pages/login/login.page.js';
 import ChatPage from '../../support/pages/chat/chat.page.js';
 
 describe('Chat - Send Message in Old Conversation', () => {

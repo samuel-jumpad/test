@@ -1,4 +1,4 @@
-import LoginPage from './pages/login/login.page.js';
+import { LoginPage } from './pages/login/login.page.js';
 
 // Handle uncaught exceptions from application
 Cypress.on('uncaught:exception', (err, runnable) => {

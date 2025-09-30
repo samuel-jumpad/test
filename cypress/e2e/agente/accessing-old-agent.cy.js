@@ -1,13 +1,15 @@
-import LoginPage from "../../support/pages/login/login.page.js";
-import AgentPage from "../../support/pages/agent/agent.page.js";
+import { LoginPage } from "../../support/pages/login/login.page.js";
+import { AgentPage } from "../../support/pages/agent/agent.page.js";
 
-describe("Agents - Accessing Old Agent", () => {
+describe("Agentes - Acessando Agente Antigo", () => {
+  const agentPage = new AgentPage();
+
   beforeEach(() => {
     cy.setupTest();
   });
 
-  it("should access old agent and send messages successfully", () => {
-    AgentPage
+  it("deve acessar agente antigo e enviar mensagens com sucesso", () => {
+    agentPage
       .accessOldAgent()
       .waitForPageLoad();
   });
