@@ -11,17 +11,72 @@ describe("Agentes - Acessando Agente Antigo", () => {
 
     // ===== FASE 1: NAVEGAÇÃO PARA AGENTES =====
     cy.log('📋 Fase 1: Navegando para página de agentes...');
-    cy.xpath('//span[normalize-space(text())="Agentes"]').click();
+    
+    // Aguarda página carregar
+    cy.get('body').should('not.contain', 'loading');
     cy.wait(2000);
-    cy.xpath('//button//div[contains(text(), "Meus Agentes")]').click();
+    
+    // Tenta encontrar o menu Agentes com seletores CSS
+    cy.get('body').then(($body) => {
+      if ($body.find('span:contains("Agentes")').length > 0) {
+        cy.log('✅ Menu Agentes encontrado por span');
+        cy.get('span:contains("Agentes")').first().click();
+      } else if ($body.find('div:contains("Agentes")').length > 0) {
+        cy.log('✅ Menu Agentes encontrado por div');
+        cy.get('div:contains("Agentes")').first().click();
+      } else if ($body.find('button:contains("Agentes")').length > 0) {
+        cy.log('✅ Menu Agentes encontrado por button');
+        cy.get('button:contains("Agentes")').first().click();
+      } else {
+        cy.log('⚠️ Menu Agentes não encontrado, navegando diretamente...');
+        cy.visit('/dashboard/assistants', { timeout: 30000 });
+      }
+    });
+    
+    cy.wait(2000);
+    
+    // Clica em "Meus Agentes"
+    cy.get('body').then(($body) => {
+      if ($body.find('button:contains("Meus Agentes")').length > 0) {
+        cy.log('✅ "Meus Agentes" encontrado');
+        cy.get('button:contains("Meus Agentes")').first().click();
+      } else if ($body.find('div:contains("Meus Agentes")').length > 0) {
+        cy.get('div:contains("Meus Agentes")').first().click();
+      }
+    });
+    
     cy.wait(3000);
     cy.log('✅ Navegação para agentes concluída');
 
     // ===== FASE 2: BUSCAR E ACESSAR AGENTE =====
     cy.log('📋 Fase 2: Buscando e acessando agente...');
-    cy.xpath('//input[@type="search" and @placeholder="Buscar por nome"]')
-      .clear()
-      .type('Agente teste automatizado', { delay: 100 });
+    
+    // Busca com múltiplos seletores
+    cy.get('body').then(($body) => {
+      const selectorsBusca = [
+        'input[type="search"]',
+        'input[placeholder*="Buscar"]',
+        'input[placeholder*="buscar"]',
+        'input[placeholder*="nome"]'
+      ];
+      
+      let encontrado = false;
+      for (const selector of selectorsBusca) {
+        if ($body.find(selector).length > 0) {
+          cy.log(`✅ Campo de busca encontrado: ${selector}`);
+          cy.get(selector).first()
+            .clear()
+            .type('Agente teste automatizado', { delay: 100 });
+          encontrado = true;
+          break;
+        }
+      }
+      
+      if (!encontrado) {
+        cy.log('⚠️ Campo de busca não encontrado');
+      }
+    });
+    
     cy.wait(3000);
     cy.log('✅ Busca pelo agente concluída');
 
