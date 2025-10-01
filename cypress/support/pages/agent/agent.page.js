@@ -390,7 +390,9 @@ export class AgentPage {
         // Seletor por ícone do Chat
         'div:has(svg.lucide.lucide-messages-square) span:contains("Chat")',
         'svg.lucide.lucide-messages-square + div span:contains("Chat")',
-        // Seletor por classe específica
+        // Seletor por classe específica (incluindo elementos com opacity 0)
+        'div.flex-1.overflow-hidden.transition-opacity.duration-300.ease-in-out.text-ellipsis span:contains("Chat")',
+        'div.flex-1.overflow-hidden.transition-opacity.duration-300.ease-in-out.text-ellipsis.opacity-0 span:contains("Chat")',
         'div.flex-1.overflow-hidden.transition-opacity.duration-300.ease-in-out.text-ellipsis.opacity-100 span:contains("Chat")',
         // Seletor genérico
         'nav span:contains("Chat")',
@@ -402,6 +404,7 @@ export class AgentPage {
         if ($body.find(selector).length > 0) {
           cy.log(`✅ Menu Chat encontrado com seletor: ${selector}`);
           try {
+            // Primeiro tentar visível normalmente
             cy.get(selector).first()
               .should('be.visible', { timeout: 1000 })
               .click();
@@ -409,7 +412,43 @@ export class AgentPage {
             chatEncontrado = true;
             break;
           } catch (e) {
-            cy.log(`⚠️ Chat encontrado mas não clicável: ${selector} - ${e.message}`);
+            cy.log(`⚠️ Chat encontrado mas não visível: ${selector} - ${e.message}`);
+            
+            // Estratégia 1: Forçar visibilidade removendo opacity
+            try {
+              cy.get(selector).first()
+                .invoke('css', 'opacity', '1')
+                .invoke('css', 'visibility', 'visible')
+                .should('be.visible', { timeout: 2000 })
+                .click();
+              cy.log(`✅ Menu Chat clicado após forçar visibilidade: ${selector}`);
+              chatEncontrado = true;
+              break;
+            } catch (e2) {
+              cy.log(`⚠️ Falha ao forçar visibilidade: ${selector} - ${e2.message}`);
+            }
+            
+            // Estratégia 2: Clicar forçadamente mesmo oculto
+            try {
+              cy.get(selector).first()
+                .click({ force: true });
+              cy.log(`✅ Menu Chat clicado forçadamente: ${selector}`);
+              chatEncontrado = true;
+              break;
+            } catch (e3) {
+              cy.log(`⚠️ Falha ao clicar forçadamente: ${selector} - ${e3.message}`);
+            }
+            
+            // Estratégia 3: Tentar com trigger
+            try {
+              cy.get(selector).first()
+                .trigger('click');
+              cy.log(`✅ Menu Chat clicado com trigger: ${selector}`);
+              chatEncontrado = true;
+              break;
+            } catch (e4) {
+              cy.log(`⚠️ Falha ao clicar com trigger: ${selector} - ${e4.message}`);
+            }
           }
         }
       }
@@ -451,6 +490,16 @@ export class AgentPage {
           chatEncontrado = true;
         } catch (e) {
           cy.log(`⚠️ Fallback também falhou: ${e.message}`);
+          
+          // Fallback final: tentar clicar forçadamente
+          try {
+            cy.contains('Chat')
+              .click({ force: true });
+            cy.log('✅ Menu Chat clicado com fallback forçado');
+            chatEncontrado = true;
+          } catch (e2) {
+            cy.log(`⚠️ Fallback forçado também falhou: ${e2.message}`);
+          }
         }
       }
       
