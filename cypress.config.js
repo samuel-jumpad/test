@@ -10,7 +10,7 @@ module.exports = defineConfig({
   },
     
   e2e: {
-    baseUrl: 'https://fusion-frontend-7.jumpad.dev/',
+    baseUrl: 'https://qa.jumpad.dev/',
     viewportWidth: 1440,
     viewportHeight: 900,
     
