@@ -8,15 +8,9 @@ describe("Agentes - Acessando Agente Antigo", () => {
 
   it("deve acessar agente antigo e enviar mensagem no chat", () => {
     cy.log('🚀 Iniciando teste de acesso ao agente antigo e envio de mensagem...');
-
-    // ===== FASE 1: NAVEGAÇÃO PARA AGENTES =====
     cy.log('📋 Fase 1: Navegando para página de agentes...');
-    
-    // Aguarda página carregar
     cy.get('body').should('not.contain', 'loading');
     cy.wait(2000);
-    
-    // Tenta encontrar o menu Agentes com seletores CSS
     cy.get('body').then(($body) => {
       if ($body.find('span:contains("Agentes")').length > 0) {
         cy.log('✅ Menu Agentes encontrado por span');
@@ -32,10 +26,7 @@ describe("Agentes - Acessando Agente Antigo", () => {
         cy.visit('/dashboard/assistants', { timeout: 30000 });
       }
     });
-    
     cy.wait(2000);
-    
-    // Clica em "Meus Agentes"
     cy.get('body').then(($body) => {
       if ($body.find('button:contains("Meus Agentes")').length > 0) {
         cy.log('✅ "Meus Agentes" encontrado');
@@ -44,14 +35,9 @@ describe("Agentes - Acessando Agente Antigo", () => {
         cy.get('div:contains("Meus Agentes")').first().click();
       }
     });
-    
     cy.wait(3000);
     cy.log('✅ Navegação para agentes concluída');
-
-    // ===== FASE 2: BUSCAR E ACESSAR AGENTE =====
     cy.log('📋 Fase 2: Buscando e acessando agente...');
-    
-    // Busca com múltiplos seletores
     cy.get('body').then(($body) => {
       const selectorsBusca = [
         'input[type="search"]',
@@ -59,7 +45,6 @@ describe("Agentes - Acessando Agente Antigo", () => {
         'input[placeholder*="buscar"]',
         'input[placeholder*="nome"]'
       ];
-      
       let encontrado = false;
       for (const selector of selectorsBusca) {
         if ($body.find(selector).length > 0) {
@@ -71,16 +56,12 @@ describe("Agentes - Acessando Agente Antigo", () => {
           break;
         }
       }
-      
       if (!encontrado) {
         cy.log('⚠️ Campo de busca não encontrado');
       }
     });
-    
     cy.wait(3000);
     cy.log('✅ Busca pelo agente concluída');
-
-    // ===== FASE 3: TESTAR AGENTE =====
     cy.log('📋 Fase 3: Clicando no botão testar...');
     cy.get('body').then(($body) => {
       if ($body.find('button:contains("Testar")').length > 0) {
@@ -100,8 +81,6 @@ describe("Agentes - Acessando Agente Antigo", () => {
     cy.wait(3000);
     cy.get('body').should('not.contain', 'loading');
     cy.log('✅ Botão testar clicado e página carregada');
-
-    // ===== FASE 4: ENVIAR MENSAGEM =====
     cy.log('📋 Fase 4: Enviando mensagem no chat...');
     cy.get('body').then(($body) => {
       const inputSelectors = [
@@ -111,7 +90,6 @@ describe("Agentes - Acessando Agente Antigo", () => {
         'input[placeholder*="message"]',
         'input[placeholder*="mensagem"]'
       ];
-
       let inputFound = false;
       for (const selector of inputSelectors) {
         if ($body.find(selector).length > 0) {
@@ -125,15 +103,12 @@ describe("Agentes - Acessando Agente Antigo", () => {
           break;
         }
       }
-
       if (!inputFound) {
         cy.log('⚠️ Campo de input não encontrado');
       }
     });
     cy.wait(3000);
     cy.log('✅ Mensagem enviada no chat');
-
-    // ===== FASE 5: VALIDAR ENVIO =====
     cy.log('📋 Fase 5: Validando envio da mensagem...');
     cy.get('body').then(($body) => {
       if ($body.find('[class*="message"], [class*="chat"], [class*="bubble"]').length > 0) {
@@ -144,7 +119,6 @@ describe("Agentes - Acessando Agente Antigo", () => {
       }
     });
     cy.log('✅ Validação de mensagem concluída');
-
     cy.log('🎉 Teste concluído com sucesso!');
   });
 });
