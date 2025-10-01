@@ -1,6 +1,6 @@
 export class ChatPage {
   navegarParaChat() {
-    cy.log('📋 Navegando para o chat...');
+    cy.log('📋 Navigating to chat...');
     cy.get('body').should('not.contain', 'loading');
     cy.get('body').then(($body) => {
       const selectorsChat = [
@@ -14,7 +14,7 @@ export class ChatPage {
       let chatEncontrado = false;
       for (const selector of selectorsChat) {
         if ($body.find(selector).length > 0) {
-          cy.log(`✅ Menu Chat encontrado: ${selector}`);
+          cy.log(`✅ Chat menu found: ${selector}`);
           cy.get(selector).first()
             .should('be.visible')
             .click({ force: true });
@@ -23,18 +23,18 @@ export class ChatPage {
         }
       }
       if (!chatEncontrado) {
-        cy.log('⚠️ Menu Chat não encontrado, tentando navegação direta...');
+        cy.log('⚠️ Chat menu not found, trying direct navigation...');
         cy.visit('/dashboard/chat', { timeout: 30000 });
       }
     });
     cy.url({ timeout: 15000 }).should('include', '/chat');
     cy.get('body').should('not.contain', 'loading');
-    cy.log('✅ Navegação para chat concluída');
+    cy.log('✅ Navigation to chat completed');
     return this;
   }
 
   selecionarConversaGeral() {
-    cy.log('📋 Selecionando conversa "Geral"...');
+    cy.log('📋 Selecting "Geral" conversation...');
     cy.get('body').should('not.contain', 'loading');
     cy.wait(2000);
     
@@ -55,7 +55,7 @@ export class ChatPage {
       let geralEncontrado = false;
       for (const selector of selectorsGeral) {
         if ($body.find(selector).length > 0) {
-          cy.log(`✅ "Geral" encontrado com seletor: ${selector}`);
+          cy.log(`✅ "Geral" found with selector: ${selector}`);
           cy.get(selector).first()
             .should('be.visible')
             .click({ force: true });
@@ -65,24 +65,24 @@ export class ChatPage {
       }
       
       if (!geralEncontrado) {
-        cy.log('⚠️ "Geral" não encontrado, tentando primeiro elemento de conversa...');
+        cy.log('⚠️ "Geral" not found, trying first conversation element...');
         if ($body.find('[class*="conversation"], [class*="chat"], [class*="message"]').length > 0) {
           cy.get('[class*="conversation"], [class*="chat"], [class*="message"]').first()
             .should('be.visible')
             .click({ force: true });
         } else {
-          cy.log('⚠️ Nenhum elemento de conversa encontrado, continuando...');
+          cy.log('⚠️ No conversation element found, continuing...');
         }
       }
     });
     
-    cy.log('✅ Conversa selecionada');
+    cy.log('✅ Conversation selected');
     cy.get('body').should('not.contain', 'loading');
     return this;
   }
 
   clicarPrimeiraMensagem() {
-    cy.log('📋 Abrindo a última mensagem do chat...');
+    cy.log('📋 Opening the last chat message...');
     cy.get('body').should('not.contain', 'loading');
     cy.get('body').then(($body) => {
       const selectorsMensagem = [
@@ -99,7 +99,7 @@ export class ChatPage {
       let mensagemEncontrada = false;
       for (const selector of selectorsMensagem) {
         if ($body.find(selector).length > 0) {
-          cy.log(`✅ Mensagem encontrada: ${selector}`);
+          cy.log(`✅ Message found: ${selector}`);
           cy.get(selector)
             .first()
             .should('be.visible')
@@ -110,23 +110,23 @@ export class ChatPage {
       }
       
       if (!mensagemEncontrada) {
-        cy.log('⚠️ Nenhuma mensagem encontrada, tentando primeiro elemento clicável...');
+        cy.log('⚠️ No message found, trying first clickable element...');
         if ($body.find('div[class*="flex"]').length > 0) {
           cy.get('div[class*="flex"]').first()
             .should('be.visible')
             .click({ force: true });
         } else {
-          cy.log('⚠️ Nenhum elemento de mensagem encontrado, continuando...');
+          cy.log('⚠️ No message element found, continuing...');
         }
       }
     });
     
-    cy.log('✅ Mensagem aberta');
+    cy.log('✅ Message opened');
     return this;
   }
 
   enviarMensagem(mensagem = 'ola, como vai?') {
-    cy.log(`📝 Enviando mensagem: "${mensagem}"`);
+    cy.log(`📝 Sending message: "${mensagem}"`);
     cy.get('body').should('not.contain', 'loading');
     cy.get('body').then(($body) => {
       const selectorsInput = [
@@ -143,7 +143,7 @@ export class ChatPage {
       let inputEncontrado = false;
       for (const selector of selectorsInput) {
         if ($body.find(selector).length > 0) {
-          cy.log(`✅ Campo de input encontrado: ${selector}`);
+          cy.log(`✅ Input field found: ${selector}`);
           cy.get(selector).first()
             .should('be.visible')
             .clear()
@@ -153,18 +153,18 @@ export class ChatPage {
         }
       }
       if (!inputEncontrado) {
-        cy.log('⚠️ Campo de input não encontrado, tentando seletores genéricos...');
+        cy.log('⚠️ Input field not found, trying generic selectors...');
         if ($body.find('input, textarea, [contenteditable]').length > 0) {
           cy.get('input, textarea, [contenteditable]').first()
             .should('be.visible')
             .clear()
             .type(mensagem, { delay: 100 });
         } else {
-          cy.log('⚠️ Nenhum campo de input encontrado');
+          cy.log('⚠️ No input field found');
         }
       }
     });
-    cy.log('✅ Mensagem digitada');
+    cy.log('✅ Message typed');
     cy.get('body').then(($body) => {
       const selectorsBotao = [
         'button[type="submit"]:not([disabled])',
@@ -179,7 +179,7 @@ export class ChatPage {
       let botaoEncontrado = false;
       for (const selector of selectorsBotao) {
         if ($body.find(selector).length > 0) {
-          cy.log(`✅ Botão de enviar encontrado: ${selector}`);
+          cy.log(`✅ Send button found: ${selector}`);
           cy.get(selector).first()
             .should('be.visible')
             .click();
@@ -188,23 +188,23 @@ export class ChatPage {
         }
       }
       if (!botaoEncontrado) {
-        cy.log('⚠️ Botão de enviar não encontrado, tentando seletores genéricos...');
+        cy.log('⚠️ Send button not found, trying generic selectors...');
         if ($body.find('button').length > 0) {
           cy.get('button').last()
             .should('be.visible')
             .click();
         } else {
-          cy.log('⚠️ Nenhum botão encontrado');
+          cy.log('⚠️ No button found');
         }
       }
     });
-    cy.log('✅ Botão de enviar clicado');
+    cy.log('✅ Send button clicked');
     cy.get('body').should('not.contain', 'enviando');
     return this;
   }
 
   validarEnvioMensagem(mensagem = 'ola, como vai?') {
-    cy.log('🔍 Validando envio da mensagem...');
+    cy.log('🔍 Validating message sending...');
     cy.get('body').then(($body) => {
       if ($body.find('div[contenteditable="true"]').length > 0) {
         cy.get('div[contenteditable="true"]').first().should('be.empty');
@@ -213,18 +213,18 @@ export class ChatPage {
     cy.get('body').should('not.contain', 'enviando');
     cy.get('body').should('not.contain', 'sending');
     cy.get('body').should('contain.text', mensagem);
-    cy.log('✅ Mensagem enviada e validada com sucesso');
+    cy.log('✅ Message sent and validated successfully');
     return this;
   }
 
   fluxoCompletoChat(mensagem = 'ola, como vai?') {
-    cy.log('🚀 Iniciando fluxo completo de chat...');
+    cy.log('🚀 Starting complete chat flow...');
     this.navegarParaChat()
       .selecionarConversaGeral()
       .clicarPrimeiraMensagem()
       .enviarMensagem(mensagem)
       .validarEnvioMensagem(mensagem);
-    cy.log('✅ Fluxo completo de chat concluído');
+    cy.log('✅ Complete chat flow finished');
     return this;
   }
 }
