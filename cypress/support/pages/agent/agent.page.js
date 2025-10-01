@@ -378,6 +378,10 @@ export class AgentPage {
 
   navegarParaChat() {
     cy.log('📋 Navegando para Chat...');
+    
+    // Aguardar um pouco para as transições de UI
+    cy.wait(2000);
+    
     cy.get('body').then(($body) => {
       // Seletores específicos baseados na estrutura HTML real do Chat
       const selectorsChat = [
@@ -404,9 +408,9 @@ export class AgentPage {
         if ($body.find(selector).length > 0) {
           cy.log(`✅ Menu Chat encontrado com seletor: ${selector}`);
           try {
-            // Primeiro tentar visível normalmente
+            // Aguardar o elemento ficar visível com timeout maior
             cy.get(selector).first()
-              .should('be.visible', { timeout: 1000 })
+              .should('be.visible', { timeout: 5000 })
               .click();
             cy.log(`✅ Menu Chat clicado com sucesso: ${selector}`);
             chatEncontrado = true;
@@ -414,12 +418,20 @@ export class AgentPage {
           } catch (e) {
             cy.log(`⚠️ Chat encontrado mas não visível: ${selector} - ${e.message}`);
             
-            // Estratégia 1: Forçar visibilidade removendo opacity
+            // Estratégia 1: Aguardar e forçar visibilidade
             try {
               cy.get(selector).first()
                 .invoke('css', 'opacity', '1')
                 .invoke('css', 'visibility', 'visible')
-                .should('be.visible', { timeout: 2000 })
+                .parent()
+                .invoke('css', 'opacity', '1')
+                .invoke('css', 'visibility', 'visible');
+              
+              // Aguardar um pouco para a transição
+              cy.wait(1000);
+              
+              cy.get(selector).first()
+                .should('be.visible', { timeout: 3000 })
                 .click();
               cy.log(`✅ Menu Chat clicado após forçar visibilidade: ${selector}`);
               chatEncontrado = true;
@@ -448,6 +460,19 @@ export class AgentPage {
               break;
             } catch (e4) {
               cy.log(`⚠️ Falha ao clicar com trigger: ${selector} - ${e4.message}`);
+            }
+            
+            // Estratégia 4: Aguardar transição e tentar novamente
+            try {
+              cy.wait(2000); // Aguardar transição de opacity
+              cy.get(selector).first()
+                .should('be.visible', { timeout: 3000 })
+                .click();
+              cy.log(`✅ Menu Chat clicado após aguardar transição: ${selector}`);
+              chatEncontrado = true;
+              break;
+            } catch (e5) {
+              cy.log(`⚠️ Falha após aguardar transição: ${selector} - ${e5.message}`);
             }
           }
         }
@@ -500,6 +525,25 @@ export class AgentPage {
           } catch (e2) {
             cy.log(`⚠️ Fallback forçado também falhou: ${e2.message}`);
           }
+        }
+      }
+      
+      // Estratégia adicional: aguardar transição de opacity e tentar novamente
+      if (!chatEncontrado) {
+        cy.log('⚠️ Tentando estratégia de aguardar transição de opacity...');
+        cy.wait(3000); // Aguardar transição completa
+        
+        try {
+          // Tentar encontrar elementos com opacity que pode estar mudando
+          cy.get('div.flex-1.overflow-hidden.transition-opacity.duration-300.ease-in-out.text-ellipsis')
+            .should('have.css', 'opacity', '1')
+            .find('span:contains("Chat")')
+            .should('be.visible')
+            .click();
+          cy.log('✅ Menu Chat clicado após aguardar transição de opacity');
+          chatEncontrado = true;
+        } catch (e) {
+          cy.log(`⚠️ Estratégia de transição falhou: ${e.message}`);
         }
       }
       
