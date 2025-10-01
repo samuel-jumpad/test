@@ -2,9 +2,10 @@ export class ChatPage {
   // Navegar para o chat
   navegarParaChat() {
     cy.log('📋 Navegando para o chat...');
+    
+    // Aguarda dashboard carregar (sem wait fixo)
     cy.get('body').should('not.contain', 'loading');
-    cy.wait(2000);
-
+    
     // Tenta encontrar o menu Chat com múltiplos seletores
     cy.get('body').then(($body) => {
       const selectorsChat = [
@@ -38,8 +39,7 @@ export class ChatPage {
       }
     });
 
-    // Aguarda a página de chat carregar
-    cy.wait(3000);
+    // Aguarda navegação para chat (aguarda URL mudar)
     cy.url({ timeout: 15000 }).should('include', '/chat');
     cy.get('body').should('not.contain', 'loading');
     cy.log('✅ Navegação para chat concluída');
@@ -50,29 +50,29 @@ export class ChatPage {
   selecionarConversaGeral() {
     cy.log('📋 Selecionando conversa "Geral"...');
     
-    // Aguarda a página carregar completamente
+    // Aguarda a página de chat carregar (sem wait fixo)
     cy.get('body').should('not.contain', 'loading');
-    cy.wait(3000);
     
-    // Usa diretamente o XPath que sabemos que funciona
-    cy.log('🎯 Clicando no elemento "Geral" com XPath...');
+    // Usa o XPath que você confirmou que funciona
+    cy.log('🎯 Clicando em "Geral" com XPath...');
     cy.xpath('//div[@class="truncate" and normalize-space(text())="Geral"]')
       .should('be.visible')
-      .scrollIntoView()
-      .click({ force: true });
-    
+      .click();
     cy.log('✅ Conversa "Geral" selecionada');
     
-    // Aguarda a conversa carregar
-    cy.wait(3000);
+    // Aguarda a conversa carregar (sem wait fixo)
     cy.get('body').should('not.contain', 'loading');
     return this;
   }
 
-  // Clicar na primeira mensagem
+  // Clicar na primeira mensagem (abrir a última mensagem)
   clicarPrimeiraMensagem() {
-    cy.log('📋 Clicando na primeira mensagem do chat...');
+    cy.log('📋 Abrindo a última mensagem do chat...');
     
+    // Aguarda a conversa carregar (sem wait fixo)
+    cy.get('body').should('not.contain', 'loading');
+    
+    // Tenta encontrar mensagens com múltiplos seletores
     cy.get('body').then(($body) => {
       const selectorsMensagem = [
         '[class*="flex gap-2 items-center truncate rounded-xl"]',
@@ -86,7 +86,7 @@ export class ChatPage {
       let mensagemEncontrada = false;
       for (const selector of selectorsMensagem) {
         if ($body.find(selector).length > 0) {
-          cy.log(`✅ Primeira mensagem encontrada: ${selector}`);
+          cy.log(`✅ Mensagem encontrada: ${selector}`);
           cy.get(selector)
             .first()
             .scrollIntoView()
@@ -98,7 +98,6 @@ export class ChatPage {
 
       if (!mensagemEncontrada) {
         cy.log('⚠️ Nenhuma mensagem encontrada, tentando primeiro elemento clicável...');
-        // Tenta encontrar qualquer elemento clicável que possa ser uma mensagem
         if ($body.find('div[class*="flex"]').length > 0) {
           cy.get('div[class*="flex"]').first()
             .scrollIntoView()
@@ -109,8 +108,7 @@ export class ChatPage {
       }
     });
 
-    cy.wait(2000);
-    cy.log('✅ Primeira mensagem selecionada');
+    cy.log('✅ Mensagem aberta');
     return this;
   }
 
@@ -118,10 +116,7 @@ export class ChatPage {
   enviarMensagem(mensagem = 'ola, como vai?') {
     cy.log(`📝 Enviando mensagem: "${mensagem}"`);
     
-    // Aguarda um pouco para a interface carregar
-    cy.wait(2000);
-    
-    // Digitar mensagem
+    // Digitar mensagem (sem wait fixo)
     cy.get('body').then(($body) => {
       const selectorsInput = [
         'div[contenteditable="true"][data-placeholder*="Digite aqui"]',
@@ -191,7 +186,8 @@ export class ChatPage {
     });
 
     cy.log('✅ Botão de enviar clicado');
-    cy.wait(5000); // Aguarda envio
+    // Aguarda envio (sem wait fixo - aguarda elemento desaparecer ou mudar)
+    cy.get('body').should('not.contain', 'enviando');
     return this;
   }
 
