@@ -1,221 +1,134 @@
-// ===== PÁGINA DE LOGIN =====
+class LoginPage {
+  // Acessar a URL de login
+  visit() {
+    cy.visit('https://fusion-frontend-7.jumpad.dev/');
+    cy.log('✅ URL acessada com sucesso');
+    return this;
+  }
 
-export class LoginPage {
-  
-  // Método estático para visitar a página de login
-  static visit() {
-    cy.log('🌐 Visitando página de login...');
-    cy.visit('/', { timeout: 30000 });
-    cy.get('body').should('not.contain', 'loading');
+  // Aguardar página carregar
+  waitForPageLoad() {
+    cy.get('body').should('be.visible');
     cy.wait(2000);
-    return LoginPage;
+    return this;
   }
 
-  // Método estático para fazer login com credenciais válidas
-  static performValidLogin() {
-    cy.log('🔐 Fazendo login com credenciais válidas...');
-    
-    // Preencher credenciais de login
-    cy.get('input[name="email"]')
+  // Preencher email
+  fillEmail(email = 'teste@email.com') {
+    cy.log('📧 Preenchendo email...');
+    cy.get('input[type="email"], input[name="email"], input[placeholder*="email" i], input[placeholder*="Email"]')
       .should('be.visible')
-      .type('teste@email.com');
-    
-    cy.get('input[name="password"]')
+      .clear()
+      .type(email, { delay: 100 });
+    cy.log(`✅ Email preenchido: ${email}`);
+    return this;
+  }
+
+  // Preencher senha
+  fillPassword(password = 'Jumpad@2025') {
+    cy.log('🔒 Preenchendo senha...');
+    cy.get('input[type="password"], input[name="password"], input[placeholder*="senha" i], input[placeholder*="password" i]')
       .should('be.visible')
-      .type('Jumpad@2025');
-    
-    // Clicar no botão de login
-    cy.get('button[type="submit"]')
+      .clear()
+      .type(password, { delay: 100 });
+    cy.log('✅ Senha preenchida');
+    return this;
+  }
+
+  // Clicar no botão de login
+  clickLoginButton() {
+    cy.log('🔑 Clicando no botão de login...');
+    cy.get('button[type="submit"], button:contains("Entrar"), button:contains("Login"), button:contains("Sign in")')
       .should('be.visible')
       .click();
-    
-    return LoginPage;
+    cy.log('✅ Botão de login clicado');
+    return this;
   }
 
-  // Método estático para fazer login com email incorreto
-  static performWrongEmailLogin() {
-    cy.log('🔐 Fazendo login com email incorreto...');
+  // Aguardar redirecionamento para dashboard
+  waitForDashboard() {
+    cy.log('⏳ Aguardando redirecionamento...');
+    cy.url().should('include', '/dashboard', { timeout: 15000 });
+    cy.log('✅ Redirecionado para dashboard');
     
-    cy.get('input[name="email"]')
-      .should('be.visible')
-      .type('emailerrado@teste.com');
-    
-    cy.get('input[name="password"]')
-      .should('be.visible')
-      .type('Jumpad@2025');
-    
-    cy.get('button[type="submit"]')
-      .should('be.visible')
-      .click();
-    
-    return LoginPage;
+    // Aguardar carregamento completo da página
+    cy.log('⏳ Aguardando carregamento completo...');
+    cy.get('body').should('not.contain', 'loading', { timeout: 10000 });
+    cy.wait(2000);
+    cy.log('✅ Página carregada completamente');
+    return this;
   }
 
-  // Método estático para fazer login com senha incorreta
-  static performWrongPasswordLogin() {
-    cy.log('🔐 Fazendo login com senha incorreta...');
-    
-    cy.get('input[name="email"]')
-      .should('be.visible')
-      .type('teste@email.com');
-    
-    cy.get('input[name="password"]')
-      .should('be.visible')
-      .type('senhaerrada123');
-    
-    cy.get('button[type="submit"]')
-      .should('be.visible')
-      .click();
-    
-    return LoginPage;
+  // Login completo
+  login(email = 'teste@email.com', password = 'Jumpad@2025') {
+    this.visit()
+      .waitForPageLoad()
+      .fillEmail(email)
+      .fillPassword(password)
+      .clickLoginButton()
+      .waitForDashboard();
+    return this;
   }
 
-  // Método estático para fazer login com credenciais incorretas
-  static performWrongCredentialsLogin() {
-    cy.log('🔐 Fazendo login com credenciais incorretas...');
-    
-    cy.get('input[name="email"]')
-      .should('be.visible')
-      .type('emailerrado@teste.com');
-    
-    cy.get('input[name="password"]')
-      .should('be.visible')
-      .type('senhaerrada123');
-    
-    cy.get('button[type="submit"]')
-      .should('be.visible')
-      .click();
-    
-    return LoginPage;
-  }
-
-  // Método estático para aguardar carregamento da página
-  static waitForPageLoad() {
-    cy.log('⏳ Aguardando carregamento da página...');
-    
-    // Aguardar login e redirecionamento
-    cy.url({ timeout: 30000 }).should('include', '/dashboard');
-    cy.get('body').should('not.contain', 'loading');
+  // Validar dashboard
+  validateDashboard() {
+    cy.log('📋 Validando dashboard...');
     cy.get('body').should('not.contain', 'Entrar no Workspace');
-    
-    cy.log('✅ Página carregada com sucesso');
-    return LoginPage;
-  }
-
-  // Método estático para validar sucesso do login
-  static validateLoginSuccess() {
-    cy.log('✅ Validando sucesso do login...');
-    cy.url({ timeout: 30000 }).should('include', '/dashboard');
     cy.get('body').should('not.contain', 'loading');
-    cy.get('body').should('not.contain', 'Entrar no Workspace');
-    return LoginPage;
+    cy.log('✅ Dashboard carregado com sucesso');
+    return this;
   }
 
-  // Método estático para validar falha do login
-  static validateLoginFailure() {
-    cy.log('❌ Validando falha do login...');
-    cy.url({ timeout: 15000 }).should('include', '/');
-    cy.url({ timeout: 15000 }).should('not.include', '/dashboard');
-    return LoginPage;
-  }
-
-  // Método estático para login com credenciais válidas (método alternativo)
-  static loginWithValidCredentials() {
-    cy.log('🔐 Fazendo login com credenciais válidas...');
-    
-    cy.get('input[name="email"]')
-      .should('be.visible')
-      .type('teste@email.com');
-    
-    cy.get('input[name="password"]')
-      .should('be.visible')
-      .type('Jumpad@2025');
-    
-    cy.get('button[type="submit"]')
-      .should('be.visible')
-      .click();
-    
-    return LoginPage;
-  }
-
-  // Método estático para login com credenciais inválidas
-  static loginWithInvalidCredentials() {
-    cy.log('🔐 Fazendo login com credenciais inválidas...');
-    
-    cy.get('input[name="email"]')
-      .should('be.visible')
-      .type('emailerrado@teste.com');
-    
-    cy.get('input[name="password"]')
-      .should('be.visible')
-      .type('senhaerrada123');
-    
-    cy.get('button[type="submit"]')
-      .should('be.visible')
-      .click();
-    
-    return LoginPage;
-  }
-  
-  // Fazer login no site (método de instância mantido para compatibilidade)
+  // Método para fazer login seguindo o padrão do teste de agente
   fazerLogin() {
-    cy.log('🔐 Fazendo login no site...');
-    
-    // Preencher credenciais de login
-    cy.get('input[name="email"]')
-      .should('be.visible')
-      .type('teste@email.com');
-    
-    cy.get('input[name="password"]')
-      .should('be.visible')
-      .type('Jumpad@2025');
-    
-    // Clicar no botão de login
-    cy.get('button[type="submit"]')
-      .should('be.visible')
-      .click();
-    
-    // Aguardar login e redirecionamento
-    cy.url({ timeout: 30000 }).should('include', '/dashboard');
-    cy.get('body').should('not.contain', 'loading');
-    cy.get('body').should('not.contain', 'Entrar no Workspace');
-    
-    cy.log('✅ Login realizado com sucesso');
+    this.visit()
+      .waitForPageLoad()
+      .fillEmail('teste@email.com')
+      .fillPassword('Jumpad@2025')
+      .clickLoginButton()
+      .waitForDashboard();
+    return this;
   }
 
-  // Acessar a tela principal (dashboard) após o login
-  acessarTelaPrincipal() {
-    cy.log('🏠 Acessando tela principal (dashboard)...');
-    
-    // Navegar para o dashboard
-    cy.visit('/dashboard', { timeout: 30000 });
-    
-    // Aguardar dashboard carregar completamente
-    cy.get('body').should('not.contain', 'loading');
-    cy.wait(3000);
-    
-    // Verificar se está na tela principal
-    cy.url().should('include', '/dashboard');
-    
-    // Aguardar elementos do dashboard carregarem
-    cy.get('body').should('not.contain', 'loading');
-    cy.wait(2000);
-    
-    cy.log('✅ Tela principal acessada com sucesso');
+  // Métodos estáticos para os testes de login
+  static visit() {
+    const instance = new LoginPage();
+    instance.visit();
+    return instance;
   }
 
-  // Verificar se está na página principal (dashboard)
-  verificarPaginaPrincipal() {
-    cy.log('🔍 Verificando se está na página principal...');
-    
-    // Verificar título de boas-vindas
-    cy.xpath('//h4[contains(text(), "Boas vindas")]')
-      .should('be.visible');
-    
-    // Verificar botão "Criar novo agente"
-    cy.xpath('//button[contains(text(), "Criar novo agente")]')
-      .should('be.visible');
-    
-    cy.log('✅ Página principal verificada - pode prosseguir para o próximo passo');
+  static performValidLogin() {
+    const instance = new LoginPage();
+    return instance
+      .fillEmail('teste@email.com')
+      .fillPassword('Jumpad@2025')
+      .clickLoginButton()
+      .waitForDashboard();
+  }
+
+  static performWrongEmailLogin() {
+    const instance = new LoginPage();
+    return instance
+      .fillEmail('emailerrado@teste.com')
+      .fillPassword('Jumpad@2025')
+      .clickLoginButton();
+  }
+
+  static performWrongPasswordLogin() {
+    const instance = new LoginPage();
+    return instance
+      .fillEmail('teste@email.com')
+      .fillPassword('senhaerrada')
+      .clickLoginButton();
+  }
+
+  static performWrongCredentialsLogin() {
+    const instance = new LoginPage();
+    return instance
+      .fillEmail('emailerrado@teste.com')
+      .fillPassword('senhaerrada')
+      .clickLoginButton();
   }
 }
+
+export { LoginPage };

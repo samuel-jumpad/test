@@ -1,336 +1,233 @@
-class ChatPage {
-  elements = {
-    chatSection: () => cy.xpath('//div[@class="flex-1 overflow-hidden transition-opacity duration-300 ease-in-out text-ellipsis opacity-100"]//span[contains(text(), "Chat")]'),
-    generalChat: () => cy.get('div').contains('Geral'),
-    chatItem: () => cy.get('div.flex-1.truncate'),
-    messageBubble: () => cy.xpath('//div[@class="p-2 border rounded-xl bg-gray-100"]')
-  };
-
-  openChatSection() {
-    this.elements.chatSection()
-      .should('be.visible')
-      .click();
-    
-    // Wait for chat section to load
-    cy.get('body').should('not.contain', 'loading');
-    
-    return this;
-  }
-
-  selectGeneralChat() {
-    cy.log('🔍 Procurando chat "Geral"...');
-    
-    // Aguardar página carregar
+export class ChatPage {
+  // Navegar para o chat
+  navegarParaChat() {
+    cy.log('📋 Navegando para o chat...');
     cy.get('body').should('not.contain', 'loading');
     cy.wait(2000);
-    
-    // Procurar "Geral" com múltiplas estratégias
+
+    // Tenta encontrar o menu Chat com múltiplos seletores
     cy.get('body').then(($body) => {
-      const selectors = [
-        'div:contains("Geral")',
-        'span:contains("Geral")',
-        'a:contains("Geral")',
-        '[class*="chat"]:contains("Geral")',
-        '[class*="conversation"]:contains("Geral")'
+      const selectorsChat = [
+        'span:contains("Chat")',
+        'div:contains("Chat")',
+        'button:contains("Chat")',
+        'a:contains("Chat")',
+        '[class*="menu"]:contains("Chat")',
+        '[class*="nav"]:contains("Chat")'
       ];
-      
-      let found = false;
-      for (const selector of selectors) {
+
+      let chatEncontrado = false;
+      for (const selector of selectorsChat) {
         if ($body.find(selector).length > 0) {
-          cy.log(`✅ Chat "Geral" encontrado com seletor: ${selector}`);
-          cy.get(selector).first().should('be.visible').click();
-          found = true;
+          cy.log(`✅ Menu Chat encontrado: ${selector}`);
+          cy.get(selector).first()
+            .should('be.visible')
+            .scrollIntoView()
+            .click({ force: true });
+          chatEncontrado = true;
           break;
         }
       }
-      
-      if (!found) {
-        cy.log('❌ Chat "Geral" não encontrado, tentando primeiro chat disponível');
-        cy.screenshot('geral-nao-encontrado');
-        // Tentar selecionar o primeiro chat disponível
-        cy.get('div[class*="chat"], div[class*="conversation"]').first().click();
+
+      if (!chatEncontrado) {
+        cy.log('⚠️ Menu Chat não encontrado, tentando XPath...');
+        cy.xpath('//div[@class="flex-1 overflow-hidden transition-opacity duration-300 ease-in-out text-ellipsis opacity-100"]//span[contains(text(), "Chat")]')
+          .should('be.visible')
+          .scrollIntoView()
+          .click({ force: true });
       }
     });
-    
-    // Wait for general chat to be selected
+
+    // Aguarda a página de chat carregar
+    cy.wait(3000);
+    cy.url({ timeout: 15000 }).should('include', '/chat');
     cy.get('body').should('not.contain', 'loading');
-    
-    cy.log('✅ Chat selecionado');
-    
+    cy.log('✅ Navegação para chat concluída');
     return this;
   }
 
-  selectFirstChatItem() {
-    this.elements.chatItem()
-      .first()
+  // Selecionar conversa "Geral"
+  selecionarConversaGeral() {
+    cy.log('📋 Selecionando conversa "Geral"...');
+    
+    // Aguarda a página carregar completamente
+    cy.get('body').should('not.contain', 'loading');
+    cy.wait(3000);
+    
+    // Usa diretamente o XPath que sabemos que funciona
+    cy.log('🎯 Clicando no elemento "Geral" com XPath...');
+    cy.xpath('//div[@class="truncate" and normalize-space(text())="Geral"]')
       .should('be.visible')
-      .click();
+      .scrollIntoView()
+      .click({ force: true });
     
-    // Wait for chat item to be selected
+    cy.log('✅ Conversa "Geral" selecionada');
+    
+    // Aguarda a conversa carregar
+    cy.wait(3000);
     cy.get('body').should('not.contain', 'loading');
-    
-    // Additional wait before proceeding to message input
-    cy.wait(2000);
-    
     return this;
   }
 
-  validateMessageSent() {
-    // Wait for message to appear in chat
-    this.elements.messageBubble()
-      .should('be.visible', { timeout: 15000 });
-    
-    // Ensure chat is not in loading state
-    cy.get('body').should('not.contain', 'loading');
-    
-    return this;
-  }
-
-  sendMessageInChat(message) {
-    // Wait for chat interface to be ready
-    cy.get('body').should('not.contain', 'loading');
-    
-    // Send message using the command (which handles input validation)
-    cy.sendChatMessage(message);
-    
-    // Wait for page to be ready
-    cy.waitForPageLoad();
-    
-    // Validate message was sent
-    this.validateMessageSent();
-    
-    return this;
-  }
-
-  waitForPageLoad() {
-    // Wait for page to be fully interactive
-    cy.get('body').should('be.visible');
-    cy.get('body').should('not.contain', 'loading');
-    cy.document().should('have.property', 'readyState', 'complete');
-    
-    // Wait for specific loading states to disappear (but ignore data-loading attributes on buttons)
-    cy.get('[data-testid="loading"], .loading').should('not.exist');
-    
-    return this;
-  }
-
-  // ===== MÉTODOS ESPECÍFICOS PARA AGENTES =====
-
-  // Busca e clica no botão "Testar" do agente
-  findAndClickTestButton() {
-    cy.log('🔍 Procurando botão "Testar"...');
+  // Clicar na primeira mensagem
+  clicarPrimeiraMensagem() {
+    cy.log('📋 Clicando na primeira mensagem do chat...');
     
     cy.get('body').then(($body) => {
-      // Estratégia 1: Buscar por texto "Testar"
-      if ($body.find('button:contains("Testar")').length > 0) {
-        cy.log('✅ Botão Testar encontrado por texto');
-        cy.get('button:contains("Testar")').first()
-          .should('be.visible')
-          .click();
+      const selectorsMensagem = [
+        '[class*="flex gap-2 items-center truncate rounded-xl"]',
+        '[class*="message"]',
+        '[class*="chat-item"]',
+        '[class*="conversation"]',
+        'div[class*="flex"][class*="gap"]',
+        'div[class*="rounded-xl"]'
+      ];
+
+      let mensagemEncontrada = false;
+      for (const selector of selectorsMensagem) {
+        if ($body.find(selector).length > 0) {
+          cy.log(`✅ Primeira mensagem encontrada: ${selector}`);
+          cy.get(selector)
+            .first()
+            .scrollIntoView()
+            .click({ force: true });
+          mensagemEncontrada = true;
+          break;
+        }
       }
-      // Estratégia 2: Buscar por ícone sparkles
-      else if ($body.find('button svg[class*="sparkles"]').length > 0) {
-        cy.log('✅ Botão Testar encontrado por ícone sparkles');
-        cy.get('button svg[class*="sparkles"]').parent()
-          .should('be.visible')
-          .click();
-      }
-      // Estratégia 3: Buscar por XPath com sparkles
-      else if ($body.find('button svg[class*="lucide-sparkles"]').length > 0) {
-        cy.log('✅ Botão Testar encontrado por lucide-sparkles');
-        cy.xpath('//button[.//svg[contains(@class,"lucide-sparkles")]]').first()
-          .should('be.visible')
-          .click();
-      }
-      // Estratégia 4: Buscar qualquer botão com ícone de teste/play
-      else if ($body.find('button svg[class*="play"], button svg[class*="test"], button svg[class*="run"]').length > 0) {
-        cy.log('✅ Botão de teste encontrado por ícone alternativo');
-        cy.get('button svg[class*="play"], button svg[class*="test"], button svg[class*="run"]').parent().first()
-          .should('be.visible')
-          .click();
-      }
-      // Estratégia 5: Buscar por botões na linha da tabela
-      else if ($body.find('table tbody tr button').length > 0) {
-        cy.log('✅ Botões encontrados na tabela, clicando no primeiro');
-        cy.get('table tbody tr button').first()
-          .should('be.visible')
-          .click();
-      }
-      // Estratégia 6: Buscar por qualquer botão que contenha texto relacionado a teste
-      else if ($body.find('button:contains("Test"), button:contains("Run"), button:contains("Execute")').length > 0) {
-        cy.log('✅ Botão de teste encontrado por texto alternativo');
-        cy.get('button:contains("Test"), button:contains("Run"), button:contains("Execute")').first()
-          .should('be.visible')
-          .click();
-      }
-      // Fallback: Mostrar informações de debug
-      else {
-        cy.log('⚠️ Botão Testar não encontrado, mostrando debug...');
-        cy.screenshot('botao-testar-nao-encontrado');
-        
-        // Mostrar todos os botões disponíveis
-        cy.get('button').then(($buttons) => {
-          cy.log(`📊 Total de botões encontrados: ${$buttons.length}`);
-          $buttons.each((index, button) => {
-            cy.log(`Botão ${index + 1}: "${button.textContent.trim()}" - Classes: ${button.className}`);
-          });
-        });
-        
-        // Tentar clicar no primeiro botão disponível como último recurso
-        cy.get('button').first()
-          .should('be.visible')
-          .click();
+
+      if (!mensagemEncontrada) {
+        cy.log('⚠️ Nenhuma mensagem encontrada, tentando primeiro elemento clicável...');
+        // Tenta encontrar qualquer elemento clicável que possa ser uma mensagem
+        if ($body.find('div[class*="flex"]').length > 0) {
+          cy.get('div[class*="flex"]').first()
+            .scrollIntoView()
+            .click({ force: true });
+        } else {
+          cy.log('⚠️ Nenhum elemento de mensagem encontrado, continuando...');
+        }
       }
     });
-    
+
+    cy.wait(2000);
+    cy.log('✅ Primeira mensagem selecionada');
     return this;
   }
 
-  // Envia mensagem no chat do agente
-  sendMessageToAgent(message = 'Olá! Este é um teste automatizado do Cypress. Como você está?') {
-    cy.log('💬 Enviando mensagem no chat do agente...');
+  // Enviar mensagem no chat
+  enviarMensagem(mensagem = 'ola, como vai?') {
+    cy.log(`📝 Enviando mensagem: "${mensagem}"`);
     
-    // Aguardar interface do chat carregar
-    cy.get('body').should('not.contain', 'loading');
+    // Aguarda um pouco para a interface carregar
     cy.wait(2000);
-
-    // Procurar campo de input do chat
+    
+    // Digitar mensagem
     cy.get('body').then(($body) => {
-      if ($body.find('input[type="text"], textarea, [contenteditable="true"]').length > 0) {
-        cy.log('✅ Campo de input do chat encontrado');
-        
-        // Tentar diferentes tipos de input
-        const inputSelectors = [
-          'input[type="text"]',
-          'textarea',
-          '[contenteditable="true"]',
-          'input[placeholder*="message"], input[placeholder*="mensagem"]',
-          'input[placeholder*="chat"], input[placeholder*="conversa"]'
-        ];
+      const selectorsInput = [
+        'div[contenteditable="true"][data-placeholder*="Digite aqui"]',
+        'div[contenteditable="true"]',
+        'textarea',
+        'input[type="text"]',
+        '[contenteditable="true"]',
+        'input[placeholder*="mensagem"]',
+        'input[placeholder*="message"]'
+      ];
 
-        let inputFound = false;
-        for (const selector of inputSelectors) {
-          if ($body.find(selector).length > 0) {
-            cy.log(`✅ Input encontrado com seletor: ${selector}`);
-            cy.get(selector).first()
-              .should('be.visible')
-              .clear()
-              .type(message, { delay: 100 });
-
-            // Procurar botão de enviar
-            this.clickSendButton();
-            inputFound = true;
-            break;
-          }
+      let inputEncontrado = false;
+      for (const selector of selectorsInput) {
+        if ($body.find(selector).length > 0) {
+          cy.log(`✅ Campo de input encontrado: ${selector}`);
+          cy.get(selector).first()
+            .should('be.visible')
+            .clear()
+            .type(mensagem, { delay: 100 });
+          inputEncontrado = true;
+          break;
         }
+      }
 
-        if (!inputFound) {
-          cy.log('❌ Campo de input não encontrado');
-          cy.screenshot('input-nao-encontrado');
-        }
-      } else {
-        cy.log('❌ Nenhum campo de input encontrado na página');
-        cy.screenshot('sem-input-chat');
+      if (!inputEncontrado) {
+        cy.log('⚠️ Campo de input não encontrado, tentando XPath...');
+        cy.xpath('//div[@contenteditable="true" and @data-placeholder="Digite aqui sua mensagem..."]')
+          .should('be.visible')
+          .clear()
+          .type(mensagem, { delay: 100 });
       }
     });
-    
-    return this;
-  }
 
-  // Clica no botão de enviar mensagem
-  clickSendButton() {
+    cy.log('✅ Mensagem digitada');
+
+    // Clicar no botão de enviar
     cy.get('body').then(($body) => {
-      const sendSelectors = [
-        'button[type="submit"]',
+      const selectorsBotao = [
+        'button[type="submit"]:not([disabled])',
         'button:contains("Enviar")',
         'button:contains("Send")',
-        'button svg[class*="send"], button svg[class*="paper-plane"]',
-        'button[class*="send"], button[class*="submit"]'
+        'form button[type="submit"]',
+        'button[class*="submit"]',
+        'button[class*="send"]'
       ];
 
-      let sendFound = false;
-      for (const sendSelector of sendSelectors) {
-        if ($body.find(sendSelector).length > 0) {
-          cy.log(`✅ Botão de enviar encontrado: ${sendSelector}`);
-          cy.get(sendSelector).first()
+      let botaoEncontrado = false;
+      for (const selector of selectorsBotao) {
+        if ($body.find(selector).length > 0) {
+          cy.log(`✅ Botão de enviar encontrado: ${selector}`);
+          cy.get(selector).first()
             .should('be.visible')
+            .scrollIntoView()
             .click();
-          sendFound = true;
+          botaoEncontrado = true;
           break;
         }
       }
 
-      if (!sendFound) {
-        cy.log('⚠️ Botão de enviar não encontrado, tentando Enter');
-        cy.get('input[type="text"], textarea, [contenteditable="true"]').first().type('{enter}');
+      if (!botaoEncontrado) {
+        cy.log('⚠️ Botão de enviar não encontrado, tentando XPath...');
+        cy.xpath('//form[.//div[@contenteditable="true" and @data-placeholder="Digite aqui sua mensagem..."]]//button[@type="submit" and not(@disabled)]', { timeout: 15000 })
+          .should('be.visible')
+          .scrollIntoView()
+          .click();
       }
     });
-    
+
+    cy.log('✅ Botão de enviar clicado');
+    cy.wait(5000); // Aguarda envio
     return this;
   }
 
-  // Valida se a mensagem foi enviada com sucesso
-  validateMessageSent() {
-    cy.log('⏳ Aguardando resposta do agente...');
-    cy.wait(5000);
-
-    // Verificar se a mensagem foi enviada
+  // Validar envio da mensagem
+  validarEnvioMensagem(mensagem = 'ola, como vai?') {
+    cy.log('🔍 Validando envio da mensagem...');
+    
+    // Verificar se o campo foi limpo (confirmação de envio)
     cy.get('body').then(($body) => {
-      if ($body.find('[class*="message"], [class*="chat"], [class*="bubble"]').length > 0) {
-        cy.log('✅ Mensagens encontradas na interface');
-        cy.get('[class*="message"], [class*="chat"], [class*="bubble"]').should('have.length.greaterThan', 0);
-      } else {
-        cy.log('⚠️ Nenhuma mensagem visível encontrada');
+      if ($body.find('div[contenteditable="true"]').length > 0) {
+        cy.get('div[contenteditable="true"]').first().should('be.empty');
       }
     });
+
+    // Verificar se não há indicadores de loading
+    cy.get('body').should('not.contain', 'enviando');
+    cy.get('body').should('not.contain', 'sending');
+
+    // Verificar se a mensagem aparece na interface
+    cy.get('body').should('contain.text', mensagem);
     
+    cy.log('✅ Mensagem enviada e validada com sucesso');
     return this;
   }
 
-  // Captura dados do agente acessado
-  captureAgentData() {
-    cy.log('📊 Capturando dados do agente...');
+  // Fluxo completo de chat
+  fluxoCompletoChat(mensagem = 'ola, como vai?') {
+    cy.log('🚀 Iniciando fluxo completo de chat...');
     
-    // Capturar URL atual
-    cy.url().then((url) => {
-      cy.log(`🔗 URL do agente: ${url}`);
-    });
-
-    // Tentar capturar nome do agente com múltiplas estratégias
-    cy.get('body').then(($body) => {
-      const selectorsNome = [
-        'h1', 'h2', 'h3', 'h4', 'h5', 'h6',
-        '[class*="title"]',
-        '[class*="name"]',
-        '[class*="agent"]',
-        '[data-testid*="title"]',
-        '[data-testid*="name"]',
-        '.title', '.name', '.agent-name'
-      ];
-      
-      let nomeEncontrado = false;
-      for (const selector of selectorsNome) {
-        try {
-          if ($body.find(selector).length > 0) {
-            const texto = $body.find(selector).first().text().trim();
-            if (texto && texto.length > 0) {
-              cy.log(`📝 Nome do agente encontrado com seletor "${selector}": ${texto}`);
-              nomeEncontrado = true;
-              break;
-            }
-          }
-        } catch (error) {
-          cy.log(`⚠️ Erro com seletor ${selector}: ${error.message}`);
-        }
-      }
-      
-      if (!nomeEncontrado) {
-        cy.log('⚠️ Nome do agente não encontrado na página');
-      }
-    });
+    this.navegarParaChat()
+      .selecionarConversaGeral()
+      .clicarPrimeiraMensagem()
+      .enviarMensagem(mensagem)
+      .validarEnvioMensagem(mensagem);
     
+    cy.log('✅ Fluxo completo de chat concluído');
     return this;
   }
 }
-
-export default new ChatPage();

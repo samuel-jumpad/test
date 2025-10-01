@@ -58,17 +58,14 @@ beforeEach(() => {
   // Don't setup interceptors globally - let each test handle its own
   // This prevents conflicts with tests that need specific interceptor configurations
   
-  // Take screenshot before each test
-  cy.takeScreenshot('test-start');
-  
   // Ensure clean state
   cy.window().then((win) => {
     // Clear any pending timeouts
-    if (win.clearTimeout) {
+    if (win && win.clearTimeout) {
       win.clearTimeout();
     }
     // Clear any pending intervals
-    if (win.clearInterval) {
+    if (win && win.clearInterval) {
       win.clearInterval();
     }
   });
@@ -76,9 +73,6 @@ beforeEach(() => {
 
 // Global after hook for all tests
 afterEach(() => {
-  // Take screenshot after each test
-  cy.takeScreenshot('test-end');
-  
   // Clean up any pending requests
   cy.window().then((win) => {
     if (win.fetch) {
@@ -92,5 +86,4 @@ afterEach(() => {
 Cypress.Commands.add('logTestStep', (step, details = '') => {
   const timestamp = new Date().toLocaleTimeString();
   cy.log(`[${timestamp}] ${step} ${details}`);
-  cy.takeScreenshot(`step-${step.replace(/\s+/g, '-').toLowerCase()}`);
 });

@@ -173,7 +173,12 @@ Cypress.Commands.add('setupTest', () => {
   // Aguardar um pouco mais para a página carregar completamente
   cy.wait(2000);
   
-  LoginPage.loginWithValidCredentials();
+  const loginPage = new LoginPage();
+  loginPage
+    .fillEmail('teste@email.com')
+    .fillPassword('Jumpad@2025')
+    .clickLoginButton()
+    .waitForDashboard();
   
   // Aguardar login com timeout maior
   cy.url({ timeout: 45000 }).should('include', '/dashboard');
@@ -190,8 +195,14 @@ Cypress.Commands.add('setupTestForChat', () => {
   cy.setupInterceptors();
   
   // Perform login and basic validation (without dashboard-specific checks)
-  LoginPage.visit();
-  LoginPage.loginWithValidCredentials();
+  const loginPage = new LoginPage();
+  loginPage
+    .visit()
+    .waitForPageLoad()
+    .fillEmail('teste@email.com')
+    .fillPassword('Jumpad@2025')
+    .clickLoginButton()
+    .waitForDashboard();
   
   // Basic login validation (just check we're not on login page)
   cy.url({ timeout: 30000 }).should('include', '/dashboard');
@@ -207,7 +218,12 @@ Cypress.Commands.add('login', () => {
   cy.get('input[name="password"]').should('be.visible').and('be.enabled');
   cy.get('button[type="submit"]').should('be.visible').and('be.enabled');
   
-  LoginPage.loginWithValidCredentials();
+  const loginPage = new LoginPage();
+  loginPage
+    .fillEmail('teste@email.com')
+    .fillPassword('Jumpad@2025')
+    .clickLoginButton()
+    .waitForDashboard();
   
   // Wait for login request to complete
   cy.wait('@loginRequest', { timeout: 15000 }).then((interception) => {
@@ -286,9 +302,13 @@ Cypress.Commands.add('loginWithValidCredentials', () => {
   // Setup interceptors for login flow
   cy.setupInterceptors();
   
-  LoginPage
+  const loginPage = new LoginPage();
+  loginPage
     .visit()
-    .loginWithValidCredentials();
+    .fillEmail('teste@email.com')
+    .fillPassword('Jumpad@2025')
+    .clickLoginButton()
+    .waitForDashboard();
   
   // Wait for login request to complete (success case)
   cy.wait('@loginRequest', { timeout: 15000 }).then((interception) => {

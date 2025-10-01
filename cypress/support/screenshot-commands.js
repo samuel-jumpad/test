@@ -29,8 +29,8 @@ Cypress.Commands.add('failureScreenshot', () => {
   cy.log('📸 Screenshot taken on failure');
 });
 
-// Auto screenshot on test failure
-Cypress.on('fail', (error, runnable) => {
-  cy.takeScreenshot(`failure-${runnable.title.replace(/\s+/g, '-').toLowerCase()}`);
-  throw error;
-});
+// Auto screenshot on test failure - disabled to prevent promise conflicts
+// Cypress.on('fail', (error, runnable) => {
+//   cy.takeScreenshot(`failure-${runnable.title.replace(/\s+/g, '-').toLowerCase()}`);
+//   throw error;
+// });

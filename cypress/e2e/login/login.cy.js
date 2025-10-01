@@ -11,9 +11,13 @@ describe('Login-related tests', () => {
     // Setup interceptors specifically for success test
     cy.setupInterceptors();
     
-    LoginPage
+    const loginPage = new LoginPage();
+    loginPage
       .visit()
-      .performValidLogin()
+      .fillEmail('teste@email.com')
+      .fillPassword('Jumpad@2025')
+      .clickLoginButton()
+      .waitForDashboard()
       .waitForPageLoad();
     
     // Additional wait after successful login
@@ -24,9 +28,12 @@ describe('Login-related tests', () => {
     // Setup interceptors specifically for failure test
     cy.setupInterceptorsForFailure();
     
-    LoginPage
+    const loginPage = new LoginPage();
+    loginPage
       .visit()
-      .performWrongEmailLogin();
+      .fillEmail('emailerrado@teste.com')
+      .fillPassword('Jumpad@2025')
+      .clickLoginButton();
     
     // Verify login failed by checking we're still on login page
     cy.url({ timeout: 15000 }).should('include', '/');
@@ -44,9 +51,12 @@ describe('Login-related tests', () => {
     // Setup interceptors specifically for failure test
     cy.setupInterceptorsForFailure();
     
-    LoginPage
+    const loginPage = new LoginPage();
+    loginPage
       .visit()
-      .performWrongPasswordLogin();
+      .fillEmail('teste@email.com')
+      .fillPassword('senhaerrada')
+      .clickLoginButton();
     
     // Verify login failed by checking we're still on login page
     cy.url({ timeout: 15000 }).should('include', '/');
@@ -64,9 +74,12 @@ describe('Login-related tests', () => {
     // Setup interceptors specifically for failure test
     cy.setupInterceptorsForFailure();
     
-    LoginPage
+    const loginPage = new LoginPage();
+    loginPage
       .visit()
-      .performWrongCredentialsLogin();
+      .fillEmail('emailerrado@teste.com')
+      .fillPassword('senhaerrada')
+      .clickLoginButton();
     
     // Verify login failed by checking we're still on login page
     cy.url({ timeout: 15000 }).should('include', '/');

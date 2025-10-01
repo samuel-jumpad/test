@@ -13,7 +13,7 @@ export class AgentPage {
     cy.wait(2000);
     
     // Tenta encontrar o menu Agentes com seletores CSS
-    cy.get('body').then(($body) => {
+      cy.get('body').then(($body) => {
       // Tenta encontrar por texto "Agentes"
       if ($body.find('span:contains("Agentes")').length > 0) {
         cy.log('✅ Menu Agentes encontrado por span');
@@ -180,8 +180,8 @@ export class AgentPage {
         cy.log('⚠️ Campo de busca não encontrado, tentando input genérico...');
         if ($body.find('input[type="text"]').length > 0) {
           cy.get('input[type="text"]').first()
-            .should('be.visible')
-            .clear()
+      .should('be.visible')
+      .clear()
             .type(agentName, { delay: 100 });
         } else {
           cy.log('⚠️ Nenhum campo de busca disponível, continuando sem busca...');
@@ -223,7 +223,7 @@ export class AgentPage {
       .last()
       .should('be.visible')
       .click();
-
+    
     // Aguarda modal de confirmação aparecer
     cy.wait(2000);
     
@@ -319,7 +319,7 @@ export class AgentPage {
     this.encontrarAgentesNaInterface();
     
     // Tentar encontrar e clicar no primeiro agente com múltiplas estratégias
-    cy.get('body').then(($body) => {
+      cy.get('body').then(($body) => {
       const selectorsAgente = [
         'table tbody tr',
         '[class*="agent"]',
@@ -342,8 +342,8 @@ export class AgentPage {
           if ($body.find(selector).length > 0) {
             cy.log(`✅ Agente encontrado com seletor: ${selector} (${$body.find(selector).length} elementos)`);
             cy.get(selector).first()
-              .should('be.visible')
-              .click();
+            .should('be.visible')
+            .click();
             agenteEncontrado = true;
             break;
           }
