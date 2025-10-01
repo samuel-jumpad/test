@@ -224,10 +224,43 @@ export class AgentPage {
       .should('be.visible')
       .click();
 
-    // Confirma a exclusão no modal
-    cy.xpath('//button[contains(@class,"bg-[#e81b37]")]//div[contains(text(),"Deletar agente")]')
-      .should('be.visible')
-      .click();
+    // Aguarda modal de confirmação aparecer
+    cy.wait(2000);
+    
+    // Confirma a exclusão no modal com múltiplos seletores
+    cy.get('body').then(($body) => {
+      const seletoresDeletar = [
+        'button:contains("Deletar")',
+        'button:contains("deletar")',
+        'button:contains("Delete")',
+        'button:contains("Confirmar")',
+        'button:contains("confirmar")',
+        'button:contains("Sim")',
+        '[class*="danger"]:contains("Deletar")',
+        '[class*="red"]:contains("Deletar")',
+        '[class*="delete"]'
+      ];
+      
+      let botaoEncontrado = false;
+      for (const seletor of seletoresDeletar) {
+        if ($body.find(seletor).length > 0) {
+          cy.log(`✅ Botão de deletar encontrado: ${seletor}`);
+          cy.get(seletor).last()
+            .should('be.visible')
+            .click();
+          botaoEncontrado = true;
+          break;
+        }
+      }
+      
+      if (!botaoEncontrado) {
+        cy.log('⚠️ Botão de deletar não encontrado, tentando último botão do modal...');
+        cy.get('[role="dialog"] button, .modal button, [class*="modal"] button')
+          .last()
+          .should('be.visible')
+          .click();
+      }
+    });
 
     // Valida a deleção
     this.validarDelecaoSucesso();
