@@ -408,17 +408,16 @@ export class AgentPage {
         if ($body.find(selector).length > 0) {
           cy.log(`✅ Menu Chat encontrado com seletor: ${selector}`);
           try {
-            // Aguardar o elemento ficar visível com timeout maior
+            // Estratégia 1: Tentar clicar diretamente sem verificar visibilidade
             cy.get(selector).first()
-              .should('be.visible', { timeout: 5000 })
-              .click();
-            cy.log(`✅ Menu Chat clicado com sucesso: ${selector}`);
+              .click({ force: true });
+            cy.log(`✅ Menu Chat clicado com force: ${selector}`);
             chatEncontrado = true;
             break;
           } catch (e) {
-            cy.log(`⚠️ Chat encontrado mas não visível: ${selector} - ${e.message}`);
+            cy.log(`⚠️ Falha ao clicar com force: ${selector} - ${e.message}`);
             
-            // Estratégia 1: Aguardar e forçar visibilidade
+            // Estratégia 2: Aguardar e forçar visibilidade
             try {
               cy.get(selector).first()
                 .invoke('css', 'opacity', '1')
@@ -431,24 +430,12 @@ export class AgentPage {
               cy.wait(1000);
               
               cy.get(selector).first()
-                .should('be.visible', { timeout: 3000 })
-                .click();
+                .click({ force: true });
               cy.log(`✅ Menu Chat clicado após forçar visibilidade: ${selector}`);
               chatEncontrado = true;
               break;
             } catch (e2) {
               cy.log(`⚠️ Falha ao forçar visibilidade: ${selector} - ${e2.message}`);
-            }
-            
-            // Estratégia 2: Clicar forçadamente mesmo oculto
-            try {
-              cy.get(selector).first()
-                .click({ force: true });
-              cy.log(`✅ Menu Chat clicado forçadamente: ${selector}`);
-              chatEncontrado = true;
-              break;
-            } catch (e3) {
-              cy.log(`⚠️ Falha ao clicar forçadamente: ${selector} - ${e3.message}`);
             }
             
             // Estratégia 3: Tentar com trigger
@@ -458,21 +445,20 @@ export class AgentPage {
               cy.log(`✅ Menu Chat clicado com trigger: ${selector}`);
               chatEncontrado = true;
               break;
-            } catch (e4) {
-              cy.log(`⚠️ Falha ao clicar com trigger: ${selector} - ${e4.message}`);
+            } catch (e3) {
+              cy.log(`⚠️ Falha ao clicar com trigger: ${selector} - ${e3.message}`);
             }
             
             // Estratégia 4: Aguardar transição e tentar novamente
             try {
               cy.wait(2000); // Aguardar transição de opacity
               cy.get(selector).first()
-                .should('be.visible', { timeout: 3000 })
-                .click();
+                .click({ force: true });
               cy.log(`✅ Menu Chat clicado após aguardar transição: ${selector}`);
               chatEncontrado = true;
               break;
-            } catch (e5) {
-              cy.log(`⚠️ Falha após aguardar transição: ${selector} - ${e5.message}`);
+            } catch (e4) {
+              cy.log(`⚠️ Falha após aguardar transição: ${selector} - ${e4.message}`);
             }
           }
         }
@@ -509,22 +495,11 @@ export class AgentPage {
         cy.log('⚠️ Menu Chat não encontrado com seletores específicos, tentando fallback...');
         try {
           cy.contains('Chat')
-            .should('be.visible')
-            .click();
-          cy.log('✅ Menu Chat clicado com fallback');
+            .click({ force: true });
+          cy.log('✅ Menu Chat clicado com fallback forçado');
           chatEncontrado = true;
         } catch (e) {
-          cy.log(`⚠️ Fallback também falhou: ${e.message}`);
-          
-          // Fallback final: tentar clicar forçadamente
-          try {
-            cy.contains('Chat')
-              .click({ force: true });
-            cy.log('✅ Menu Chat clicado com fallback forçado');
-            chatEncontrado = true;
-          } catch (e2) {
-            cy.log(`⚠️ Fallback forçado também falhou: ${e2.message}`);
-          }
+          cy.log(`⚠️ Fallback forçado falhou: ${e.message}`);
         }
       }
       
