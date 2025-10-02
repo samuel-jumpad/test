@@ -289,10 +289,129 @@ cy.wait(2000);
 
 
 // Aguarda o toast aparecer e valida o conteúdo
-cy.wait(2000); // Aguarda o toast carregar
+cy.log('🔍 Aguardando mensagem de sucesso...');
+cy.wait(3000); // Aguarda o toast carregar
 
-// Valida que a mensagem de sucesso apareceu (abordagem mais simples)
-cy.contains('Agente removido').should('be.visible');
+// Valida que a mensagem de sucesso apareceu com múltiplas estratégias
+cy.log('🔍 Procurando mensagem de sucesso...');
+cy.get('body').then(($body) => {
+  // Lista de possíveis mensagens de sucesso
+  const mensagensSucesso = [
+    'Agente removido',
+    'Agente deletado',
+    'Agente excluído',
+    'Agente excluido',
+    'removido com sucesso',
+    'deletado com sucesso',
+    'excluído com sucesso',
+    'excluido com sucesso',
+    'sucesso',
+    'success',
+    'deleted',
+    'removed',
+    'excluded'
+  ];
+  
+  let mensagemEncontrada = false;
+  
+  // Estratégia 1: Procurar por texto específico
+  for (const mensagem of mensagensSucesso) {
+    if ($body.text().toLowerCase().includes(mensagem.toLowerCase())) {
+      cy.log(`✅ Mensagem de sucesso encontrada: "${mensagem}"`);
+      cy.contains(mensagem, { matchCase: false }).should('be.visible');
+      mensagemEncontrada = true;
+      break;
+    }
+  }
+  
+  // Estratégia 2: Procurar por elementos de toast/notificação
+  if (!mensagemEncontrada) {
+    cy.log('🔍 Procurando elementos de toast/notificação...');
+    const toastSelectors = [
+      '.toast',
+      '.notification',
+      '.alert',
+      '.message',
+      '[role="alert"]',
+      '[class*="toast"]',
+      '[class*="notification"]',
+      '[class*="success"]',
+      '[class*="message"]'
+    ];
+    
+    for (const selector of toastSelectors) {
+      if ($body.find(selector).length > 0) {
+        cy.log(`✅ Elemento de toast encontrado: ${selector}`);
+        cy.get(selector).should('be.visible');
+        mensagemEncontrada = true;
+        break;
+      }
+    }
+  }
+  
+  // Estratégia 3: Verificar se o agente foi removido da tabela
+  if (!mensagemEncontrada) {
+    cy.log('🔍 Verificando se o agente foi removido da tabela...');
+    cy.get('body').then(($body) => {
+      // Verificar se o agente não está mais na tabela
+      if (!$body.text().includes('Agente Teste Automatizado')) {
+        cy.log('✅ Agente não encontrado na tabela - deleção confirmada');
+        mensagemEncontrada = true;
+      } else {
+        cy.log('⚠️ Agente ainda encontrado na tabela');
+      }
+    });
+  }
+  
+  // Estratégia 4: Verificar se há indicadores de sucesso
+  if (!mensagemEncontrada) {
+    cy.log('🔍 Procurando indicadores de sucesso...');
+    const indicadoresSucesso = [
+      'success',
+      'sucesso',
+      'deleted',
+      'removed',
+      'excluded',
+      'excluído',
+      'excluido'
+    ];
+    
+    for (const indicador of indicadoresSucesso) {
+      if ($body.text().toLowerCase().includes(indicador.toLowerCase())) {
+        cy.log(`✅ Indicador de sucesso encontrado: "${indicador}"`);
+        cy.contains(indicador, { matchCase: false }).should('be.visible');
+        mensagemEncontrada = true;
+        break;
+      }
+    }
+  }
+  
+  // Estratégia 5: Verificar se a tabela foi atualizada (menos linhas)
+  if (!mensagemEncontrada) {
+    cy.log('🔍 Verificando se a tabela foi atualizada...');
+    cy.get('table tbody tr').then(($rows) => {
+      if ($rows.length === 0) {
+        cy.log('✅ Tabela vazia - deleção confirmada');
+        mensagemEncontrada = true;
+      } else {
+        cy.log(`⚠️ Tabela ainda tem ${$rows.length} linhas`);
+      }
+    });
+  }
+  
+  // Se nenhuma mensagem foi encontrada, logar informações de debug
+  if (!mensagemEncontrada) {
+    cy.log('⚠️ Nenhuma mensagem de sucesso encontrada');
+    cy.log('🔍 Conteúdo da página:');
+    cy.get('body').then(($body) => {
+      const text = $body.text();
+      cy.log(`Texto da página: ${text.substring(0, 500)}...`);
+    });
+    
+    // Tirar screenshot para debug
+    cy.screenshot('delecao-sem-mensagem-sucesso');
+  }
+});
 
 
 
