@@ -1,6 +1,6 @@
 import { LoginPage } from "../../support/pages/login/login.page.js";
 
-describe("Teste Creat - Criar Agente", () => {
+describe("Teste Delet - Delet agent", () => {
   const loginPage = new LoginPage();
 
   beforeEach(() => {
