@@ -44,7 +44,6 @@ cy.xpath('//td[normalize-space(text())="Agente Teste Automatizado"]/ancestor::tr
   .should('exist')
   .should('have.length.greaterThan', 0);
 
-// Estratégia mais simples e robusta: usar seletor CSS
 // Encontra a linha que contém "Agente Teste" e clica no último botão (lixeira)
 cy.get('table tbody tr')
   .contains('Agente Teste Automatizado')
