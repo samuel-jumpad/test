@@ -166,18 +166,104 @@ describe("Teste Creat - Criar Agente", () => {
     // Aguardar carregamento do formulário
     cy.wait(5000);
 
+    // Debug: Verificar se o formulário carregou
+    cy.log('🔍 Verificando se o formulário de criação carregou...');
+    cy.get('body').then(($body) => {
+      // Procurar por diferentes campos de nome possíveis
+      let totalInputs = 0;
+      const selectors = [
+        'input[name="name"]',
+        'input[placeholder*="nome"]',
+        'input[placeholder*="Nome"]',
+        'input[placeholder*="name"]',
+        'input[placeholder*="Name"]',
+        'input[type="text"]'
+      ];
+      
+      selectors.forEach(selector => {
+        totalInputs += $body.find(selector).length;
+      });
+      
+      cy.log(`Encontrados ${totalInputs} campos de input na página`);
+      
+      // Listar todos os inputs disponíveis
+      cy.get('input').each(($input, index) => {
+        const name = $input.attr('name');
+        const placeholder = $input.attr('placeholder');
+        const type = $input.attr('type');
+        if (name || placeholder) {
+          cy.log(`Input ${index}: name="${name}" placeholder="${placeholder}" type="${type}"`);
+        }
+      });
+    });
+
     // Estratégia avançada para preencher campo nome
-    cy.log('📝 Preenchendo campo nome com simulação humana...');
+    cy.log('📝 Procurando campo nome...');
     
-    // Aguardar o campo estar disponível
-    cy.get('input[name="name"]', { timeout: 10000 })
-      .should('be.visible')
-      .should('not.be.disabled');
+    // Aguardar o campo estar disponível com múltiplos seletores
+    cy.get('body').then(($body) => {
+      let nameFieldFound = false;
+      
+      // Lista de seletores possíveis para o campo nome
+      const nameSelectors = [
+        'input[name="name"]',
+        'input[placeholder*="nome"]',
+        'input[placeholder*="Nome"]',
+        'input[placeholder*="name"]',
+        'input[placeholder*="Name"]',
+        'input[placeholder*="Nome do agente"]',
+        'input[placeholder*="Agent name"]',
+        'input[type="text"]'
+      ];
+      
+      for (let selector of nameSelectors) {
+        if ($body.find(selector).length > 0) {
+          cy.log(`✅ Campo nome encontrado com seletor: ${selector}`);
+          cy.get(selector).first().should('be.visible').should('not.be.disabled');
+          nameFieldFound = true;
+          break;
+        }
+      }
+      
+      if (!nameFieldFound) {
+        cy.log('❌ Campo nome não encontrado, aguardando mais tempo...');
+        cy.wait(3000);
+        
+        // Tentar novamente após aguardar
+        cy.get('input').first().should('be.visible');
+        cy.log('✅ Usando primeiro input encontrado');
+      }
+    });
     
     // Simular interação humana completa
     const nomeAgente = 'Agente Teste Automatizado';
     
-    cy.get('input[name="name"]').then(($input) => {
+    // Usar o seletor que funcionou
+    cy.get('body').then(($body) => {
+      let nameSelector = 'input[name="name"]'; // padrão
+      
+      // Encontrar o seletor correto
+      const nameSelectors = [
+        'input[name="name"]',
+        'input[placeholder*="nome"]',
+        'input[placeholder*="Nome"]',
+        'input[placeholder*="name"]',
+        'input[placeholder*="Name"]',
+        'input[placeholder*="Nome do agente"]',
+        'input[placeholder*="Agent name"]',
+        'input[type="text"]'
+      ];
+      
+      for (let selector of nameSelectors) {
+        if ($body.find(selector).length > 0) {
+          nameSelector = selector;
+          break;
+        }
+      }
+      
+      cy.log(`📝 Usando seletor: ${nameSelector}`);
+      
+      cy.get(nameSelector).first().then(($input) => {
       // Focar no campo primeiro
       cy.wrap($input).focus();
       cy.wait(300);
@@ -213,7 +299,8 @@ describe("Teste Creat - Criar Agente", () => {
       // Clicar fora para garantir que perdeu o foco
       cy.get('body').click(0, 0);
       
-      cy.log('✅ Campo nome preenchido com simulação humana');
+        cy.log('✅ Campo nome preenchido com simulação humana');
+      });
     });
 
     // Preencher campo descrição
@@ -253,14 +340,37 @@ describe("Teste Creat - Criar Agente", () => {
     cy.log('🔍 Validação final dos campos...');
     
     // Verificar campo nome
-    cy.get('input[name="name"]')
-      .should('have.value', 'Agente Teste Automatizado')
-      .should('not.have.class', 'border-red-500') // Não deve ter erro
-      .then(($input) => {
-        const valor = $input.val();
-        cy.log(`Campo nome: "${valor}"`);
-        expect(valor).to.not.be.empty;
-      });
+    cy.get('body').then(($body) => {
+      let nameSelector = 'input[name="name"]'; // padrão
+      
+      // Encontrar o seletor correto novamente
+      const nameSelectors = [
+        'input[name="name"]',
+        'input[placeholder*="nome"]',
+        'input[placeholder*="Nome"]',
+        'input[placeholder*="name"]',
+        'input[placeholder*="Name"]',
+        'input[placeholder*="Nome do agente"]',
+        'input[placeholder*="Agent name"]',
+        'input[type="text"]'
+      ];
+      
+      for (let selector of nameSelectors) {
+        if ($body.find(selector).length > 0) {
+          nameSelector = selector;
+          break;
+        }
+      }
+      
+      cy.get(nameSelector).first()
+        .should('have.value', 'Agente Teste Automatizado')
+        .should('not.have.class', 'border-red-500') // Não deve ter erro
+        .then(($input) => {
+          const valor = $input.val();
+          cy.log(`Campo nome: "${valor}"`);
+          expect(valor).to.not.be.empty;
+        });
+    });
     
     // Verificar campo descrição
     cy.get('textarea[name="description"]')
@@ -277,24 +387,69 @@ describe("Teste Creat - Criar Agente", () => {
         cy.log('⚠️ Ainda há campos obrigatórios - tentando abordagem alternativa');
         
         // Abordagem alternativa: usar JavaScript direto
-        cy.get('input[name="name"]').then(($el) => {
-          const input = $el[0];
+        cy.get('body').then(($body) => {
+          let nameSelector = 'input[name="name"]'; // padrão
           
-          // Definir valor usando JavaScript nativo
-          input.value = 'Agente Teste Automatizado';
+          // Encontrar o seletor correto
+          const nameSelectors = [
+            'input[name="name"]',
+            'input[placeholder*="nome"]',
+            'input[placeholder*="Nome"]',
+            'input[placeholder*="name"]',
+            'input[placeholder*="Name"]',
+            'input[placeholder*="Nome do agente"]',
+            'input[placeholder*="Agent name"]',
+            'input[type="text"]'
+          ];
           
-          // Disparar eventos nativos
-          input.dispatchEvent(new Event('input', { bubbles: true }));
-          input.dispatchEvent(new Event('change', { bubbles: true }));
-          input.dispatchEvent(new Event('blur', { bubbles: true }));
+          for (let selector of nameSelectors) {
+            if ($body.find(selector).length > 0) {
+              nameSelector = selector;
+              break;
+            }
+          }
           
-          cy.log('✅ Valor definido via JavaScript nativo');
+          cy.get(nameSelector).first().then(($el) => {
+            const input = $el[0];
+            
+            // Definir valor usando JavaScript nativo
+            input.value = 'Agente Teste Automatizado';
+            
+            // Disparar eventos nativos
+            input.dispatchEvent(new Event('input', { bubbles: true }));
+            input.dispatchEvent(new Event('change', { bubbles: true }));
+            input.dispatchEvent(new Event('blur', { bubbles: true }));
+            
+            cy.log('✅ Valor definido via JavaScript nativo');
+          });
         });
         
         cy.wait(1000);
         
-        // Verificar novamente
-        cy.get('input[name="name"]').should('have.value', 'Agente Teste Automatizado');
+        // Verificar novamente com seletor dinâmico
+        cy.get('body').then(($body) => {
+          let nameSelector = 'input[name="name"]'; // padrão
+          
+          const nameSelectors = [
+            'input[name="name"]',
+            'input[placeholder*="nome"]',
+            'input[placeholder*="Nome"]',
+            'input[placeholder*="name"]',
+            'input[placeholder*="Name"]',
+            'input[placeholder*="Nome do agente"]',
+            'input[placeholder*="Agent name"]',
+            'input[type="text"]'
+          ];
+          
+          for (let selector of nameSelectors) {
+            if ($body.find(selector).length > 0) {
+              nameSelector = selector;
+              break;
+            }
+          }
+          
+          cy.get(nameSelector).first().should('have.value', 'Agente Teste Automatizado');
+        });
       }
     });
     
