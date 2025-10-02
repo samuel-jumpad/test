@@ -1,7 +1,6 @@
 import { LoginPage } from "../../support/pages/login/login.page.js";
 import { AgentPage } from "../../support/pages/agent/agent.page.js";
 
-// Tratamento de erros baseado no commands.js dos outros testes
 Cypress.on('uncaught:exception', (err, runnable) => {
   if (err.message.includes('m.target?.contains is not a function') ||
       err.message.includes('contains is not a function') ||
@@ -22,7 +21,6 @@ describe("Agentes - Acessando Agente Antigo", () => {
   it("deve acessar agente antigo e enviar mensagem no chat", () => {
     cy.log('🚀 Iniciando teste de acesso ao agente antigo e envio de mensagem...');
     
-    // Executar fluxo completo usando AgentPage (inclui todas as configurações)
     agentPage.fluxoCompletoTesteAgenteAntigo();
     
     cy.log('🎉 Teste concluído com sucesso!');
