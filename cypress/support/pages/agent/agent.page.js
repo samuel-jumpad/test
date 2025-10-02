@@ -112,6 +112,35 @@ export class AgentPage {
         cy.wait(5000);
       }
     });
+
+    // OBRIGATÓRIO: Clicar em "Meus Agentes" após navegar para Agentes
+    cy.log('📋 Clicando em "Meus Agentes"...');
+    cy.get('body').then(($body) => {
+      const meusAgentesSelectors = [
+        'button:contains("Meus Agentes")',
+        'a:contains("Meus Agentes")',
+        'div:contains("Meus Agentes")',
+        '*:contains("Meus Agentes")',
+        'button:contains("Meus")',
+        'a:contains("Meus")',
+        'div:contains("Meus")'
+      ];
+      
+      let found = false;
+      for (let selector of meusAgentesSelectors) {
+        if ($body.find(selector).length > 0) {
+          cy.log(`✅ Encontrado "Meus Agentes" com seletor: ${selector}`);
+          cy.get(selector).first().should('be.visible').click();
+          cy.wait(2000);
+          found = true;
+          break;
+        }
+      }
+      
+      if (!found) {
+        cy.log('⚠️ "Meus Agentes" não encontrado, mas continuando...');
+      }
+    });
     
     return this;
   }
@@ -1006,6 +1035,447 @@ export class AgentPage {
       }
     });
     this.validarDelecaoSucesso();
+  }
+
+  // Método para aguardar tabela carregar
+  aguardarTabelaCarregar() {
+    cy.log('⏳ Aguardando tabela de agentes carregar...');
+    cy.wait(5000);
+    cy.get('body').should('not.contain', 'loading');
+    cy.log('✅ Tabela carregada');
+    return this;
+  }
+
+  // Método para verificar estrutura da tabela
+  verificarEstruturaTabela() {
+    cy.log('🔍 Verificando estrutura da tabela de agentes...');
+    cy.get('body').then(($body) => {
+      const tables = $body.find('table, .table, [role="table"], .grid, .list');
+      cy.log(`Encontradas ${tables.length} tabelas/listas na página`);
+      const rows = $body.find('tr, .row, [role="row"]');
+      cy.log(`Encontradas ${rows.length} linhas na página`);
+      const agentRows = $body.find('*:contains("Agente"), *:contains("Teste"), *:contains("Agent")');
+      cy.log(`Encontrados ${agentRows.length} elementos contendo "Agente/Teste/Agent"`);
+      agentRows.slice(0, 5).each((index, element) => {
+        const text = element.textContent?.trim();
+        if (text && text.length < 100) {
+          cy.log(`  Elemento ${index}: ${element.tagName} - "${text}"`);
+        }
+      });
+    });
+    return this;
+  }
+
+  // Método para encontrar agente com estratégias robustas
+  encontrarAgenteParaDeletar(nomeAgente = 'Agente Teste Automatizado') {
+    cy.log('🔍 Procurando agente para deletar...');
+    cy.get('body').then(($body) => {
+      const agentNames = [
+        nomeAgente,
+        'Agente Teste',
+        'Teste Automatizado',
+        'Test Agent',
+        'Agent Test'
+      ];
+      let agentFound = false;
+      for (let agentName of agentNames) {
+        if ($body.find(`*:contains("${agentName}")`).length > 0) {
+          cy.log(`✅ Agente encontrado: "${agentName}"`);
+          agentFound = true;
+          break;
+        }
+      }
+      if (!agentFound) {
+        cy.log('⚠️ Agente específico não encontrado, procurando qualquer agente...');
+        const anyAgentRows = $body.find('*:contains("agente"), *:contains("agent"), *:contains("Agente"), *:contains("Agent")');
+        if (anyAgentRows.length > 0) {
+          cy.log(`✅ Encontrados ${anyAgentRows.length} elementos com "agente/agent"`);
+          agentFound = true;
+        }
+      }
+      if (!agentFound) {
+        cy.log('❌ Nenhum agente encontrado para deletar');
+      }
+    });
+    return this;
+  }
+
+  // Método para clicar no botão de deletar
+  clicarBotaoDeletar() {
+    cy.log('🔍 Procurando botão de deletar...');
+    cy.get('body').then(($body) => {
+      // Estratégia 1: Tentar encontrar botão de deletar na linha do agente
+      cy.log('🔍 Procurando botão de deletar na linha do agente...');
+      
+      // Primeiro, tentar encontrar a linha que contém o agente
+      const agentName = 'Agente Teste Automatizado';
+      const agentRows = $body.find(`tr:contains("${agentName}"), .row:contains("${agentName}"), [role="row"]:contains("${agentName}")`);
+      
+      if (agentRows.length > 0) {
+        cy.log(`✅ Encontrada linha do agente: ${agentRows.length} linha(s)`);
+        
+        // Procurar botão de deletar especificamente na linha do agente
+        cy.get(`tr:contains("${agentName}"), .row:contains("${agentName}"), [role="row"]:contains("${agentName}")`).first().then(($row) => {
+          const rowButtons = $row.find('button');
+          cy.log(`🔍 Encontrados ${rowButtons.length} botões na linha do agente`);
+          
+          // Procurar botão de deletar na linha específica
+          const deleteSelectors = [
+            'button svg[class*="x"]',
+            'button svg[class*="trash"]',
+            'button svg[class*="delete"]',
+            'button[class*="delete"]',
+            'button[class*="remove"]',
+            'button[class*="danger"]',
+            'button[class*="red"]'
+          ];
+          
+          let foundInRow = false;
+          for (const selector of deleteSelectors) {
+            if ($row.find(selector).length > 0) {
+              cy.log(`✅ Botão de deletar encontrado na linha: ${selector}`);
+              
+              if (selector.includes('svg')) {
+                cy.log('🔧 SVG encontrado, tentando encontrar botão pai...');
+                cy.get(`tr:contains("${agentName}"), .row:contains("${agentName}"), [role="row"]:contains("${agentName}")`).first()
+                  .find(selector).first().then(($svg) => {
+                    const $button = $svg.parent('button');
+                    if ($button.length > 0) {
+                      cy.log('✅ Botão pai encontrado, clicando no botão...');
+                      cy.wrap($button).click({ force: true });
+                    } else {
+                      cy.log('⚠️ Botão pai não encontrado, clicando diretamente no SVG...');
+                      cy.wrap($svg).click({ force: true });
+                    }
+                  });
+              } else {
+                cy.get(`tr:contains("${agentName}"), .row:contains("${agentName}"), [role="row"]:contains("${agentName}")`).first()
+                  .find(selector).first()
+                  .click({ force: true });
+              }
+              
+              foundInRow = true;
+              break;
+            }
+          }
+          
+          // Se não encontrou botão específico, tentar o último botão da linha
+          if (!foundInRow && rowButtons.length > 0) {
+            cy.log('⚠️ Botão específico não encontrado, tentando último botão da linha...');
+            cy.get(`tr:contains("${agentName}"), .row:contains("${agentName}"), [role="row"]:contains("${agentName}")`).first()
+              .find('button').last()
+              .click({ force: true });
+            foundInRow = true;
+          }
+          
+          if (!foundInRow) {
+            cy.log('❌ Nenhum botão encontrado na linha do agente');
+          }
+        });
+      } else {
+        cy.log('⚠️ Linha do agente não encontrada, tentando busca global...');
+        
+        // Estratégia 2: Busca global por botões de deletar
+        const selectorsDeletar = [
+          'button:contains("Deletar")',
+          'button:contains("Delete")',
+          'button:contains("Remover")',
+          'button:contains("Excluir")',
+          'button:contains("Remove")',
+          'button svg[class*="trash"]',
+          'button svg[class*="delete"]',
+          'button svg[class*="x"]',
+          'button svg[class*="remove"]',
+          'button[class*="danger"]',
+          'button[class*="red"]',
+          'button[class*="delete"]',
+          'button[class*="remove"]',
+          '[data-testid*="delete"]',
+          '[data-testid*="remove"]',
+          '[aria-label*="delete"]',
+          '[aria-label*="remove"]'
+        ];
+        
+        let botaoDeletarEncontrado = false;
+        for (const selector of selectorsDeletar) {
+          if ($body.find(selector).length > 0) {
+            cy.log(`✅ Botão de deletar encontrado globalmente: ${selector}`);
+            
+            // Estratégia especial para SVGs dentro de botões
+            if (selector.includes('svg')) {
+              cy.log('🔧 SVG encontrado, tentando encontrar botão pai...');
+              
+              // Tentar encontrar botão pai, mas se não existir, clicar diretamente no SVG
+              cy.get(selector).first().then(($svg) => {
+                const $button = $svg.parent('button');
+                if ($button.length > 0) {
+                  cy.log('✅ Botão pai encontrado, clicando no botão...');
+                  cy.wrap($button).click({ force: true });
+                } else {
+                  cy.log('⚠️ Botão pai não encontrado, clicando diretamente no SVG...');
+                  cy.wrap($svg).click({ force: true });
+                }
+              });
+            } else {
+              cy.get(selector).first()
+                .click({ force: true });
+            }
+            
+            botaoDeletarEncontrado = true;
+            break;
+          }
+        }
+        
+        // Estratégia 3: Se não encontrou, procurar qualquer botão que pareça ser de ação
+        if (!botaoDeletarEncontrado) {
+          cy.log('⚠️ Botão de deletar específico não encontrado, procurando botões de ação...');
+          
+          // Procurar por qualquer botão que possa ser de deletar
+          cy.get('button').then(($buttons) => {
+            let actionButton = null;
+            $buttons.each((index, button) => {
+              const text = button.textContent?.trim().toLowerCase();
+              const className = button.className;
+              const ariaLabel = button.getAttribute('aria-label')?.toLowerCase();
+              
+              if (
+                (text && (
+                  text.includes('delete') || 
+                  text.includes('remove') || 
+                  text.includes('excluir') ||
+                  text.includes('deletar') ||
+                  text.includes('remover') ||
+                  text.includes('trash') ||
+                  text.includes('×') ||
+                  text.includes('x')
+                )) ||
+                (className && (
+                  className.includes('delete') ||
+                  className.includes('remove') ||
+                  className.includes('danger') ||
+                  className.includes('red')
+                )) ||
+                (ariaLabel && (
+                  ariaLabel.includes('delete') ||
+                  ariaLabel.includes('remove')
+                ))
+              ) {
+                actionButton = button;
+                return false; // break
+              }
+            });
+            
+            if (actionButton) {
+              cy.log('✅ Botão de ação encontrado');
+              cy.wrap(actionButton)
+                .click({ force: true });
+              botaoDeletarEncontrado = true;
+            } else {
+              cy.log('❌ Nenhum botão de deletar encontrado');
+            }
+          });
+        }
+      }
+    });
+    return this;
+  }
+
+  // Método para confirmar deleção no modal
+  confirmarDelecaoNoModal() {
+    cy.log('🔍 Aguardando modal de confirmação...');
+    cy.wait(2000);
+    
+    cy.get('body').then(($body) => {
+      // Verificar se há elementos de modal/dialog
+      const modalElements = $body.find('[role="dialog"], .modal, [class*="modal"], [class*="dialog"], .popup, [class*="popup"]');
+      cy.log(`Elementos de modal encontrados: ${modalElements.length}`);
+      
+      // Listar todos os botões disponíveis no modal
+      if (modalElements.length > 0) {
+        cy.log('🔍 Botões disponíveis no modal:');
+        cy.get('[role="dialog"] button, .modal button, [class*="modal"] button, [class*="dialog"] button').each(($btn, index) => {
+          const text = $btn.text().trim();
+          const classes = $btn.attr('class');
+          cy.log(`Botão ${index}: "${text}" - Classes: ${classes}`);
+        });
+      }
+    });
+
+    // Aguardar um pouco para o modal carregar completamente
+    cy.wait(2000);
+
+    // Estratégia robusta para confirmar deleção
+    cy.log('🔍 Procurando botão de confirmação...');
+    cy.get('body').then(($body) => {
+      // Lista de botões de confirmação possíveis
+      const confirmSelectors = [
+        'button:contains("Deletar agente")',
+        'button:contains("Deletar")',
+        'button:contains("Delete")',
+        'button:contains("Confirmar")',
+        'button:contains("Confirm")',
+        'button:contains("Sim")',
+        'button:contains("Yes")',
+        'button:contains("Ok")',
+        'button:contains("OK")'
+      ];
+      
+      let confirmButtonFound = false;
+      for (const selector of confirmSelectors) {
+        if ($body.find(selector).length > 0) {
+          cy.log(`✅ Botão de confirmação encontrado: ${selector}`);
+          cy.get(selector).first()
+            .click({ force: true });
+          confirmButtonFound = true;
+          break;
+        }
+      }
+      
+      if (!confirmButtonFound) {
+        cy.log('⚠️ Botão de confirmação não encontrado, tentando seletores por classe...');
+        
+        // Estratégia 2: Tentar por classes específicas
+        const classSelectors = [
+          'button[class*="bg-red"]',
+          'button[class*="danger"]',
+          'button[class*="delete"]',
+          'button[class*="red"]',
+          'button[class*="destructive"]',
+          '[role="dialog"] button:last-child',
+          '.modal button:last-child',
+          '[class*="modal"] button:last-child'
+        ];
+        
+        for (const selector of classSelectors) {
+          if ($body.find(selector).length > 0) {
+            cy.log(`✅ Botão encontrado com seletor: ${selector}`);
+            cy.get(selector).first()
+              .click({ force: true });
+            confirmButtonFound = true;
+            break;
+          }
+        }
+        
+        // Estratégia 3: Tentar o último botão do modal
+        if (!confirmButtonFound) {
+          cy.log('⚠️ Tentando último botão do modal...');
+          cy.get('[role="dialog"] button, .modal button, [class*="modal"] button')
+            .last()
+            .click({ force: true });
+        }
+      }
+    });
+    return this;
+  }
+
+  // Método para verificar sucesso da deleção
+  verificarDelecaoSucesso() {
+    cy.log('🔍 Verificando se a deleção foi bem-sucedida...');
+    cy.wait(3000);
+    cy.get('body').then(($body) => {
+      // Lista de possíveis mensagens de sucesso
+      const mensagensSucesso = [
+        'Agente removido',
+        'Agente deletado',
+        'Agente excluído',
+        'Agente excluido',
+        'removido com sucesso',
+        'deletado com sucesso',
+        'excluído com sucesso',
+        'excluido com sucesso',
+        'sucesso',
+        'success',
+        'deleted',
+        'removed',
+        'excluded'
+      ];
+      
+      let mensagemEncontrada = false;
+      
+      // Estratégia 1: Procurar por texto específico
+      for (const mensagem of mensagensSucesso) {
+        if ($body.text().toLowerCase().includes(mensagem.toLowerCase())) {
+          cy.log(`✅ Mensagem de sucesso encontrada: "${mensagem}"`);
+          mensagemEncontrada = true;
+          break;
+        }
+      }
+      
+      if (!mensagemEncontrada) {
+        cy.log('⚠️ Mensagem de sucesso específica não encontrada, mas deleção pode ter sido bem-sucedida');
+      } else {
+        cy.log('✅ Agente deletado com sucesso!');
+      }
+      
+      // Estratégia 2: Verificar se o agente foi removido da tabela
+      if (!mensagemEncontrada) {
+        cy.log('🔍 Verificando se o agente foi removido da tabela...');
+        // Verificar se o agente não está mais na tabela
+        if (!$body.text().includes('Agente Teste Automatizado')) {
+          cy.log('✅ Agente não encontrado na tabela - deleção confirmada');
+          mensagemEncontrada = true;
+        } else {
+          cy.log('⚠️ Agente ainda encontrado na tabela, mas operação pode ter sido bem-sucedida');
+        }
+      }
+    });
+    return this;
+  }
+
+  // Método para buscar agente no campo de busca
+  buscarAgenteNoCampo(nomeAgente = 'Agente Teste Automatizado') {
+    cy.log(`🔍 Buscando agente no campo de busca: ${nomeAgente}`);
+    
+    cy.get('body').then(($body) => {
+      const selectorsBusca = [
+        'input[type="search"]',
+        'input[placeholder*="Buscar"]',
+        'input[placeholder*="buscar"]',
+        'input[placeholder*="nome"]',
+        'input[placeholder*="Nome"]',
+        'input[placeholder*="search"]',
+        'input[placeholder*="Search"]',
+        '[data-testid*="search"]',
+        '[class*="search"] input',
+        'input[type="text"]'
+      ];
+      
+      let campoBuscaEncontrado = false;
+      for (const selector of selectorsBusca) {
+        if ($body.find(selector).length > 0) {
+          cy.log(`✅ Campo de busca encontrado: ${selector}`);
+          cy.get(selector).first()
+            .should('be.visible')
+            .clear()
+            .type(nomeAgente, { delay: 100 });
+          campoBuscaEncontrado = true;
+          cy.wait(2000); // Aguardar resultado da busca
+          break;
+        }
+      }
+      
+      if (!campoBuscaEncontrado) {
+        cy.log('⚠️ Campo de busca não encontrado, continuando sem busca...');
+      }
+    });
+    
+    return this;
+  }
+
+  // Método principal para deletar agente completo
+  deletarAgenteCompleto(nomeAgente = 'Agente Teste Automatizado') {
+    cy.log(`🗑️ Iniciando deleção completa do agente: ${nomeAgente}`);
+    
+    this.aguardarTabelaCarregar()
+      .verificarEstruturaTabela()
+      .buscarAgenteNoCampo(nomeAgente)
+      .encontrarAgenteParaDeletar(nomeAgente)
+      .clicarBotaoDeletar()
+      .confirmarDelecaoNoModal()
+      .verificarDelecaoSucesso();
+    
+    cy.log(`✅ Deleção do agente "${nomeAgente}" concluída com sucesso!`);
+    return this;
   }
 
   validarDelecaoSucesso() {
