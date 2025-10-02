@@ -30,24 +30,24 @@ cy.xpath('//input[@type="search" and @placeholder="Buscar por nome"]')
  cy.wait(3000);
 
   // Primeiro verifica se o agente foi criado e está visível na tabela
-  cy.xpath('//td[normalize-space(text())="Agente Teste"]')
+  cy.xpath('//td[normalize-space(text())="Agente Teste Automatizado"]')
   .should('be.visible')
   .scrollIntoView();
 
 // Debug: verifica se a linha da tabela existe
-cy.xpath('//td[normalize-space(text())="Agente Teste"]/ancestor::tr')
+cy.xpath('//td[normalize-space(text())="Agente Teste Automatizado"]/ancestor::tr')
   .should('exist')
   .should('be.visible');
 
 // Debug: verifica se existe algum botão na linha
-cy.xpath('//td[normalize-space(text())="Agente Teste"]/ancestor::tr//button')
+cy.xpath('//td[normalize-space(text())="Agente Teste Automatizado"]/ancestor::tr//button')
   .should('exist')
   .should('have.length.greaterThan', 0);
 
 // Estratégia mais simples e robusta: usar seletor CSS
 // Encontra a linha que contém "Agente Teste" e clica no último botão (lixeira)
 cy.get('table tbody tr')
-  .contains('Agente Teste')
+  .contains('Agente Teste Automatizado')
   .parent('tr')
   .find('button')
   .last()

@@ -1,6 +1,6 @@
 class LoginPage {
   visit() {
-    cy.visit('https://fusion-frontend-7.jumpad.dev/');
+    cy.visit('/');
     cy.log('✅ URL acessada com sucesso');
     return this;
   }
