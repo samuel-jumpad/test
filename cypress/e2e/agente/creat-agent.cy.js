@@ -6,26 +6,9 @@ describe("Teste Creat - Criar Agente", () => {
   beforeEach(() => {
     cy.viewport(1440, 900);
     loginPage.login();
-    
-    // Aguardar carregamento completo após login
-    cy.log('⏳ Aguardando carregamento completo após login...');
-    cy.get('body').should('be.visible');
-    cy.wait(3000);
-    
-    // Verificar se estamos na página correta
-    cy.url().then((url) => {
-      cy.log(`URL após login: ${url}`);
-      if (!url.includes('/dashboard') && !url.includes('/app')) {
-        cy.log('⚠️ Possível redirecionamento inesperado após login');
-      }
-    });
   });
 
   it("deve criar agente com sucesso", () => {
-    // Aguardar carregamento completo após login
-    cy.log('⏳ Aguardando carregamento completo da página...');
-    cy.get('body').should('be.visible');
-    cy.wait(3000);
     
     // Navegar para a seção de Agentes
     cy.log('🔍 Navegando para seção de Agentes...');
@@ -92,71 +75,32 @@ describe("Teste Creat - Criar Agente", () => {
     cy.log('🔍 Procurando "Meus Agentes"...');
     
     cy.get('body').then(($body) => {
-      // Procurar por diferentes variações do texto "Meus Agentes"
+      // Procurar por "Meus Agentes" com seletores simples
       const meusAgentesSelectors = [
-        // Seletores por texto exato
         'button:contains("Meus Agentes")',
         'a:contains("Meus Agentes")',
         'div:contains("Meus Agentes")',
         '*:contains("Meus Agentes")',
-        
-        // Seletores por variações
         'button:contains("Meus")',
         'a:contains("Meus")',
-        'div:contains("Meus")',
-        
-        // Seletores por atributos
-        '[data-testid*="meus-agentes"]',
-        '[data-testid*="my-agents"]',
-        '[data-testid*="agents"]',
-        '[aria-label*="meus agentes"]',
-        '[aria-label*="my agents"]',
-        
-        // Seletores por classes comuns
-        '.nav-item:contains("Meus")',
-        '.menu-item:contains("Meus")',
-        '.sidebar-item:contains("Meus")',
-        
-        // Seletores XPath como fallback
-        '//button[contains(text(), "Meus")]',
-        '//a[contains(text(), "Meus")]',
-        '//div[contains(text(), "Meus")]'
+        'div:contains("Meus")'
       ];
       
       let found = false;
       
-      // Tentar cada seletor
-      for (let i = 0; i < meusAgentesSelectors.length && !found; i++) {
-        const selector = meusAgentesSelectors[i];
-        
-        if (selector.startsWith('//')) {
-          // XPath - corrigir sintaxe
-          try {
-            cy.xpath(selector).then(($elements) => {
-              if ($elements.length > 0) {
-                cy.log(`✅ Encontrado "Meus Agentes"`);
-                cy.xpath(selector).first().should('be.visible').click();
-                cy.wait(2000);
-                found = true;
-              }
-            });
-          } catch (error) {
-            // Silenciar erros de XPath
-          }
-        } else {
-          // Seletor CSS
-          if ($body.find(selector).length > 0) {
-            cy.log(`✅ Encontrado "Meus Agentes"`);
-            cy.get(selector).first().should('be.visible').click();
-            cy.wait(2000);
-            found = true;
-          }
+      // Tentar cada seletor CSS apenas
+      for (let selector of meusAgentesSelectors) {
+        if ($body.find(selector).length > 0) {
+          cy.log(`✅ Encontrado "Meus Agentes"`);
+          cy.get(selector).first().should('be.visible').click();
+          cy.wait(2000);
+          found = true;
+          break;
         }
       }
       
       if (!found) {
         cy.log('✅ Continuando para criar novo agente');
-        found = true; // Considerar que já estamos na página correta
       }
     });
 
@@ -203,25 +147,19 @@ describe("Teste Creat - Criar Agente", () => {
       }
       
       if (!found) {
-        cy.log('⚠️ Botão não encontrado, tentando XPath...');
-        try {
-          cy.xpath('//div[contains(text(), "Criar novo agente")]')
-            .first()
-            .should('be.visible')
-            .click();
-          cy.log('✅ Encontrado botão "Cadastrar Novo Agente"');
-          cy.wait(2000);
-        } catch (error) {
-          // Última tentativa: procurar qualquer elemento que contenha essas palavras
-          cy.get('body').then(($body) => {
-            const criarElements = $body.find('*:contains("criar"), *:contains("novo"), *:contains("Criar"), *:contains("Novo")');
-            if (criarElements.length > 0) {
-              cy.log('✅ Encontrado botão alternativo');
-              cy.wrap(criarElements.first()).should('be.visible').click();
-              cy.wait(2000);
-            }
-          });
-        }
+        cy.log('⚠️ Botão não encontrado, tentando abordagem alternativa...');
+        
+        // Última tentativa: procurar qualquer elemento que contenha essas palavras
+        cy.get('body').then(($body) => {
+          const criarElements = $body.find('*:contains("criar"), *:contains("novo"), *:contains("Criar"), *:contains("Novo")');
+          if (criarElements.length > 0) {
+            cy.log('✅ Encontrado botão alternativo');
+            cy.wrap(criarElements.first()).should('be.visible').click();
+            cy.wait(2000);
+          } else {
+            cy.log('❌ Nenhum botão de criar agente encontrado');
+          }
+        });
       }
     });
     

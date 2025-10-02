@@ -44,6 +44,20 @@ class LoginPage {
     cy.log('⏳ Aguardando redirecionamento...');
     cy.url().should('include', '/dashboard', { timeout: 15000 });
     cy.log('✅ Redirecionado para dashboard');
+    
+    // Aguardar carregamento completo após login
+    cy.log('⏳ Aguardando carregamento completo após login...');
+    cy.get('body').should('be.visible');
+    cy.wait(3000);
+    
+    // Verificar se estamos na página correta
+    cy.url().then((url) => {
+      cy.log(`URL após login: ${url}`);
+      if (!url.includes('/dashboard') && !url.includes('/app')) {
+        cy.log('⚠️ Possível redirecionamento inesperado após login');
+      }
+    });
+    
     cy.log('⏳ Aguardando carregamento completo...');
     cy.get('body').should('not.contain', 'loading', { timeout: 10000 });
     cy.wait(2000);
