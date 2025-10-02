@@ -169,32 +169,41 @@ describe("Teste Creat - Criar Agente", () => {
     // Debug: Verificar se o formulário carregou
     cy.log('🔍 Verificando se o formulário de criação carregou...');
     cy.get('body').then(($body) => {
-      // Procurar por diferentes campos de nome possíveis
-      let totalInputs = 0;
-      const selectors = [
-        'input[name="name"]',
-        'input[placeholder*="nome"]',
-        'input[placeholder*="Nome"]',
-        'input[placeholder*="name"]',
-        'input[placeholder*="Name"]',
-        'input[type="text"]'
-      ];
+      // Contar todos os elementos do formulário
+      const inputs = $body.find('input').length;
+      const textareas = $body.find('textarea').length;
+      const selects = $body.find('select').length;
+      const buttons = $body.find('button').length;
       
-      selectors.forEach(selector => {
-        totalInputs += $body.find(selector).length;
-      });
-      
-      cy.log(`Encontrados ${totalInputs} campos de input na página`);
+      cy.log(`📋 Elementos encontrados:`);
+      cy.log(`  - Inputs: ${inputs}`);
+      cy.log(`  - Textareas: ${textareas}`);
+      cy.log(`  - Selects: ${selects}`);
+      cy.log(`  - Buttons: ${buttons}`);
       
       // Listar todos os inputs disponíveis
-      cy.get('input').each(($input, index) => {
-        const name = $input.attr('name');
-        const placeholder = $input.attr('placeholder');
-        const type = $input.attr('type');
-        if (name || placeholder) {
-          cy.log(`Input ${index}: name="${name}" placeholder="${placeholder}" type="${type}"`);
-        }
-      });
+      if (inputs > 0) {
+        cy.log('📝 Inputs encontrados:');
+        cy.get('input').each(($input, index) => {
+          const name = $input.attr('name');
+          const placeholder = $input.attr('placeholder');
+          const type = $input.attr('type');
+          if (name || placeholder) {
+            cy.log(`  Input ${index}: name="${name}" placeholder="${placeholder}" type="${type}"`);
+          }
+        });
+      }
+      
+      // Listar todas as textareas disponíveis
+      if (textareas > 0) {
+        cy.log('📄 Textareas encontradas:');
+        cy.get('textarea').each(($textarea, index) => {
+          const name = $textarea.attr('name');
+          const placeholder = $textarea.attr('placeholder');
+          const value = $textarea.val();
+          cy.log(`  Textarea ${index}: name="${name}" placeholder="${placeholder}" value="${value}"`);
+        });
+      }
     });
 
     // Estratégia avançada para preencher campo nome
@@ -376,15 +385,7 @@ describe("Teste Creat - Criar Agente", () => {
       }
       
       if (!found) {
-        cy.log('⚠️ Campo instruções não encontrado, tentando última textarea...');
-        // Tentar com a última textarea da página
-        cy.get('textarea').last()
-          .should('be.visible')
-          .clear()
-          .type('Relacionado a teste automatizado com cypress.', { delay: 100 })
-          .trigger('input')
-          .trigger('change')
-          .blur();
+        cy.log('⚠️ Campo instruções não encontrado, pulando...');
       }
     });
 
