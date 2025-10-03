@@ -1,14 +1,15 @@
+
 import { LoginPage } from "../../support/pages/login/login.page.js";
 
-describe("Descreva a imagem", () => {
+describe("Enviar PDF e aguardar resumo", () => {
   const loginPage = new LoginPage();
 
   beforeEach(() => {
-    cy.viewport(1440, 900);
+	  cy.viewport(1440, 900);
     loginPage.login();
   });
 
-  it("deve acessar chat e descrever a imagem", () => {
+  it("deve acessar chat e descrever o PDF", () => {
     // ===== CONFIGURAÇÕES E INTERCEPTAÇÕES =====
     cy.log('🔧 Configurando interceptações...');
     
@@ -156,27 +157,27 @@ describe("Descreva a imagem", () => {
     
     cy.log('✅ Opção Anexar clicada');
 
-    // ===== ANEXAR IMAGEM =====
-    cy.log('🔍 Anexando imagem...');
+    // ===== ANEXAR PDF =====
+    cy.log('🔍 Anexando PDF...');
     
     // Aguardar o input de arquivo aparecer
     cy.get('input[type="file"]')
       .should('exist')
       .first()
-      .selectFile('cypress/fixtures/uploads/imagem-teste.jpg', { force: true });
+      .selectFile('cypress/fixtures/uploads/teste-pdf.pdf', { force: true });
     
-    cy.log('✅ Imagem anexada com sucesso');
+    cy.log('✅ PDF anexado com sucesso');
     
-    // Aguardar o upload da imagem
+    // Aguardar o upload do PDF
     cy.wait(3000);
     
-    // Validar que a imagem foi carregada
-    cy.get('body').should('contain.text', 'imagem-teste.jpg');
-    cy.log('✅ Imagem carregada e visível na interface');
+    // Validar que o PDF foi carregado
+    cy.get('body').should('contain.text', 'teste-pdf.pdf');
+    cy.log('✅ PDF carregado e visível na interface');
 
     // ===== DIGITAR MENSAGEM =====
     cy.log('🔍 Digitando mensagem...');
-    const mensagem = 'Descreva essa imagem';
+    const mensagem = 'Resumir o PDF';
     
     cy.get('body').then(($body) => {
       const inputSelectors = [
@@ -285,13 +286,13 @@ describe("Descreva a imagem", () => {
     cy.log('✅ Mensagem encontrada na página - envio confirmado');
 
     // ===== AGUARDAR RESPOSTA DO CHAT =====
-    cy.log('📋 Aguardando resposta do chat (palavra esperada: "cachorro")...');
+    cy.log('📋 Aguardando resposta do chat (análise do PDF)...');
     cy.wait(10000);
     
-    // Verificar se a resposta contém a palavra "cachorro"
-    cy.get('body').should('contain.text', 'cachorro');
-    cy.log('✅ Resposta do chat contém a palavra "cachorro"');
+    // Verificar se a resposta contém conteúdo relacionado ao PDF
+    cy.get('body').should('contain.text', 'futebol');
+    cy.log('✅ Resposta do chat contém análise do futebol brasileiro');
     
-    cy.log('✅ Teste de descrição de imagem concluído com sucesso!');
+    cy.log('✅ Teste de análise de PDF concluído com sucesso!');
   });
 });
