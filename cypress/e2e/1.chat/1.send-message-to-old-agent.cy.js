@@ -489,8 +489,3 @@ cy.log('✅ Mensagem encontrada na página - envio confirmado');
 cy.log('✅ Message sending test completed successfully!');
 });
 });
-
-
-
-
-

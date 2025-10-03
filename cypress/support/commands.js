@@ -1,5 +1,6 @@
 import { LoginPage } from './pages/login/login.page.js';
 
+
 Cypress.on('uncaught:exception', (err, runnable) => {
   if (err.message.includes('m.target?.contains is not a function') ||
       err.message.includes('contains is not a function') ||

@@ -1,0 +1,110 @@
+{
+  "stats": {
+    "suites": 1,
+    "tests": 1,
+    "passes": 0,
+    "pending": 0,
+    "failures": 1,
+    "start": "2025-10-03T13:24:32.508Z",
+    "end": "2025-10-03T13:26:52.038Z",
+    "duration": 139530,
+    "testsRegistered": 1,
+    "passPercent": 0,
+    "pendingPercent": 0,
+    "other": 0,
+    "hasOther": false,
+    "skipped": 0,
+    "hasSkipped": false
+  },
+  "results": [
+    {
+      "uuid": "e6f8cfdc-6c2b-4960-b0f6-f45910eb44bd",
+      "title": "",
+      "fullFile": "cypress\\e2e\\1.chat\\Send-message-to-old-agent.cy.js",
+      "file": "cypress\\e2e\\1.chat\\Send-message-to-old-agent.cy.js",
+      "beforeHooks": [],
+      "afterHooks": [],
+      "tests": [],
+      "suites": [
+        {
+          "uuid": "f7495d54-a3f7-443d-9217-828cb351c511",
+          "title": "Acessar agente antigo e enviar um chat",
+          "fullFile": "",
+          "file": "",
+          "beforeHooks": [],
+          "afterHooks": [],
+          "tests": [
+            {
+              "title": "deve acessar chat antigo de um agente e enviar um chat",
+              "fullTitle": "Acessar agente antigo e enviar um chat deve acessar chat antigo de um agente e enviar um chat",
+              "timedOut": null,
+              "duration": 69597,
+              "state": "failed",
+              "speed": null,
+              "pass": false,
+              "fail": true,
+              "pending": false,
+              "context": null,
+              "code": "// Estratégia 1: Tentar encontrar botão Agentes na navegação\ncy.get('body').then($body => {\n  // Procurar por botão ou link com texto \"Agentes\"\n  const agentesButton = $body.find('button:contains(\"Agentes\"), a:contains(\"Agentes\"), [role=\"button\"]:contains(\"Agentes\")');\n  if (agentesButton.length > 0) {\n    cy.log('✅ Encontrado botão Agentes');\n    cy.wrap(agentesButton.first()).should('be.visible').click();\n    cy.wait(2000);\n  } else {\n    cy.log('⚠️ Botão Agentes não encontrado, tentando navegação direta...');\n    // Estratégia 2: Navegação direta para página de agentes\n    cy.url().then(currentUrl => {\n      const baseUrl = currentUrl.split('/').slice(0, 3).join('/');\n      // Tentar diferentes possíveis URLs para agentes\n      const possibleUrls = [`${baseUrl}/agents`, `${baseUrl}/agentes`, `${baseUrl}/dashboard/agents`, `${baseUrl}/dashboard/agentes`];\n      let navigated = false;\n      for (let i = 0; i < possibleUrls.length && !navigated; i++) {\n        cy.log(`Tentando navegar para: ${possibleUrls[i]}`);\n        cy.visit(possibleUrls[i], {\n          failOnStatusCode: false\n        });\n        cy.wait(3000);\n        cy.url().then(newUrl => {\n          if (newUrl.includes('agents') || newUrl.includes('agentes')) {\n            cy.log(`✅ Navegação bem-sucedida para: ${newUrl}`);\n            navigated = true;\n          }\n        });\n      }\n    });\n  }\n});\n// Verificar se estamos na página correta\ncy.url().then(url => {\n  if (!url.includes('agents') && !url.includes('agentes') && !url.includes('assistants')) {\n    cy.log('⚠️ Navegando para página de agentes...');\n    // Tentar navegar diretamente para a página de agentes\n    const baseUrl = url.split('/').slice(0, 3).join('/');\n    const agentsUrl = `${baseUrl}/agents`;\n    cy.visit(agentsUrl, {\n      failOnStatusCode: false\n    });\n    cy.wait(5000);\n  }\n});\n// Clicar em \"Meus Agentes\"\ncy.log('🔍 Procurando \"Meus Agentes\"...');\ncy.get('body').then($body => {\n  // Procurar por \"Meus Agentes\" com seletores simples\n  const meusAgentesSelectors = ['button:contains(\"Meus Agentes\")', 'a:contains(\"Meus Agentes\")', 'div:contains(\"Meus Agentes\")', '*:contains(\"Meus Agentes\")', 'button:contains(\"Meus\")', 'a:contains(\"Meus\")', 'div:contains(\"Meus\")'];\n  let found = false;\n  // Tentar cada seletor CSS apenas\n  for (let selector of meusAgentesSelectors) {\n    if ($body.find(selector).length > 0) {\n      cy.log(`✅ Encontrado \"Meus Agentes\"`);\n      cy.get(selector).first().should('be.visible').click();\n      cy.wait(2000);\n      found = true;\n      break;\n    }\n  }\n  if (!found) {\n    cy.log('✅ Continuando para criar novo agente');\n  }\n});\ncy.wait(5000);\n// Digita o nome no campo de busca - com fallback\ncy.log('🔍 Procurando campo de busca...');\ncy.get('body').then($body => {\n  const selectorsBusca = ['input[type=\"search\"]', 'input[placeholder*=\"Buscar\"]', 'input[placeholder*=\"buscar\"]', 'input[placeholder*=\"nome\"]', 'input[placeholder*=\"search\"]', '[data-testid*=\"search\"]', '[class*=\"search\"] input'];\n  let campoBuscaEncontrado = false;\n  for (const selector of selectorsBusca) {\n    if ($body.find(selector).length > 0) {\n      cy.log(`✅ Campo de busca encontrado: ${selector}`);\n      cy.get(selector).first().should('be.visible').clear().type('Cypress', {\n        delay: 100\n      });\n      campoBuscaEncontrado = true;\n      break;\n    }\n  }\n  if (!campoBuscaEncontrado) {\n    cy.log('⚠️ Campo de busca não encontrado, tentando input genérico...');\n    if ($body.find('input[type=\"text\"]').length > 0) {\n      cy.get('input[type=\"text\"]').first().should('be.visible').clear().type('Cypress', {\n        delay: 350\n      });\n    } else {\n      cy.log('⚠️ Nenhum campo de busca disponível, continuando sem busca...');\n    }\n  }\n});\n// Aguarda a tabela carregar \ncy.wait(5000);\n// ===== CLICAR NO BOTÃO TESTAR =====\ncy.log('🔍 Procurando botão \"Testar\"...');\ncy.wait(5000); // Aguardar página carregar\n// Estratégia mais robusta para encontrar o botão Testar\ncy.get('body').then($body => {\n  // Estratégia 1: Buscar por texto \"Testar\" com múltiplos seletores\n  const testarSelectors = ['button:contains(\"Testar\")', 'a:contains(\"Testar\")', '[role=\"button\"]:contains(\"Testar\")', 'div:contains(\"Testar\")', '*:contains(\"Testar\")'];\n  let testarEncontrado = false;\n  for (const selector of testarSelectors) {\n    if ($body.find(selector).length > 0) {\n      cy.log(`✅ Botão Testar encontrado: ${selector}`);\n      cy.get(selector).first().scrollIntoView().wait(1000).click({\n        force: true\n      });\n      testarEncontrado = true;\n      break;\n    }\n  }\n  // Buscar por ícone sparkles\n  if (!testarEncontrado && $body.find('button svg[class*=\"sparkles\"]').length > 0) {\n    cy.log('✅ Botão Testar encontrado por ícone sparkles');\n    cy.get('button svg[class*=\"sparkles\"]').parent().first().scrollIntoView().wait(1000).click({\n      force: true\n    });\n    testarEncontrado = true;\n  }\n  // Buscar qualquer botão na linha da tabela\n  if (!testarEncontrado && $body.find('table tbody tr button').length > 0) {\n    cy.log('✅ Botões encontrados na tabela, clicando no primeiro');\n    cy.get('table tbody tr button').first().scrollIntoView().wait(1000).click({\n      force: true\n    });\n    testarEncontrado = true;\n  }\n  // Buscar por qualquer elemento clicável\n  if (!testarEncontrado) {\n    cy.log('⚠️ Botão Testar não encontrado, tentando primeiro botão disponível');\n    cy.get('button').first().scrollIntoView().wait(1000).click({\n      force: true\n    });\n  }\n});\ncy.wait(2000);\n// DIGITAR MENSAGEM =====\ncy.log('🔍 Procurando campo de mensagem no dialog...');\n// Estratégia robusta com múltiplos fallbacks\ncy.get('body').then($body => {\n  // Estratégia 1: XPath específico do dialog\n  if ($body.find('div[role=\"dialog\"][data-state=\"open\"]').length > 0) {\n    cy.log('✅ Dialog encontrado, tentando XPath específico...');\n    try {\n      cy.xpath('//div[@role=\"dialog\" and @data-state=\"open\"]//form[@id=\"chat-message-input-form\"]//div[@role=\"textbox\" and @contenteditable=\"true\"]', {\n        timeout: 10000\n      }).should('exist').then($els => {\n        const $visible = $els.filter(':visible');\n        if ($visible.length > 0) {\n          cy.wrap($visible[0]).scrollIntoView().click({\n            force: true\n          }).type('Olá, esta é uma mensagem de teste', {\n            delay: 100,\n            force: true\n          });\n          cy.log('✅ Mensagem digitada via XPath específico');\n        }\n      });\n    } catch (e) {\n      cy.log('⚠️ XPath específico falhou, tentando fallback...');\n    }\n  }\n  // Estratégia 2: Fallback com seletores CSS\n  if ($body.find('div[contenteditable=\"true\"]').length > 0) {\n    cy.log('✅ Campo contenteditable encontrado via CSS...');\n    cy.get('div[contenteditable=\"true\"]').first().scrollIntoView().click({\n      force: true\n    }).type('Olá, esta é uma mensagem de teste', {\n      delay: 100,\n      force: true\n    });\n    cy.log('✅ Mensagem digitada via CSS fallback');\n  }\n  // Estratégia 3: Fallback genérico\n  else if ($body.find('textarea, input[type=\"text\"]').length > 0) {\n    cy.log('✅ Campo de texto encontrado via fallback genérico...');\n    cy.get('textarea, input[type=\"text\"]').first().scrollIntoView().click({\n      force: true\n    }).type('Olá, esta é uma mensagem de teste', {\n      delay: 100,\n      force: true\n    });\n    cy.log('✅ Mensagem digitada via fallback genérico');\n  } else {\n    cy.log('⚠️ Nenhum campo de input encontrado, pulando digitação...');\n  }\n});\n// Clicar em enviar com fallbacks\ncy.log('🔍 Procurando botão de enviar...');\ncy.get('body').then($body => {\n  // Estratégia 1: XPath específico\n  if ($body.find('form[id=\"chat-message-input-form\"]').length > 0) {\n    try {\n      cy.xpath('(//form[@id=\"chat-message-input-form\"]//button)[last()]').scrollIntoView().click({\n        force: true\n      });\n      cy.log('✅ Botão enviar clicado via XPath');\n    } catch (e) {\n      cy.log('⚠️ XPath do botão falhou, tentando fallback...');\n    }\n  }\n  // Estratégia 2: Fallback CSS\n  if ($body.find('button[type=\"submit\"], button:contains(\"Enviar\"), button:contains(\"Send\")').length > 0) {\n    cy.get('button[type=\"submit\"], button:contains(\"Enviar\"), button:contains(\"Send\")').first().scrollIntoView().click({\n      force: true\n    });\n    cy.log('✅ Botão enviar clicado via CSS fallback');\n  }\n  // Estratégia 3: Fallback genérico\n  else if ($body.find('button').length > 0) {\n    cy.get('button').last().scrollIntoView().click({\n      force: true\n    });\n    cy.log('✅ Botão enviar clicado via fallback genérico');\n  }\n});\ncy.wait(5000);\n// Validar mensagem com fallback\ncy.log('🔍 Validando mensagem enviada...');\ncy.get('body').then($body => {\n  if ($body.find('*:contains(\"Olá, esta é uma mensagem de teste\")').length > 0) {\n    cy.contains('Olá, esta é uma mensagem de teste').should('be.visible');\n    cy.log('✅ Mensagem validada com sucesso');\n  } else {\n    cy.log('⚠️ Mensagem não encontrada na página, mas continuando...');\n  }\n});\n// Clicar no botão de fechar com fallbacks\ncy.log('🔍 Procurando botão de fechar...');\ncy.get('body').then($body => {\n  // Estratégia 1: XPath específico\n  if ($body.find('div[role=\"dialog\"][data-state=\"open\"]').length > 0) {\n    try {\n      cy.xpath('//div[@role=\"dialog\" and @data-state=\"open\"]//button//*[name()=\"svg\" and contains(@class,\"lucide-x\")]').click({\n        force: true\n      });\n      cy.log('✅ Botão fechar clicado via XPath');\n    } catch (e) {\n      cy.log('⚠️ XPath do botão fechar falhou, tentando fallback...');\n    }\n  }\n  // Estratégia 2: Fallback CSS\n  if ($body.find('button svg[class*=\"x\"], button[aria-label*=\"close\"], button[title*=\"close\"]').length > 0) {\n    cy.get('button svg[class*=\"x\"], button[aria-label*=\"close\"], button[title*=\"close\"]').first().scrollIntoView().click({\n      force: true\n    });\n    cy.log('✅ Botão fechar clicado via CSS fallback');\n  }\n  // Estratégia 3: Fallback genérico\n  else if ($body.find('button').length > 0) {\n    cy.get('button').last().scrollIntoView().click({\n      force: true\n    });\n    cy.log('✅ Botão fechar clicado via fallback genérico');\n  } else {\n    cy.log('⚠️ Botão de fechar não encontrado, continuando...');\n  }\n});\n//  NAVEGAR PARA CHAT =====\ncy.log('📋 Fase 1: Navegando para Chat...');\ncy.get('body').should('not.contain', 'loading');\ncy.wait(2000);\n// Navegar para Chat\ncy.contains('Chat').click({\n  force: true\n});\ncy.wait(3000);\ncy.log('✅ Navegação para Chat concluída');\n// Clicar no agente antigo com fallbacks\ncy.log('🔍 Procurando agente \"Cypress\"...');\ncy.get('body').then($body => {\n  // Estratégia 1: XPath específico\n  if ($body.find('div:contains(\"Agentes\")').length > 0) {\n    try {\n      cy.xpath('//div[contains(text(),\"Agentes\")]/following::div[contains(@class,\"truncate\") and text()=\"Cypress\"][1]').should('be.visible').scrollIntoView().click({\n        force: true\n      });\n      cy.log('✅ Agente Cypress clicado via XPath');\n    } catch (e) {\n      cy.log('⚠️ XPath do agente falhou, tentando fallback...');\n    }\n  }\n  // Estratégia 2: Fallback CSS\n  if ($body.find('div:contains(\"Cypress\")').length > 0) {\n    cy.get('div:contains(\"Cypress\")').first().scrollIntoView().click({\n      force: true\n    });\n    cy.log('✅ Agente Cypress clicado via CSS fallback');\n  }\n  // Estratégia 3: Fallback genérico\n  else if ($body.find('div[class*=\"truncate\"]').length > 0) {\n    cy.get('div[class*=\"truncate\"]').first().scrollIntoView().click({\n      force: true\n    });\n    cy.log('✅ Primeiro agente clicado via fallback genérico');\n  } else {\n    cy.log('⚠️ Nenhum agente encontrado, continuando...');\n  }\n});\n//FASE 4: DIGITAR MENSAGEM =====\ncy.log('📋 Fase 4: Digitando mensagem...');\nconst mensagem = 'ola, como vai?';\n// Procurar por campo de input com estratégia robusta\ncy.get('body').then($body => {\n  const inputSelectors = ['div[contenteditable=\"true\"]', 'textarea', 'input[type=\"text\"]', '[contenteditable=\"true\"]'];\n  let inputEncontrado = false;\n  for (const selector of inputSelectors) {\n    if ($body.find(selector).length > 0) {\n      cy.log(`✅ Input encontrado: ${selector}`);\n      try {\n        cy.get(selector).first().scrollIntoView().clear({\n          force: true\n        }).type(mensagem, {\n          delay: 100,\n          force: true\n        });\n        cy.log('✅ Mensagem digitada');\n        inputEncontrado = true;\n        break;\n      } catch (e) {\n        cy.log(`⚠️ Erro ao digitar com ${selector}, tentando próximo...`);\n      }\n    }\n  }\n  if (!inputEncontrado) {\n    cy.log('⚠️ Input não encontrado, tentando fallback...');\n    try {\n      cy.get('input, textarea, [contenteditable]').first().scrollIntoView().clear({\n        force: true\n      }).type(mensagem, {\n        delay: 100,\n        force: true\n      });\n      cy.log('✅ Mensagem digitada com fallback');\n    } catch (e) {\n      cy.log('⚠️ Fallback também falhou, pulando digitação...');\n    }\n  }\n});\n//CLICAR EM ENVIAR =====\ncy.log('🔍 Procurando botão de enviar...');\ncy.wait(2000); // Aguardar mensagem ser digitada\n// Estratégia mais robusta para encontrar botão de enviar\ncy.get('body').then($body => {\n  // Estratégia 1: Botões específicos de envio\n  const selectorsBotao = ['button[type=\"submit\"]', 'button:contains(\"Enviar\")', 'button:contains(\"Send\")', 'form button[type=\"submit\"]', 'button[class*=\"submit\"]', 'button[class*=\"send\"]', 'button[class*=\"enviar\"]', 'button[class*=\"message\"]', 'button[aria-label*=\"send\"]', 'button[title*=\"send\"]', 'button[title*=\"enviar\"]'];\n  let botaoEncontrado = false;\n  for (const selector of selectorsBotao) {\n    if ($body.find(selector).length > 0) {\n      cy.log(`✅ Send button encontrado: ${selector}`);\n      try {\n        cy.get(selector).first().scrollIntoView().wait(500).click({\n          force: true\n        });\n        cy.log('✅ Botão enviar clicado');\n        botaoEncontrado = true;\n        break;\n      } catch (e) {\n        cy.log(`⚠️ Erro ao clicar em ${selector}, tentando próximo...`);\n      }\n    }\n  }\n  // Estratégia 2: Botões com ícones de envio\n  if (!botaoEncontrado && $body.find('button svg[class*=\"send\"], button svg[class*=\"arrow\"], button svg[class*=\"paper\"]').length > 0) {\n    cy.log('✅ Botão com ícone de envio encontrado');\n    try {\n      cy.get('button svg[class*=\"send\"], button svg[class*=\"arrow\"], button svg[class*=\"paper\"]').parent().first().scrollIntoView().wait(500).click({\n        force: true\n      });\n      cy.log('✅ Botão com ícone clicado');\n      botaoEncontrado = true;\n    } catch (e) {\n      cy.log('⚠️ Erro ao clicar em botão com ícone...');\n    }\n  }\n  // Estratégia 3: Último botão da página\n  if (!botaoEncontrado && $body.find('button').length > 0) {\n    cy.log('✅ Tentando último botão da página...');\n    try {\n      cy.get('button').last().scrollIntoView().wait(500).click({\n        force: true\n      });\n      cy.log('✅ Último botão clicado');\n      botaoEncontrado = true;\n    } catch (e) {\n      cy.log('⚠️ Erro ao clicar no último botão...');\n    }\n  }\n  // Estratégia 4: Botão mais próximo do campo de input\n  if (!botaoEncontrado && $body.find('div[contenteditable=\"true\"]').length > 0) {\n    cy.log('✅ Tentando botão próximo ao campo de input...');\n    try {\n      cy.get('div[contenteditable=\"true\"]').parent().find('button').first().scrollIntoView().wait(500).click({\n        force: true\n      });\n      cy.log('✅ Botão próximo ao input clicado');\n      botaoEncontrado = true;\n    } catch (e) {\n      cy.log('⚠️ Erro ao clicar em botão próximo ao input...');\n    }\n  }\n  if (!botaoEncontrado) {\n    cy.log('⚠️ Nenhum botão de envio encontrado, pulando envio...');\n  }\n});\ncy.log('✅ Send button clicado');\n// Validar envio da mensagem com fallbacks\ncy.log('🔍 Validando envio da mensagem...');\ncy.log('⏳ Aguardando 5 segundos após envio...');\ncy.wait(5000);\n// Validação opcional - não falha se não encontrar\ncy.get('body').then($body => {\n  if ($body.find('div[contenteditable=\"true\"]').length > 0) {\n    try {\n      cy.get('div[contenteditable=\"true\"]').first().should('be.empty');\n      cy.log('✅ Campo de input vazio - mensagem enviada');\n    } catch (e) {\n      cy.log('⚠️ Campo não está vazio, mas continuando...');\n    }\n  }\n});\n// Validações opcionais\ncy.get('body').then($body => {\n  if ($body.text().includes('enviando')) {\n    cy.log('⚠️ Indicador \"enviando\" ainda presente, mas continuando...');\n  } else {\n    cy.log('✅ Nenhum indicador de \"enviando\" encontrado');\n  }\n});\n// Validação da mensagem - opcional\ncy.get('body').then($body => {\n  if ($body.text().includes(mensagem)) {\n    cy.log('✅ Mensagem encontrada na página - envio confirmado');\n  } else {\n    cy.log('⚠️ Mensagem não encontrada na página, mas continuando...');\n  }\n});\ncy.log('✅ Message sending test completed successfully!');",
+              "err": {
+                "message": "AssertionError: Timed out retrying after 20000ms: expected '<p>' to be 'visible'\n\nThis element `<p>` is not visible because its ancestor has `position: fixed` CSS property and it is overflowed by other elements. How about scrolling to the element with `cy.scrollIntoView()`?",
+                "estack": "AssertionError: Timed out retrying after 20000ms: expected '<p>' to be 'visible'\n\nThis element `<p>` is not visible because its ancestor has `position: fixed` CSS property and it is overflowed by other elements. How about scrolling to the element with `cy.scrollIntoView()`?\n    at Context.eval (webpack://cypress-automation/./cypress/e2e/1.chat/Send-message-to-old-agent.cy.js:295:11)",
+                "diff": null
+              },
+              "uuid": "d592b7f7-ec75-4468-ba93-a47c48e5b939",
+              "parentUUID": "f7495d54-a3f7-443d-9217-828cb351c511",
+              "isHook": false,
+              "skipped": false
+            }
+          ],
+          "suites": [],
+          "passes": [],
+          "failures": [
+            "d592b7f7-ec75-4468-ba93-a47c48e5b939"
+          ],
+          "pending": [],
+          "skipped": [],
+          "duration": 69597,
+          "root": false,
+          "rootEmpty": false,
+          "_timeout": 2000
+        }
+      ],
+      "passes": [],
+      "failures": [],
+      "pending": [],
+      "skipped": [],
+      "duration": 0,
+      "root": true,
+      "rootEmpty": true,
+      "_timeout": 2000
+    }
+  ],
+  "meta": {
+    "mocha": {
+      "version": "7.0.1"
+    },
+    "mochawesome": {
+      "options": {
+        "quiet": false,
+        "reportFilename": "mochawesome",
+        "saveHtml": true,
+        "saveJson": true,
+        "consoleReporter": "spec",
+        "useInlineDiffs": false,
+        "code": true
+      },
+      "version": "7.1.4"
+    },
+    "marge": {
+      "options": {
+        "reportDir": "cypress/reports",
+        "overwrite": false,
+        "html": true,
+        "json": true,
+        "timestamp": "mmddyyyy_HHMMss"
+      },
+      "version": "6.3.0"
+    }
+  }
+}
