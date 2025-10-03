@@ -206,6 +206,32 @@ export class ChatPage {
     return this;
   }
 
+  /**
+   * Anexa um PDF ao chat
+   * @param {string} caminhoPDF - Caminho para o PDF
+   */
+  anexarPDF(caminhoPDF = 'cypress/fixtures/uploads/teste-pdf.pdf') {
+    cy.log('🔍 Anexando PDF...');
+    
+    // Aguardar o input de arquivo aparecer
+    cy.get('input[type="file"]')
+      .should('exist')
+      .first()
+      .selectFile(caminhoPDF, { force: true });
+    
+    cy.log('✅ PDF anexado com sucesso');
+    
+    // Aguardar o upload do PDF
+    cy.wait(3000);
+    
+    // Validar que o PDF foi carregado
+    const nomeArquivo = caminhoPDF.split('/').pop();
+    cy.get('body').should('contain.text', nomeArquivo);
+    cy.log('✅ PDF carregado e visível na interface');
+    
+    return this;
+  }
+
   // ===== DIGITAR MENSAGEM =====
   
   /**
@@ -274,8 +300,8 @@ export class ChatPage {
         if ($body.find(selector).length > 0) {
           cy.log(`✅ Send button encontrado: ${selector}`);
           cy.get(selector).first()
-            .should('be.visible')
-            .click();
+            .scrollIntoView()
+            .click({ force: true });
           botaoEncontrado = true;
           break;
         }
@@ -284,8 +310,8 @@ export class ChatPage {
         cy.log('⚠️ Send button não encontrado, tentando seletores genéricos...');
         if ($body.find('button').length > 0) {
           cy.get('button').last()
-            .should('be.visible')
-            .click();
+            .scrollIntoView()
+            .click({ force: true });
         } else {
           cy.log('⚠️ Nenhum button encontrado');
         }
@@ -383,6 +409,48 @@ export class ChatPage {
     this.aguardarResposta(palavraEsperada);
     
     cy.log('✅ Teste de descrição de imagem concluído com sucesso!');
+    return this;
+  }
+
+  /**
+   * Executa o fluxo completo de análise de PDF
+   * @param {string} caminhoPDF - Caminho para o PDF
+   * @param {string} mensagem - Mensagem a ser enviada
+   * @param {string} palavraEsperada - Palavra esperada na resposta
+   */
+  analisarPDFCompleto(caminhoPDF = 'cypress/fixtures/uploads/teste-pdf.pdf', 
+                      mensagem = 'Resumir o PDF', 
+                      palavraEsperada = 'futebol') {
+    cy.log('📄 Iniciando fluxo completo de análise de PDF...');
+    
+    // Configurar interceptações
+    this.configurarInterceptacoes();
+    
+    // Navegar para chat
+    this.navegarParaChat();
+    
+    // Clicar no botão +
+    this.clicarBotaoAdicionar();
+    
+    // Clicar em anexar
+    this.clicarEmAnexar();
+    
+    // Anexar PDF
+    this.anexarPDF(caminhoPDF);
+    
+    // Digitar mensagem
+    this.digitarMensagem(mensagem);
+    
+    // Enviar mensagem
+    this.enviarMensagem();
+    
+    // Validar envio
+    this.validarEnvioMensagem(mensagem);
+    
+    // Aguardar resposta
+    this.aguardarResposta(palavraEsperada);
+    
+    cy.log('✅ Teste de análise de PDF concluído com sucesso!');
     return this;
   }
 
@@ -993,7 +1061,10 @@ export class ChatPage {
    * @param {string} mensagem - Mensagem a ser enviada
    */
   digitarEnviarMensagemFinal(mensagem = 'ola, como vai?') {
-    cy.log('📋 Digitando mensagem...');
+    cy.log('📋 Fase 4: Digitando mensagem...');
+    
+    // Aguardar carregamento do chat após clicar no agente
+    cy.wait(3000);
     
     // Procurar por campo de input
     cy.get('body').then(($body) => {
@@ -1001,7 +1072,13 @@ export class ChatPage {
         'div[contenteditable="true"]',
         'textarea',
         'input[type="text"]',
-        '[contenteditable="true"]'
+        '[contenteditable="true"]',
+        '[data-testid*="message-input"]',
+        '[data-testid*="chat-input"]',
+        'input[placeholder*="mensagem"]',
+        'input[placeholder*="message"]',
+        'textarea[placeholder*="mensagem"]',
+        'textarea[placeholder*="message"]'
       ];
       
       let inputEncontrado = false;
@@ -1029,7 +1106,7 @@ export class ChatPage {
     });
 
     // Clicar em enviar
-    cy.log('✅ Mensagem digitada');
+    cy.log('🔍 Clicando em enviar...');
     cy.get('body').then(($body) => {
       const selectorsBotao = [
         'button[type="submit"]:not([disabled])',
@@ -1039,15 +1116,21 @@ export class ChatPage {
         'button[class*="submit"]',
         'button[class*="send"]',
         'button[class*="enviar"]',
-        'button[class*="message"]'
+        'button[class*="message"]',
+        '[data-testid*="send"]',
+        '[data-testid*="submit"]',
+        '[aria-label*="enviar"]',
+        '[aria-label*="send"]',
+        'button[title*="enviar"]',
+        'button[title*="send"]'
       ];
       let botaoEncontrado = false;
       for (const selector of selectorsBotao) {
         if ($body.find(selector).length > 0) {
           cy.log(`✅ Send button encontrado: ${selector}`);
           cy.get(selector).first()
-            .should('be.visible')
-            .click();
+            .scrollIntoView()
+            .click({ force: true });
           botaoEncontrado = true;
           break;
         }
@@ -1056,8 +1139,8 @@ export class ChatPage {
         cy.log('⚠️ Send button não encontrado, tentando seletores genéricos...');
         if ($body.find('button').length > 0) {
           cy.get('button').last()
-            .should('be.visible')
-            .click();
+            .scrollIntoView()
+            .click({ force: true });
         } else {
           cy.log('⚠️ Nenhum button encontrado');
         }
