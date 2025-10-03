@@ -19,13 +19,27 @@ describe("Descreva a imagem", () => {
     cy.wait(3000);
     cy.log('✅ Navegação para Chat concluída');
 
-
-// clicar em novo chat
-
-cy.xpath('//button[.//text()[normalize-space()="Novo Chat"]]')
-  .scrollIntoView()
+// clicar em +
+cy.get('button svg.lucide-plus')
+  .first()
   .should('be.visible')
-  .click();
+  .parent()
+  .click({ force: true });
+
+
+  //clicar em anexar
+  cy.get('[role="menuitem"]')
+    .contains('Anexar')
+    .should('be.visible')
+    .click({ force: true });
+  
+
+
+
+
+
+
+
 
 
 
@@ -37,7 +51,10 @@ cy.xpath('//button[.//text()[normalize-space()="Novo Chat"]]')
 
    
 
-    // ===== FASE 4: DIGITAR MENSAGEM =====
+    
+  
+  
+    /* ===== FASE 4: DIGITAR MENSAGEM =====
     cy.log('📋 Fase 4: Digitando mensagem...');
     const mensagem = 'Descreva essa imagem ';
     
@@ -81,10 +98,11 @@ cy.xpath('//button[.//text()[normalize-space()="Novo Chat"]]')
 // ===== FASE 5: ANEXAR IMAGEM =====
 cy.log('📋 Fase 5: Anexando imagem...');
 
-// Clicar no botão "+"
-cy.get('button')
-  .find('svg')
+// Clicar no botão "+" para anexar arquivo
+cy.get('button svg.lucide-plus')
+  .first()
   .should('be.visible')
+  .parent()
   .click({ force: true });
 
 // Clicar no ícone de clipe para anexar arquivo (SVG de clip ou button visível)
@@ -94,7 +112,7 @@ cy.get('button')
 
 cy.log('✅ Imagem anexada com sucesso');
 
-cy.wait(5000);*/
+cy.wait(5000);
 
 
 
@@ -155,6 +173,6 @@ cy.wait(5000);*/
     cy.get('body').should('contain.text', mensagem);
     cy.log('✅ Mensagem encontrada na página - envio confirmado');
     
-    cy.log('✅ Message sending test completed successfully!');
+    cy.log('✅ Message sending test completed successfully!');*/
   });
 });

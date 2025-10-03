@@ -10,7 +10,7 @@ describe("Acessar agente antigo e enviar um chat", () => {
     loginPage.login();
   });
 
-  it("deve acessar chat antigo de um agente e enviar um chat", () => {
+  it("deve acessar agente, testar enviar um chat, e no chat buscar o agente e enviar mensagem", () => {
     chatPage.enviarMensagemParaAgenteAntigo();
   });
 });
