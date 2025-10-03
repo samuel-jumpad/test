@@ -1,7 +1,7 @@
 import { LoginPage } from "../../support/pages/login/login.page.js";
 import { ChatPage } from "../../support/pages/chat/chat.page.js";
 
-describe("Acessar agente antigo e enviar um chat", () => {
+describe("Acessar agente antigo testar/chat/agente", () => {
   const loginPage = new LoginPage();
   const chatPage = new ChatPage();
 

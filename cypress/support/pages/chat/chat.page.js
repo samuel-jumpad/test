@@ -536,6 +536,18 @@ export class ChatPage {
     });
   }
 
+  // ===== FLUXO COMPLETO =====
+  enviarMensagemCompleta(mensagem = 'ola, como vai?') {
+    this.navegarParaChat();
+    this.clicarEmGeral();
+    this.clicarNaPrimeiraMensagem();
+    this.digitarMensagemNoChat(mensagem);
+    this.enviarMensagemNoChat();
+    this.validarEnvioNoChat(mensagem);
+    
+    cy.log('✅ Message sending test completed successfully!');
+  }
+
   // ===== FLUXO COMPLETO AGENTE ANTIGO =====
   enviarMensagemParaAgenteAntigo() {
     // Fase 1: Navegar para agentes
