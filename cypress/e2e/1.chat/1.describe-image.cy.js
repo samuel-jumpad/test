@@ -1,16 +1,15 @@
-/**
- * ChatPage - Page Object Model para funcionalidades de Chat
- * Centraliza todas as interações relacionadas ao chat
- */
+import { LoginPage } from "../../support/pages/login/login.page.js";
 
-export class ChatPage {
-  
-  // ===== CONFIGURAÇÕES E INTERCEPTAÇÕES =====
-  
-  /**
-   * Configura interceptações para otimizar o teste
-   */
-  configurarInterceptacoes() {
+describe("Descreva a imagem", () => {
+  const loginPage = new LoginPage();
+
+  beforeEach(() => {
+    cy.viewport(1440, 900);
+    loginPage.login();
+  });
+
+  it("deve acessar chat e descrever a imagem", () => {
+    // ===== CONFIGURAÇÕES E INTERCEPTAÇÕES =====
     cy.log('🔧 Configurando interceptações...');
     
     // Interceptar APIs de chat para acelerar execução
@@ -23,15 +22,8 @@ export class ChatPage {
     cy.intercept('GET', '**/*.woff*', { body: '' }).as('fonts');
     
     cy.log('✅ Interceptações configuradas');
-    return this;
-  }
 
-  // ===== NAVEGAÇÃO PARA CHAT =====
-  
-  /**
-   * Navega para a seção de Chat
-   */
-  navegarParaChat() {
+    // ===== NAVEGAÇÃO PARA CHAT =====
     cy.log('🔍 Navegando para Chat...');
     
     // Aguardar carregamento completo
@@ -73,15 +65,8 @@ export class ChatPage {
     
     cy.wait(3000);
     cy.log('✅ Navegação para Chat concluída');
-    return this;
-  }
 
-  // ===== BOTÃO ADICIONAR/CONVERSAR =====
-  
-  /**
-   * Clica no botão + para iniciar nova conversa
-   */
-  clicarBotaoAdicionar() {
+    // ===== BOTÃO ADICIONAR/CONVERSAR =====
     cy.log('🔍 Clicando no botão +...');
     
     cy.get('body').then(($body) => {
@@ -130,15 +115,8 @@ export class ChatPage {
     });
     
     cy.log('✅ Botão + clicado');
-    return this;
-  }
 
-  // ===== ANEXAR ARQUIVO =====
-  
-  /**
-   * Clica na opção "Anexar" no menu
-   */
-  clicarEmAnexar() {
+    // ===== ANEXAR ARQUIVO =====
     cy.log('🔍 Clicando em Anexar...');
     
     cy.get('body').then(($body) => {
@@ -177,21 +155,15 @@ export class ChatPage {
     });
     
     cy.log('✅ Opção Anexar clicada');
-    return this;
-  }
 
-  /**
-   * Anexa uma imagem ao chat
-   * @param {string} caminhoImagem - Caminho para a imagem
-   */
-  anexarImagem(caminhoImagem = 'cypress/fixtures/uploads/imagem-teste.jpg') {
+    // ===== ANEXAR IMAGEM =====
     cy.log('🔍 Anexando imagem...');
     
     // Aguardar o input de arquivo aparecer
     cy.get('input[type="file"]')
       .should('exist')
       .first()
-      .selectFile(caminhoImagem, { force: true });
+      .selectFile('cypress/fixtures/uploads/imagem-teste.jpg', { force: true });
     
     cy.log('✅ Imagem anexada com sucesso');
     
@@ -199,21 +171,12 @@ export class ChatPage {
     cy.wait(3000);
     
     // Validar que a imagem foi carregada
-    const nomeArquivo = caminhoImagem.split('/').pop();
-    cy.get('body').should('contain.text', nomeArquivo);
+    cy.get('body').should('contain.text', 'imagem-teste.jpg');
     cy.log('✅ Imagem carregada e visível na interface');
-    
-    return this;
-  }
 
-  // ===== DIGITAR MENSAGEM =====
-  
-  /**
-   * Digita uma mensagem no campo de input
-   * @param {string} mensagem - Mensagem a ser digitada
-   */
-  digitarMensagem(mensagem) {
+    // ===== DIGITAR MENSAGEM =====
     cy.log('🔍 Digitando mensagem...');
+    const mensagem = 'Descreva essa imagem';
     
     cy.get('body').then(($body) => {
       const inputSelectors = [
@@ -252,16 +215,8 @@ export class ChatPage {
         cy.log('✅ Mensagem digitada com fallback');
       }
     });
-    
-    return this;
-  }
 
-  // ===== ENVIAR MENSAGEM =====
-  
-  /**
-   * Envia a mensagem digitada
-   */
-  enviarMensagem() {
+    // ===== ENVIAR MENSAGEM =====
     cy.log('🔍 Enviando mensagem...');
     
     cy.get('body').then(($body) => {
@@ -307,14 +262,8 @@ export class ChatPage {
     });
     
     cy.log('✅ Send button clicado');
-    return this;
-  }
-
-  /**
-   * Valida se a mensagem foi enviada com sucesso
-   * @param {string} mensagem - Mensagem enviada para validação
-   */
-  validarEnvioMensagem(mensagem) {
+    
+    // ===== VALIDAR ENVIO DA MENSAGEM =====
     cy.log('🔍 Validando envio da mensagem...');
     cy.wait(5000);
     
@@ -334,66 +283,15 @@ export class ChatPage {
     // Verificar que a mensagem aparece na página
     cy.get('body').should('contain.text', mensagem);
     cy.log('✅ Mensagem encontrada na página - envio confirmado');
-    
-    return this;
-  }
 
-  // ===== AGUARDAR RESPOSTA =====
-  
-  /**
-   * Aguarda e valida a resposta do chat
-   * @param {string} palavraEsperada - Palavra que deve aparecer na resposta
-   * @param {number} timeout - Tempo limite em ms (padrão: 10000)
-   */
-  aguardarResposta(palavraEsperada, timeout = 10000) {
-    cy.log(`📋 Aguardando resposta do chat (palavra esperada: "${palavraEsperada}")...`);
-    cy.wait(timeout);
+    // ===== AGUARDAR RESPOSTA DO CHAT =====
+    cy.log('📋 Aguardando resposta do chat (palavra esperada: "cachorro")...');
+    cy.wait(10000);
     
-    // Verificar se a resposta contém a palavra esperada
-    cy.get('body').should('contain.text', palavraEsperada);
-    cy.log(`✅ Resposta do chat contém a palavra "${palavraEsperada}"`);
-    
-    return this;
-  }
-
-  // ===== MÉTODO COMPLETO =====
-  
-  /**
-   * Executa o fluxo completo de descrição de imagem
-   * @param {string} caminhoImagem - Caminho para a imagem
-   * @param {string} mensagem - Mensagem a ser enviada
-   * @param {string} palavraEsperada - Palavra esperada na resposta
-   */
-  descreverImagemCompleto(caminhoImagem = 'cypress/fixtures/uploads/imagem-teste.jpg', 
-                          mensagem = 'Descreva essa imagem', 
-                          palavraEsperada = 'cachorro') {
-    cy.log('🖼️ Iniciando fluxo completo de descrição de imagem...');
-    
-    // Navegar para chat
-    this.navegarParaChat();
-    
-    // Clicar no botão +
-    this.clicarBotaoAdicionar();
-    
-    // Clicar em anexar
-    this.clicarEmAnexar();
-    
-    // Anexar imagem
-    this.anexarImagem(caminhoImagem);
-    
-    // Digitar mensagem
-    this.digitarMensagem(mensagem);
-    
-    // Enviar mensagem
-    this.enviarMensagem();
-    
-    // Validar envio
-    this.validarEnvioMensagem(mensagem);
-    
-    // Aguardar resposta
-    this.aguardarResposta(palavraEsperada);
+    // Verificar se a resposta contém a palavra "cachorro"
+    cy.get('body').should('contain.text', 'cachorro');
+    cy.log('✅ Resposta do chat contém a palavra "cachorro"');
     
     cy.log('✅ Teste de descrição de imagem concluído com sucesso!');
-    return this;
-  }
-}
+  });
+});

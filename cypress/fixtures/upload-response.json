@@ -1,0 +1,10 @@
+{
+  "success": true,
+  "message": "Arquivo enviado com sucesso",
+  "file": {
+    "name": "imagem-teste.jpg",
+    "size": 1024000,
+    "type": "image/jpeg",
+    "url": "/uploads/imagem-teste.jpg"
+  }
+}
