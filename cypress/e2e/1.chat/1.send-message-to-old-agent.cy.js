@@ -234,7 +234,7 @@ describe("Acessar agente antigo e enviar um chat", () => {
                 cy.wrap($visible[0])
                   .scrollIntoView()
                   .click({ force: true })
-                  .type('Olá, esta é uma mensagem de teste', { delay: 100 })
+                  .type('Olá, esta é uma mensagem de teste', { delay: 100, force: true })
                   .wait(2000); // Aguardar para manter o card aberto
                 cy.log('✅ Mensagem digitada via XPath');
               }
@@ -247,7 +247,7 @@ describe("Acessar agente antigo e enviar um chat", () => {
             cy.get('div[contenteditable="true"]').first()
               .scrollIntoView()
               .click({ force: true })
-              .type('Olá, esta é uma mensagem de teste', { delay: 100 })
+              .type('Olá, esta é uma mensagem de teste', { delay: 100, force: true })
               .wait(2000);
             cy.log('✅ Mensagem digitada via CSS');
           }
@@ -260,7 +260,7 @@ describe("Acessar agente antigo e enviar um chat", () => {
         cy.get('div[contenteditable="true"]').first()
           .scrollIntoView()
           .click({ force: true })
-          .type('Olá, esta é uma mensagem de teste', { delay: 100 })
+          .type('Olá, esta é uma mensagem de teste', { delay: 100, force: true })
           .wait(2000); // Aguardar para manter o card aberto
         cy.log('✅ Mensagem digitada via CSS');
       }
@@ -271,7 +271,7 @@ describe("Acessar agente antigo e enviar um chat", () => {
         cy.get('textarea, input[type="text"]').first()
           .scrollIntoView()
           .click({ force: true })
-          .type('Olá, esta é uma mensagem de teste', { delay: 100 })
+          .type('Olá, esta é uma mensagem de teste', { delay: 100, force: true })
           .wait(2000); // Aguardar para manter o card aberto
         cy.log('✅ Mensagem digitada via fallback');
       }
@@ -422,10 +422,10 @@ cy.get('body').then(($body) => {
   for (const selector of inputSelectors) {
     if ($body.find(selector).length > 0) {
       cy.log(`✅ Input encontrado: ${selector}`);
-      cy.get(selector).first()
-        .should('be.visible')
-        .clear()
-        .type(mensagem, { delay: 100 });
+       cy.get(selector).first()
+         .scrollIntoView()
+         .clear({ force: true })
+         .type(mensagem, { delay: 100, force: true });
       cy.log('✅ Mensagem digitada');
       inputEncontrado = true;
       break;
@@ -434,10 +434,10 @@ cy.get('body').then(($body) => {
   
   if (!inputEncontrado) {
     cy.log('⚠️ Input não encontrado, tentando fallback...');
-    cy.get('input, textarea, [contenteditable]').first()
-      .should('be.visible')
-      .clear()
-      .type(mensagem, { delay: 100 });
+     cy.get('input, textarea, [contenteditable]').first()
+       .scrollIntoView()
+       .clear({ force: true })
+       .type(mensagem, { delay: 100, force: true });
     cy.log('✅ Mensagem digitada com fallback');
   }
 });
