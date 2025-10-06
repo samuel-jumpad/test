@@ -1,4 +1,5 @@
 import { LoginPage } from './pages/login/login.page.js';
+import 'cypress-real-events/support';
 
 
 Cypress.on('uncaught:exception', (err, runnable) => {
