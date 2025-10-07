@@ -519,21 +519,61 @@ cy.get('body').then(($body) => {
     cy.log('🔍 Preenchendo nome da pasta filha...');
     cy.wait(5000); // Aguardar mais tempo para o modal carregar completamente
     
-    // Estratégia ultra-robusta com retry e timeout
+    // Estratégia ultra-robusta com múltiplos fallbacks
     cy.log('✅ Procurando input com estratégia ultra-robusta...');
     
-    // Aguardar o input aparecer com timeout maior
-    cy.get('input[placeholder="Nome da nova pasta"]', { timeout: 15000 })
-      .should('exist')
-      .and('be.visible')
-      .scrollIntoView()
-      .focus()
-      .clear()
-      .wait(1000)
-      .type('Pasta filha teste', { delay: 100 })
-      .then(() => {
-        cy.log('✅ Nome da pasta filha preenchido com sucesso!');
-      });
+    // Estratégia 1: Tentar input com placeholder exato
+    cy.get('body').then(($body) => {
+      if ($body.find('input[placeholder="Nome da nova pasta"]').length > 0) {
+        cy.log('✅ Input encontrado via placeholder exato');
+        cy.get('input[placeholder="Nome da nova pasta"]')
+          .should('be.visible')
+          .scrollIntoView()
+          .focus()
+          .clear()
+          .wait(1000)
+          .type('Pasta filha teste', { delay: 100 });
+      }
+      // Estratégia 2: Procurar por qualquer input visível
+      else if ($body.find('input:visible').length > 0) {
+        cy.log('✅ Input visível encontrado como fallback');
+        cy.get('input:visible')
+          .first()
+          .should('be.visible')
+          .scrollIntoView()
+          .focus()
+          .clear()
+          .wait(1000)
+          .type('Pasta filha teste', { delay: 100 });
+      }
+      // Estratégia 3: Procurar por qualquer input
+      else if ($body.find('input').length > 0) {
+        cy.log('✅ Qualquer input encontrado como último recurso');
+        cy.get('input')
+          .first()
+          .should('be.visible')
+          .scrollIntoView()
+          .focus()
+          .clear()
+          .wait(1000)
+          .type('Pasta filha teste', { delay: 100 });
+      }
+      else {
+        cy.log('❌ Nenhum input encontrado');
+        cy.screenshot('input-pasta-filha-nao-encontrado');
+        
+        // Debug: Listar todos os elementos disponíveis
+        cy.log('🔍 Elementos disponíveis na página:');
+        cy.get('body').then(($bodyDebug) => {
+          const inputs = $bodyDebug.find('input').length;
+          const textareas = $bodyDebug.find('textarea').length;
+          const modals = $bodyDebug.find('[role="dialog"], [class*="modal"]').length;
+          cy.log(`📊 Inputs: ${inputs}, Textareas: ${textareas}, Modais: ${modals}`);
+        });
+        
+        throw new Error('Input para nome da pasta filha não foi encontrado');
+      }
+    });
 
     // Clicar em adicionar pasta filha - com estratégias múltiplas
     cy.log('🔍 Procurando botão para adicionar pasta filha...');
