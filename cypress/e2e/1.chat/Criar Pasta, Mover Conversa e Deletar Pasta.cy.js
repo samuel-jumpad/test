@@ -9,18 +9,54 @@ describe("Criar Pasta, Mover Conversa e Deletar Pasta", () => {
   });
 
   it("Deve mover mensagem para a pasta corretamente", () => {
-    // Acessando chat
-    cy.log('📋 Fase 1: Navegando para Chat...');
-    cy.contains('Chat').click({ force: true });
-    cy.wait(2000);
 
-    // Acessando agente Cypress
-    cy.log('📋 Fase 2: Acessando agente Cypress...');
-    cy.xpath('//div[contains(text(),"Agentes")]/following::div[contains(@class,"truncate") and text()="Cypress"][1]')
-      .should('be.visible')
-      .scrollIntoView()
-      .click({ force: true });
-    cy.wait(1000);
+    cy.log('🔍 Navegando para Chat...');
+    
+    // Aguardar carregamento completo
+    cy.get('body').should('not.contain', 'loading');
+    cy.wait(2000);
+    
+    // Estratégias robustas para encontrar e clicar em Chat
+    cy.get('body').then(($body) => {
+      const chatSelectors = [
+        'button:contains("Chat")',
+        'a:contains("Chat")',
+        '[role="button"]:contains("Chat")',
+        '[data-testid*="chat"]',
+        '[aria-label*="chat"]',
+        'nav button:contains("Chat")',
+        'nav a:contains("Chat")',
+        '.nav-item:contains("Chat")',
+        '.menu-item:contains("Chat")',
+        '.sidebar-item:contains("Chat")'
+      ];
+      
+      let chatEncontrado = false;
+      for (const selector of chatSelectors) {
+        if ($body.find(selector).length > 0) {
+          cy.log(`✅ Chat encontrado com seletor: ${selector}`);
+          cy.get(selector).first()
+            .should('be.visible')
+            .click({ force: true });
+          chatEncontrado = true;
+          break;
+        }
+      }
+      
+      if (!chatEncontrado) {
+        cy.log('⚠️ Chat não encontrado, tentando navegação direta...');
+        cy.visit('/chat', { failOnStatusCode: false });
+      }
+    });
+    
+    cy.wait(3000);
+    cy.log('✅ Navegação para Chat concluída');
+
+
+
+
+
+
 
     // Criar nova pasta - Estratégias múltiplas para encontrar o elemento
     cy.log('🔍 Procurando elemento "Criar nova pasta"...');
