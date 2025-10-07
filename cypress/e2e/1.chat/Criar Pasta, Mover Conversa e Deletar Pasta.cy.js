@@ -15,7 +15,7 @@ describe("Criar Pasta, Mover Conversa e Deletar Pasta", () => {
     // Aguardar carregamento completo
     cy.get('body').should('not.contain', 'loading');
     cy.wait(2000);
-    
+
     // Estratégias robustas para encontrar e clicar em Chat
     cy.get('body').then(($body) => {
       const chatSelectors = [
@@ -36,8 +36,8 @@ describe("Criar Pasta, Mover Conversa e Deletar Pasta", () => {
         if ($body.find(selector).length > 0) {
           cy.log(`✅ Chat encontrado com seletor: ${selector}`);
           cy.get(selector).first()
-            .should('be.visible')
-            .click({ force: true });
+      .should('be.visible')
+      .click({ force: true });
           chatEncontrado = true;
           break;
         }
@@ -63,9 +63,9 @@ cy.wait(2000);
 
 // Usar o seletor específico do elemento fornecido
 cy.get('div.truncate.flex.p-2.rounded-xl.gap-2.cursor-pointer.hover\\:bg-gray-100')
-  .should('be.visible')
-  .scrollIntoView()
-  .click({ force: true });
+      .should('be.visible')
+      .scrollIntoView()
+      .click({ force: true });
 
 cy.log('✅ "Criar nova pasta" clicado com sucesso');
 
@@ -206,9 +206,9 @@ cy.get('body').then(($body) => {
           cy.log('✅ Textarea encontrado');
           cy.get('textarea')
             .first()
-            .should('be.visible')
-            .scrollIntoView()
-            .type('Pasta Teste 1', { delay: 100 });
+      .should('be.visible')
+      .scrollIntoView()
+      .type('Pasta Teste 1', { delay: 100 });
           inputEncontrado = true;
         }
         
@@ -271,11 +271,11 @@ cy.get('body').then(($body) => {
             // Se é um seletor de SVG, clicar no botão pai
             cy.get(selector)
               .parent()
-              .should('be.visible')
+            .should('be.visible')
               .scrollIntoView()
               .wait(500)
-              .click({ force: true });
-          } else {
+            .click({ force: true });
+      } else {
             // Se é um seletor de botão direto
             cy.get(selector)
               .first()
@@ -358,10 +358,10 @@ cy.get('body').then(($body) => {
       // Estratégia 1: Toast com classe toast-root
       if ($body.find('.toast-root').length > 0) {
         cy.log('✅ Toast encontrado via classe toast-root');
-        cy.get('.toast-root')
+    cy.get('.toast-root')
           .should('be.visible')
           .and('contain.text', 'Pasta criada com sucesso')
-          .and('contain.text', 'Sua nova pasta está pronta para uso');
+      .and('contain.text', 'Sua nova pasta está pronta para uso');
         toastEncontrado = true;
       }
       // Estratégia 2: Toast com classe toast
@@ -420,29 +420,29 @@ cy.get('body').then(($body) => {
 
     cy.get('body').then(($body) => {
       let pastaEncontrada = false;
-      
+
       // Estratégia 1: Seletor original
       if ($body.find('div.flex.rounded-md.p-2.gap-2.relative.cursor-pointer.items-center:contains("Pasta Teste 1")').length > 0) {
         cy.log('✅ Pasta encontrada via seletor original');
         pastaEncontrada = true;
-        cy.get('div.flex.rounded-md.p-2.gap-2.relative.cursor-pointer.items-center:contains("Pasta Teste 1")')
-          .should('be.visible')
-          .scrollIntoView()
-          .trigger('mouseover')
-          .trigger('mouseenter')
-          .trigger('mousemove');
+    cy.get('div.flex.rounded-md.p-2.gap-2.relative.cursor-pointer.items-center:contains("Pasta Teste 1")')
+      .should('be.visible')
+      .scrollIntoView()
+      .trigger('mouseover')
+      .trigger('mouseenter')
+      .trigger('mousemove');
 
-        cy.log('⏳ Mantendo mouse sobre a pasta por 3 segundos...');
-        cy.wait(3000);
+    cy.log('⏳ Mantendo mouse sobre a pasta por 3 segundos...');
+    cy.wait(3000);
 
         // Clicar nos 3 pontinhos
-        cy.get('div.flex.rounded-md.p-2.gap-2.relative.cursor-pointer.items-center:contains("Pasta Teste 1")')
-          .within(() => {
-            cy.get('.folder-actions svg.lucide-ellipsis-vertical')
-              .should('exist')
-              .click({ force: true });
-            cy.log('✅ 3 pontinhos da pasta "Pasta Teste 1" clicados');
-          });
+    cy.get('div.flex.rounded-md.p-2.gap-2.relative.cursor-pointer.items-center:contains("Pasta Teste 1")')
+      .within(() => {
+        cy.get('.folder-actions svg.lucide-ellipsis-vertical')
+          .should('exist')
+          .click({ force: true });
+        cy.log('✅ 3 pontinhos da pasta "Pasta Teste 1" clicados');
+      });
       }
       
       if (!pastaEncontrada) {
@@ -480,8 +480,8 @@ cy.get('body').then(($body) => {
               cy.log('✅ Menu de ações encontrado via classes genéricas');
               cy.get('[class*="menu"], [class*="actions"], [class*="options"]')
                 .first()
-                .should('be.visible')
-                .click({ force: true });
+      .should('be.visible')
+      .click({ force: true });
             }
             else {
               cy.log('❌ 3 pontinhos não encontrados');
@@ -498,46 +498,31 @@ cy.get('body').then(($body) => {
       }
     });
 
-    // Clicar em pasta filha - com wait estratégico
+    // Clicar em pasta filha - Estratégia simplificada que funciona
     cy.log('🔍 Procurando opção "Criar pasta filha"...');
-    cy.wait(2000);
-    cy.contains('div', 'Criar pasta filha', { matchCase: false })
+    cy.wait(3000);
+    
+    // Clique direto no segundo item do menu (Criar pasta filha)
+    cy.log('✅ Clicando no segundo item do menu (Criar pasta filha)...');
+    cy.get('.rounded.overflow-hidden.shadow-lg.bg-white')
+      .find('div.p-2.rounded-md.flex.items-center.cursor-pointer.transition-colors')
+      .eq(1) // Segundo elemento (Criar pasta filha)
       .should('be.visible')
+      .scrollIntoView()
+      .wait(1000)
       .click({ force: true });
+    
+    cy.log('✅ "Criar pasta filha" clicado com sucesso!');
+    cy.wait(2000); // Aguardar o modal abrir
 
-    // Digitar nome da pasta filha - com estratégias múltiplas
-    cy.log('🔍 Procurando input para pasta filha...');
+    // Digitar nome da pasta filha - usando o código fornecido
+    cy.log('🔍 Preenchendo nome da pasta filha...');
     cy.wait(2000);
     
-    cy.get('body').then(($body) => {
-      let inputEncontrado = false;
-      
-      // Estratégia 1: Input original
-      if ($body.find('input[placeholder="Nome da nova pasta"]').length > 0) {
-        cy.log('✅ Input encontrado via placeholder original');
-        cy.get('input[placeholder="Nome da nova pasta"]', { timeout: 5000 })
-          .should('be.visible')
-          .clear()
-          .type('Pasta filha teste');
-        inputEncontrado = true;
-      }
-      // Estratégia 2: Qualquer input visível
-      else if ($body.find('input:visible').length > 0) {
-        cy.log('✅ Input visível encontrado');
-        cy.get('input:visible')
-          .first()
-          .should('be.visible')
-          .clear()
-          .type('Pasta filha teste');
-        inputEncontrado = true;
-      }
-      
-      if (!inputEncontrado) {
-        cy.log('❌ Input para pasta filha não encontrado');
-        cy.screenshot('input-pasta-filha-nao-encontrado');
-        throw new Error('Input para pasta filha não foi encontrado');
-      }
-    });
+    cy.xpath('//input[@placeholder="Nome da nova pasta"]')
+      .should('be.visible')
+      .scrollIntoView()
+      .type('Pasta filha teste', { delay: 100 });
 
     // Clicar em adicionar pasta filha - com estratégias múltiplas
     cy.log('🔍 Procurando botão para adicionar pasta filha...');
@@ -570,9 +555,9 @@ cy.get('body').then(($body) => {
         cy.log('✅ Botão encontrado via texto');
         cy.get('button:contains("Criar"), button:contains("Adicionar"), button:contains("Salvar")')
           .first()
-          .should('be.visible')
-          .should('not.be.disabled')
-          .click({ force: true });
+      .should('be.visible')
+      .should('not.be.disabled')
+      .click({ force: true });
         botaoEncontrado = true;
       }
       
