@@ -33,6 +33,7 @@
   "author": "Your Name",
   "license": "MIT",
   "devDependencies": {
+    "@4tw/cypress-drag-drop": "^2.3.1",
     "cypress": "^13.17.0",
     "cypress-real-events": "^1.15.0",
     "cypress-xpath": "^2.0.1",

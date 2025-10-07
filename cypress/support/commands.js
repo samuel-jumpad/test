@@ -1,5 +1,6 @@
 import { LoginPage } from './pages/login/login.page.js';
 import 'cypress-real-events/support';
+import '@4tw/cypress-drag-drop';
 
 
 Cypress.on('uncaught:exception', (err, runnable) => {
