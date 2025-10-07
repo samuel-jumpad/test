@@ -575,49 +575,22 @@ cy.get('body').then(($body) => {
       }
     });
 
-    // Clicar em adicionar pasta filha - com estratégias múltiplas
+    // Clicar em adicionar pasta filha - estratégia robusta
     cy.log('🔍 Procurando botão para adicionar pasta filha...');
-    cy.wait(2000);
+    cy.wait(3000); // Aguardar mais tempo para o botão ficar habilitado
     
-    cy.get('body').then(($body) => {
-      let botaoEncontrado = false;
-      
-      // Estratégia 1: Botão original com ícone check
-      if ($body.find('button:has(svg.lucide-check)').length > 0) {
-        cy.log('✅ Botão encontrado via ícone check');
-        cy.get('button:has(svg.lucide-check)')
-          .should('be.visible')
-          .should('not.be.disabled')
-          .click({ force: true });
-        botaoEncontrado = true;
-      }
-      // Estratégia 2: Botão com ícone check genérico
-      else if ($body.find('button svg[class*="check"]').length > 0) {
-        cy.log('✅ Botão encontrado via ícone check genérico');
-        cy.get('button svg[class*="check"]')
-          .parent()
-          .should('be.visible')
-          .should('not.be.disabled')
-          .click({ force: true });
-        botaoEncontrado = true;
-      }
-      // Estratégia 3: Botão com texto
-      else if ($body.find('button:contains("Criar"), button:contains("Adicionar"), button:contains("Salvar")').length > 0) {
-        cy.log('✅ Botão encontrado via texto');
-        cy.get('button:contains("Criar"), button:contains("Adicionar"), button:contains("Salvar")')
-          .first()
+    // Estratégia robusta: Aguardar botão ficar habilitado
+    cy.log('✅ Aguardando botão de confirmação ficar habilitado...');
+    
+    // Procurar por botão com ícone check e aguardar ficar habilitado
+    cy.get('button:has(svg.lucide-check)', { timeout: 10000 })
       .should('be.visible')
       .should('not.be.disabled')
-      .click({ force: true });
-        botaoEncontrado = true;
-      }
-      
-      if (!botaoEncontrado) {
-        cy.log('❌ Botão para adicionar pasta filha não encontrado');
-        cy.screenshot('botao-pasta-filha-nao-encontrado');
-        throw new Error('Botão para adicionar pasta filha não foi encontrado');
-      }
-    });
+      .then(($button) => {
+        cy.log('✅ Botão de confirmação encontrado e habilitado');
+        cy.wrap($button)
+          .click({ force: true });
+      });
 
     cy.wait(3000); // Aguardar 5 segundos após clicar no botão de criar pasta filha
 
@@ -627,7 +600,7 @@ cy.get('body').then(($body) => {
       .should('contain.text', 'Pasta criada com sucesso')
       .and('contain.text', 'Sua nova pasta está pronta para uso');
 
-    cy.wait(5000); // Aguardar 5 segundos após criar a pasta filha teste
+    cy.wait(3000); // Aguardar 3 segundos após criar a pasta filha teste
 
     // Clicando em "Geral"
     cy.log('📋 Fase 3: Clicando em "Geral"...');
