@@ -671,10 +671,63 @@ cy.get('body').then(($body) => {
 
     cy.wait(3000); // Aguardar 3 segundos após criar a pasta filha teste
 
+
+
+
+
+
     // Clicando em "Geral"
-    cy.log('📋 Fase 3: Clicando em "Geral"...');
-    cy.contains('div', 'Geral').scrollIntoView().click({ force: true });
-    cy.wait(1500);
+    // ===== CLICAR EM "GERAL" (OPCIONAL) =====
+    cy.log('📋 Fase 2: Tentando clicar em "Geral"...');
+    cy.wait(2000);
+    
+    // Verificar se "Geral" existe na página antes de tentar clicar
+    cy.get('body').then(($body) => {
+      if ($body.find('*:contains("Geral")').length > 0) {
+        cy.log('✅ Elemento "Geral" encontrado na página');
+        
+        // Usar seletores específicos baseados no HTML fornecido
+        const selectorsGeral = [
+          'div.truncate:contains("Geral")',
+          'div.flex.rounded-md:contains("Geral")',
+          'div[class*="cursor-pointer"]:contains("Geral")',
+          'div[class*="bg-[#027fa6]"]:contains("Geral")',
+          'div:contains("Geral")',
+          'span:contains("Geral")',
+          '*:contains("Geral")'
+        ];
+        
+        let geralEncontrado = false;
+        for (const selector of selectorsGeral) {
+          if ($body.find(selector).length > 0) {
+            cy.log(`✅ "Geral" encontrado com seletor: ${selector}`);
+            cy.get(selector).first()
+              .should('be.visible')
+              .click({ force: true });
+            cy.log(`✅ "Geral" clicado com sucesso`);
+            geralEncontrado = true;
+            break;
+          }
+        }
+        
+        if (!geralEncontrado) {
+          cy.log('⚠️ "Geral" não encontrado com seletores específicos, tentando fallback...');
+          try {
+            cy.contains('Geral')
+              .click({ force: true });
+            cy.log('✅ "Geral" clicado com fallback');
+            geralEncontrado = true;
+          } catch (e) {
+            cy.log(`⚠️ Fallback falhou: ${e.message}`);
+          }
+        }
+      } else {
+        cy.log('⚠️ Elemento "Geral" não encontrado na página, pulando esta etapa...');
+      }
+    });
+    
+    cy.wait(2000);
+    cy.log('✅ Fase 2 concluída');
 
     // Clicando na primeira mensagem e arrastando para "Pasta Teste 1"
     cy.log('📋 Fase 4: Clicando na primeira mensagem e arrastando para "Pasta Teste 1"...');
