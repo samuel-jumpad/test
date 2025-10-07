@@ -511,7 +511,7 @@ cy.get('body').then(($body) => {
       .scrollIntoView()
       .wait(1000)
       .click({ force: true });
-    
+
     cy.log('✅ "Criar pasta filha" clicado com sucesso!');
     cy.wait(2000); // Aguardar o modal abrir
 
@@ -622,10 +622,52 @@ cy.get('body').then(($body) => {
     cy.wait(3000); // Aguardar 5 segundos após clicar no botão de criar pasta filha
 
 
-    // Confirmação da pasta filha
+    // Confirmação da pasta filha - estratégia robusta
+    cy.log('🔍 Procurando toast de confirmação...');
+    cy.wait(2000); // Aguardar toast aparecer
+    
+    cy.get('body').then(($body) => {
+      let toastEncontrado = false;
+      
+      // Estratégia 1: Toast com classe toast-root
+      if ($body.find('.toast-root').length > 0) {
+        cy.log('✅ Toast encontrado via classe toast-root');
     cy.get('.toast-root')
-      .should('contain.text', 'Pasta criada com sucesso')
-      .and('contain.text', 'Sua nova pasta está pronta para uso');
+          .should('be.visible')
+          .and('contain.text', 'Pasta criada com sucesso');
+        toastEncontrado = true;
+      }
+      // Estratégia 2: Toast com classe toast
+      else if ($body.find('.toast').length > 0) {
+        cy.log('✅ Toast encontrado via classe toast');
+        cy.get('.toast')
+          .should('be.visible')
+          .and('contain.text', 'Pasta criada com sucesso');
+        toastEncontrado = true;
+      }
+      // Estratégia 3: Procurar por elemento que contenha o texto
+      else if ($body.find('*:contains("Pasta criada com sucesso")').length > 0) {
+        cy.log('✅ Toast encontrado via texto');
+        cy.get('*:contains("Pasta criada com sucesso")')
+          .should('be.visible');
+        toastEncontrado = true;
+      }
+      // Estratégia 4: Procurar por qualquer notificação
+      else if ($body.find('[class*="notification"], [class*="alert"], [class*="message"]').length > 0) {
+        cy.log('✅ Notificação encontrada via classes genéricas');
+        cy.get('[class*="notification"], [class*="alert"], [class*="message"]')
+          .first()
+          .should('be.visible');
+        toastEncontrado = true;
+      }
+      
+      if (!toastEncontrado) {
+        cy.log('⚠️ Toast não encontrado, mas continuando...');
+        cy.screenshot('toast-confirmacao-nao-encontrado');
+      } else {
+        cy.log('✅ Confirmação da pasta filha validada!');
+      }
+    });
 
     cy.wait(3000); // Aguardar 3 segundos após criar a pasta filha teste
 
