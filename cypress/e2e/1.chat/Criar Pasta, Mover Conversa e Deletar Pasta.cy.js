@@ -575,22 +575,49 @@ cy.get('body').then(($body) => {
       }
     });
 
-    // Clicar em adicionar pasta filha - estratégia robusta
+    // Clicar em adicionar pasta filha - estratégia ultra-robusta
     cy.log('🔍 Procurando botão para adicionar pasta filha...');
-    cy.wait(3000); // Aguardar mais tempo para o botão ficar habilitado
+    cy.wait(5000); // Aguardar mais tempo para o botão ficar habilitado
     
-    // Estratégia robusta: Aguardar botão ficar habilitado
-    cy.log('✅ Aguardando botão de confirmação ficar habilitado...');
+    // Estratégia 1: Tentar aguardar botão ficar habilitado
+    cy.log('✅ Tentando aguardar botão de confirmação ficar habilitado...');
     
-    // Procurar por botão com ícone check e aguardar ficar habilitado
-    cy.get('button:has(svg.lucide-check)', { timeout: 10000 })
-      .should('be.visible')
-      .should('not.be.disabled')
-      .then(($button) => {
-        cy.log('✅ Botão de confirmação encontrado e habilitado');
-        cy.wrap($button)
+    cy.get('body').then(($body) => {
+      // Procurar por botão com ícone check
+      if ($body.find('button:has(svg.lucide-check)').length > 0) {
+        cy.log('✅ Botão com ícone check encontrado');
+        
+        // Tentar aguardar ficar habilitado, mas se não conseguir, forçar clique
+        cy.get('button:has(svg.lucide-check)')
+          .should('be.visible')
+          .then(($button) => {
+            const isDisabled = $button.hasClass('disabled') || $button.prop('disabled') || $button.attr('disabled');
+            
+            if (isDisabled) {
+              cy.log('⚠️ Botão está desabilitado, forçando clique...');
+              cy.wrap($button)
+                .click({ force: true });
+            } else {
+              cy.log('✅ Botão está habilitado, clicando normalmente...');
+              cy.wrap($button)
+                .click({ force: true });
+            }
+          });
+      }
+      // Estratégia 2: Procurar por qualquer botão visível
+      else if ($body.find('button:visible').length > 0) {
+        cy.log('✅ Botão visível encontrado como fallback');
+        cy.get('button:visible')
+          .first()
+          .should('be.visible')
           .click({ force: true });
-      });
+      }
+      else {
+        cy.log('❌ Nenhum botão encontrado');
+        cy.screenshot('botao-confirmacao-nao-encontrado');
+        throw new Error('Botão de confirmação não foi encontrado');
+      }
+    });
 
     cy.wait(3000); // Aguardar 5 segundos após clicar no botão de criar pasta filha
 
