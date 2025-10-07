@@ -515,67 +515,25 @@ cy.get('body').then(($body) => {
     cy.log('✅ "Criar pasta filha" clicado com sucesso!');
     cy.wait(2000); // Aguardar o modal abrir
 
-    // Digitar nome da pasta filha - estratégia robusta
+    // Digitar nome da pasta filha - estratégia ultra-robusta
     cy.log('🔍 Preenchendo nome da pasta filha...');
-    cy.wait(3000); // Aguardar mais tempo para o modal carregar
+    cy.wait(5000); // Aguardar mais tempo para o modal carregar completamente
     
-    // Debug: Verificar se há inputs na página
-    cy.get('body').then(($body) => {
-      cy.log('🔍 Verificando inputs disponíveis...');
-      const inputCount = $body.find('input').length;
-      cy.log(`📊 Total de inputs encontrados: ${inputCount}`);
-      
-      if (inputCount > 0) {
-        // Listar todos os inputs com seus placeholders
-        cy.get('input').then(($inputs) => {
-          $inputs.each((i, input) => {
-            const $input = Cypress.$(input);
-            const placeholder = $input.attr('placeholder') || 'sem placeholder';
-            const type = $input.attr('type') || 'text';
-            const visible = $input.is(':visible');
-            cy.log(`Input ${i + 1}: type="${type}", placeholder="${placeholder}", visível=${visible}`);
-          });
-        });
-      }
-    });
+    // Estratégia ultra-robusta com retry e timeout
+    cy.log('✅ Procurando input com estratégia ultra-robusta...');
     
-    // Estratégia robusta para encontrar o input - apenas CSS selectors
-    cy.log('✅ Procurando input com estratégias CSS...');
-    
-    // Aguardar e tentar encontrar o input
-    cy.get('body').then(($body) => {
-      // Estratégia 1: Procurar por input com placeholder exato
-      if ($body.find('input[placeholder="Nome da nova pasta"]').length > 0) {
-        cy.log('✅ Input encontrado via placeholder exato');
-        cy.get('input[placeholder="Nome da nova pasta"]')
-          .should('be.visible')
-          .scrollIntoView()
-          .type('Pasta filha teste', { delay: 100 });
-      }
-      // Estratégia 2: Procurar por qualquer input visível
-      else if ($body.find('input:visible').length > 0) {
-        cy.log('✅ Input visível encontrado como fallback');
-        cy.get('input:visible')
-          .first()
-          .should('be.visible')
-          .scrollIntoView()
-          .type('Pasta filha teste', { delay: 100 });
-      }
-      // Estratégia 3: Procurar por qualquer input
-      else if ($body.find('input').length > 0) {
-        cy.log('✅ Qualquer input encontrado como último recurso');
-        cy.get('input')
-          .first()
-          .should('be.visible')
-          .scrollIntoView()
-          .type('Pasta filha teste', { delay: 100 });
-      }
-      else {
-        cy.log('❌ Nenhum input encontrado');
-        cy.screenshot('input-pasta-filha-nao-encontrado');
-        throw new Error('Input para nome da pasta filha não foi encontrado');
-      }
-    });
+    // Aguardar o input aparecer com timeout maior
+    cy.get('input[placeholder="Nome da nova pasta"]', { timeout: 15000 })
+      .should('exist')
+      .and('be.visible')
+      .scrollIntoView()
+      .focus()
+      .clear()
+      .wait(1000)
+      .type('Pasta filha teste', { delay: 100 })
+      .then(() => {
+        cy.log('✅ Nome da pasta filha preenchido com sucesso!');
+      });
 
     // Clicar em adicionar pasta filha - com estratégias múltiplas
     cy.log('🔍 Procurando botão para adicionar pasta filha...');
@@ -621,12 +579,15 @@ cy.get('body').then(($body) => {
       }
     });
 
-    cy.wait(3000);
+    cy.wait(3000); // Aguardar 5 segundos após clicar no botão de criar pasta filha
+
 
     // Confirmação da pasta filha
     cy.get('.toast-root')
       .should('contain.text', 'Pasta criada com sucesso')
       .and('contain.text', 'Sua nova pasta está pronta para uso');
+
+    cy.wait(5000); // Aguardar 5 segundos após criar a pasta filha teste
 
     // Clicando em "Geral"
     cy.log('📋 Fase 3: Clicando em "Geral"...');
