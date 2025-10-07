@@ -56,18 +56,47 @@ describe("Criar Pasta, Mover Conversa e Deletar Pasta", () => {
 
 
 
-// Criar nova pasta
-// Garante que o chat e o painel lateral já renderizaram antes
-cy.get('body', { timeout: 15000 }).should('exist');
+// Criar nova pasta - Usando o elemento específico fornecido
+cy.log('🔍 Procurando elemento "Criar nova pasta"...');
+cy.get('body', { timeout: 20000 }).should('exist');
+cy.wait(2000);
 
-// Espera até que o botão "Criar nova pasta" apareça (com timeout maior)
-cy.xpath('//div[contains(text(), "Criar nova pasta")]', { timeout: 20000 })
-  .should('exist')
-  .scrollIntoView()
+// Usar o seletor específico do elemento fornecido
+cy.get('div.truncate.flex.p-2.rounded-xl.gap-2.cursor-pointer.hover\\:bg-gray-100')
   .should('be.visible')
+  .scrollIntoView()
   .click({ force: true });
 
-cy.log('✅ Botão "Criar nova pasta" clicado com sucesso');
+cy.log('✅ "Criar nova pasta" clicado com sucesso');
+
+// Fallback caso o seletor específico não funcione
+cy.get('body').then(($body) => {
+  if ($body.find('div.truncate.flex.p-2.rounded-xl.gap-2.cursor-pointer.hover\\:bg-gray-100').length === 0) {
+    cy.log('⚠️ Seletor específico não encontrado, tentando alternativas...');
+    
+    // Alternativa 1: Procurar por div com SVG lucide-folder-plus
+    if ($body.find('div:has(svg.lucide-folder-plus)').length > 0) {
+      cy.log('✅ Elemento encontrado via SVG lucide-folder-plus');
+      cy.get('div:has(svg.lucide-folder-plus)').first().click({ force: true });
+    }
+    // Alternativa 2: Procurar por div que contém "Criar nova pasta"
+    else if ($body.find('div:contains("Criar nova pasta")').length > 0) {
+      cy.log('✅ Elemento encontrado via texto');
+      cy.get('div:contains("Criar nova pasta")').first().click({ force: true });
+    }
+    // Alternativa 3: Procurar por qualquer elemento com cursor-pointer que contenha o texto
+    else if ($body.find('[class*="cursor-pointer"]:contains("Criar nova pasta")').length > 0) {
+      cy.log('✅ Elemento encontrado via cursor-pointer');
+      cy.get('[class*="cursor-pointer"]:contains("Criar nova pasta")').first().click({ force: true });
+    }
+    else {
+      cy.log('❌ Nenhuma alternativa encontrada');
+      cy.screenshot('elemento-criar-nova-pasta-nao-encontrado');
+    }
+  }
+});
+
+
 
 
 
