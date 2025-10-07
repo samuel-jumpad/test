@@ -850,9 +850,31 @@ cy.get('body').then(($body) => {
     cy.wait(2000);
 
     // Voltar ao topo e mover nova mensagem para "Pasta filha teste"
-    cy.get('[data-radix-scroll-area-viewport]')
-      .first()
-      .scrollTo('top', { duration: 1000 });
+    cy.log('🔄 Tentando voltar ao topo da página...');
+    cy.get('body').then(($body) => {
+      // Estratégia 1: Tentar scroll no viewport do Radix
+      if ($body.find('[data-radix-scroll-area-viewport]').length > 0) {
+        cy.log('✅ Viewport do Radix encontrado, tentando scroll...');
+        cy.get('[data-radix-scroll-area-viewport]')
+          .first()
+          .then(($viewport) => {
+            // Verificar se o elemento é scrollable
+            const isScrollable = $viewport[0].scrollHeight > $viewport[0].clientHeight;
+            if (isScrollable) {
+              cy.log('✅ Elemento é scrollable, fazendo scroll para o topo...');
+              cy.wrap($viewport).scrollTo('top', { duration: 1000 });
+            } else {
+              cy.log('⚠️ Elemento não é scrollable, usando scroll da página...');
+              cy.scrollTo('top', { duration: 1000 });
+            }
+          });
+      }
+      // Estratégia 2: Usar scroll da página inteira
+      else {
+        cy.log('✅ Usando scroll da página inteira...');
+        cy.scrollTo('top', { duration: 1000 });
+      }
+    });
 
     cy.wait(1000);
 
