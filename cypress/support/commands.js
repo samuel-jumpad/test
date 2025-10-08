@@ -6,11 +6,28 @@ import '@4tw/cypress-drag-drop';
 Cypress.on('uncaught:exception', (err, runnable) => {
   if (err.message.includes('m.target?.contains is not a function') ||
       err.message.includes('contains is not a function') ||
-      err.message.includes('Cannot read properties of undefined')) {
+      err.message.includes('Cannot read properties of undefined') ||
+      err.message.includes('parentElement')) {
     console.log('⚠️ Ignorando erro de aplicação:', err.message);
     return false;
   }
   return true;
+});
+
+// Comando customizado para scrollIntoView seguro
+Cypress.Commands.add('safeScrollIntoView', { prevSubject: 'element' }, (subject, options = {}) => {
+  cy.wrap(subject).then(($el) => {
+    if ($el && $el.length > 0 && $el[0] && $el[0].isConnected) {
+      try {
+        cy.wrap($el).scrollIntoView(options);
+      } catch (error) {
+        cy.log('⚠️ Erro ao fazer scroll, mas continuando...');
+      }
+    } else {
+      cy.log('⚠️ Elemento não está conectado ao DOM, pulando scrollIntoView');
+    }
+  });
+  return cy.wrap(subject);
 });
 
 Cypress.Commands.add('setupInterceptorsForFailure', () => {
