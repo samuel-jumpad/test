@@ -997,74 +997,65 @@ cy.get('body').then(($body) => {
       }
     });
 
-    // Clica no botão "Excluir pasta" - ESTRATÉGIA SUPER ROBUSTA
+    // Clica no botão "Excluir pasta" - ESTRATÉGIA DIRETA E SIMPLES
     cy.log('🎯 Procurando botão "Excluir pasta" da pasta filha...');
     cy.wait(5000); // MUITO mais tempo para ser visível
     
+    // Estratégia 1: Procurar por qualquer botão que contenha "Excluir pasta"
     cy.get('body').then(($body) => {
-      let botaoEncontrado = false;
+      // Debug: Listar todos os botões
+      const botoes = $body.find('button');
+      cy.log(`📊 Total de botões encontrados: ${botoes.length}`);
       
-      // Estratégia 1: Usar o seletor específico do botão fornecido
-      if ($body.find('button.relative.inline-flex.items-center.justify-center.whitespace-nowrap.cursor-pointer.rounded-lg.text-sm.font-bold.transition-colors.bg-error-main.hover\\:bg-error-dark.text-white.shadow-xs.h-10.px-4.py-2:has(div:contains("Excluir pasta"))').length > 0) {
-        cy.log('✅ Botão "Excluir pasta" da pasta filha encontrado via seletor específico');
-        cy.get('button.relative.inline-flex.items-center.justify-center.whitespace-nowrap.cursor-pointer.rounded-lg.text-sm.font-bold.transition-colors.bg-error-main.hover\\:bg-error-dark.text-white.shadow-xs.h-10.px-4.py-2:has(div:contains("Excluir pasta"))')
-          .first()
-          .should('be.visible')
-          .wait(2000) // Aguardar antes de clicar
-          .click({ force: true });
-        botaoEncontrado = true;
-      }
-      // Estratégia 2: Botão com texto exato
-      else if ($body.find('button:contains("Excluir pasta")').length > 0) {
+      // Listar os primeiros 5 botões para debug
+      botoes.slice(0, 5).each((i, el) => {
+        const $el = Cypress.$(el);
+        const text = $el.text().trim();
+        const visible = $el.is(':visible');
+        const classes = $el.attr('class') || '';
+        cy.log(`Botão ${i + 1}: "${text}" - Visível: ${visible} - Classes: ${classes.substring(0, 50)}...`);
+      });
+      
+      if ($body.find('button:contains("Excluir pasta")').length > 0) {
         cy.log('✅ Botão "Excluir pasta" da pasta filha encontrado');
         cy.get('button:contains("Excluir pasta")')
           .first()
           .should('be.visible')
+          .scrollIntoView()
           .wait(2000) // Aguardar antes de clicar
           .click({ force: true });
-        botaoEncontrado = true;
-      }
-      // Estratégia 3: Qualquer elemento com texto "Excluir pasta"
-      else if ($body.find('*:contains("Excluir pasta")').length > 0) {
+      } else if ($body.find('*:contains("Excluir pasta")').length > 0) {
         cy.log('✅ Elemento "Excluir pasta" da pasta filha encontrado');
         cy.get('*:contains("Excluir pasta")')
           .first()
           .should('be.visible')
+          .scrollIntoView()
           .wait(2000) // Aguardar antes de clicar
           .click({ force: true });
-        botaoEncontrado = true;
-      }
-      // Estratégia 3: Variações do texto
-      else {
-        const textos = [
-          'Excluir pasta',
-          'excluir pasta',
-          'Delete folder',
-          'Remove folder',
-          'Excluir',
-          'Delete',
-          'Remove',
-          'Confirmar',
-          'Confirm'
-        ];
+      } else {
+        cy.log('⚠️ Botão "Excluir pasta" não encontrado, tentando variações...');
+        
+        const textos = ['Excluir', 'Delete', 'Remove', 'Confirmar', 'Confirm'];
+        let encontrado = false;
         
         for (const texto of textos) {
-          if ($body.find(`*:contains("${texto}")`).length > 0) {
+          if ($body.find(`button:contains("${texto}")`).length > 0) {
             cy.log(`✅ Botão encontrado com texto "${texto}"`);
-            cy.get(`*:contains("${texto}")`)
+            cy.get(`button:contains("${texto}")`)
               .first()
               .should('be.visible')
-              .wait(2000) // Aguardar antes de clicar
+              .scrollIntoView()
+              .wait(2000)
               .click({ force: true });
-            botaoEncontrado = true;
+            encontrado = true;
             break;
           }
         }
-      }
-      
-      if (!botaoEncontrado) {
-        cy.log('⚠️ Botão de exclusão não encontrado, mas continuando...');
-        cy.screenshot('botao-excluir-nao-encontrado');
+        
+        if (!encontrado) {
+          cy.log('❌ Nenhum botão de exclusão encontrado');
+          cy.screenshot('botao-excluir-nao-encontrado');
+        }
       }
     });
 
@@ -1246,74 +1237,65 @@ cy.get('body').then(($body) => {
       }
     });
 
-    // Clica no botão "Excluir pasta" - ESTRATÉGIA SUPER ROBUSTA
+    // Clica no botão "Excluir pasta" - ESTRATÉGIA DIRETA E SIMPLES
     cy.log('🎯 Procurando botão "Excluir pasta" da pasta principal...');
     cy.wait(5000); // MUITO mais tempo para ser visível
     
+    // Estratégia 1: Procurar por qualquer botão que contenha "Excluir pasta"
     cy.get('body').then(($body) => {
-      let botaoEncontrado = false;
+      // Debug: Listar todos os botões
+      const botoes = $body.find('button');
+      cy.log(`📊 Total de botões encontrados (pasta principal): ${botoes.length}`);
       
-      // Estratégia 1: Usar o seletor específico do botão fornecido
-      if ($body.find('button.relative.inline-flex.items-center.justify-center.whitespace-nowrap.cursor-pointer.rounded-lg.text-sm.font-bold.transition-colors.bg-error-main.hover\\:bg-error-dark.text-white.shadow-xs.h-10.px-4.py-2:has(div:contains("Excluir pasta"))').length > 0) {
-        cy.log('✅ Botão "Excluir pasta" da pasta principal encontrado via seletor específico');
-        cy.get('button.relative.inline-flex.items-center.justify-center.whitespace-nowrap.cursor-pointer.rounded-lg.text-sm.font-bold.transition-colors.bg-error-main.hover\\:bg-error-dark.text-white.shadow-xs.h-10.px-4.py-2:has(div:contains("Excluir pasta"))')
-          .first()
-          .should('be.visible')
-          .wait(2000) // Aguardar antes de clicar
-          .click({ force: true });
-        botaoEncontrado = true;
-      }
-      // Estratégia 2: Botão com texto exato
-      else if ($body.find('button:contains("Excluir pasta")').length > 0) {
+      // Listar os primeiros 5 botões para debug
+      botoes.slice(0, 5).each((i, el) => {
+        const $el = Cypress.$(el);
+        const text = $el.text().trim();
+        const visible = $el.is(':visible');
+        const classes = $el.attr('class') || '';
+        cy.log(`Botão ${i + 1}: "${text}" - Visível: ${visible} - Classes: ${classes.substring(0, 50)}...`);
+      });
+      
+      if ($body.find('button:contains("Excluir pasta")').length > 0) {
         cy.log('✅ Botão "Excluir pasta" da pasta principal encontrado');
         cy.get('button:contains("Excluir pasta")')
           .first()
           .should('be.visible')
+          .scrollIntoView()
           .wait(2000) // Aguardar antes de clicar
           .click({ force: true });
-        botaoEncontrado = true;
-      }
-      // Estratégia 3: Qualquer elemento com texto "Excluir pasta"
-      else if ($body.find('*:contains("Excluir pasta")').length > 0) {
+      } else if ($body.find('*:contains("Excluir pasta")').length > 0) {
         cy.log('✅ Elemento "Excluir pasta" da pasta principal encontrado');
         cy.get('*:contains("Excluir pasta")')
           .first()
           .should('be.visible')
+          .scrollIntoView()
           .wait(2000) // Aguardar antes de clicar
           .click({ force: true });
-        botaoEncontrado = true;
-      }
-      // Estratégia 3: Variações do texto
-      else {
-        const textos = [
-          'Excluir pasta',
-          'excluir pasta',
-          'Delete folder',
-          'Remove folder',
-          'Excluir',
-          'Delete',
-          'Remove',
-          'Confirmar',
-          'Confirm'
-        ];
+      } else {
+        cy.log('⚠️ Botão "Excluir pasta" não encontrado, tentando variações...');
+        
+        const textos = ['Excluir', 'Delete', 'Remove', 'Confirmar', 'Confirm'];
+        let encontrado = false;
         
         for (const texto of textos) {
-          if ($body.find(`*:contains("${texto}")`).length > 0) {
+          if ($body.find(`button:contains("${texto}")`).length > 0) {
             cy.log(`✅ Botão encontrado com texto "${texto}"`);
-            cy.get(`*:contains("${texto}")`)
+            cy.get(`button:contains("${texto}")`)
               .first()
               .should('be.visible')
-              .wait(2000) // Aguardar antes de clicar
+              .scrollIntoView()
+              .wait(2000)
               .click({ force: true });
-            botaoEncontrado = true;
+            encontrado = true;
             break;
           }
         }
-      }
-      
-      if (!botaoEncontrado) {
-        cy.log('⚠️ Botão de exclusão não encontrado, mas continuando...');
-        cy.screenshot('botao-excluir-principal-nao-encontrado');
+        
+        if (!encontrado) {
+          cy.log('❌ Nenhum botão de exclusão encontrado');
+          cy.screenshot('botao-excluir-principal-nao-encontrado');
+        }
       }
     });
 
