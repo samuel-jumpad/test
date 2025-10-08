@@ -11,7 +11,7 @@ describe("Descreva a imagem", () => {
   });
 
   it("deve acessar chat e descrever a imagem", () => {
-    // Executar fluxo completo de descrição de imagem
+   
     chatPage.descreverImagemCompleto(
       'cypress/fixtures/uploads/imagem-teste.jpg',
       'Descreva essa imagem',

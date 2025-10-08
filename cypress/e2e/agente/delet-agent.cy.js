@@ -11,14 +11,10 @@ describe("Teste Delet - Delet agent", () => {
   });
 
   it("deve deletar agente com sucesso", () => {
-    // Configurar interceptações para otimizar o teste
     agentPage.configurarInterceptacoes();
-
-    // Navegar para a seção de Agentes
     cy.log('🔍 Navegando para seção de Agentes...');
     agentPage.navegarParaSecaoAgentes();
 
-    // Deletar agente usando método completo da página
     cy.log('🗑️ Iniciando deleção do agente...');
     agentPage.deletarAgenteCompleto('Agente Teste Automatizado');
 

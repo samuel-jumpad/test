@@ -15,14 +15,12 @@ describe("Teste Creat - Criar Agente", () => {
     const descricao = 'Descrição do Agente de Teste Automatizado';
     const instrucoes = 'Relacionado a teste automatizado com cypress.';
     
-    // Navegar e abrir formulário usando Page Object
-    agentPage.navegarParaSecaoAgentes()
+       agentPage.navegarParaSecaoAgentes()
       .clicarEmMeusAgentes()
       .clicarEmCriarNovoAgente()
       .verificarFormularioCarregado();
 
-    // Continuar com o resto do fluxo usando Page Object
-    agentPage.encontrarCampoNome()
+      agentPage.encontrarCampoNome()
       .preencherCampoNome(nomeAgente)
       .preencherCampoDescricao(descricao)
       .preencherCampoInstrucoes(instrucoes)
