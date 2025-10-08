@@ -828,10 +828,12 @@ cy.get('body').then(($body) => {
       });
     });
 
-    // Deletar "Pasta filha teste"
+    // Deletar "Pasta filha teste" - VISÍVEL NO VÍDEO
+    cy.log('🗑️ INICIANDO EXCLUSÃO DA PASTA FILHA TESTE...');
     cy.log('🔍 Procurando pasta "Pasta filha teste" para clicar nos 3 pontinhos...');
 
-    // Fazer hover sobre a pasta filha
+    // Fazer hover sobre a pasta filha COM LOGS VISÍVEIS
+    cy.log('🎯 Fazendo hover sobre "Pasta filha teste"...');
     cy.get('div.flex.rounded-md.p-2.gap-2.relative.cursor-pointer.items-center:contains("Pasta filha teste")')
       .should('be.visible')
       .scrollIntoView()
@@ -839,10 +841,11 @@ cy.get('body').then(($body) => {
       .trigger('mouseenter')
       .trigger('mousemove');
 
-    cy.log('⏳ Mantendo mouse sobre a "Pasta filha teste" por 3 segundos...');
-    cy.wait(3000);
+    cy.log('⏳ Mantendo mouse sobre a "Pasta filha teste" por 5 segundos...');
+    cy.wait(5000); // Mais tempo para ser visível no vídeo
 
-    // Clicar nos 3 pontinhos da pasta filha
+    // Clicar nos 3 pontinhos da pasta filha COM LOGS VISÍVEIS
+    cy.log('🎯 Clicando nos 3 pontinhos da "Pasta filha teste"...');
     cy.get('div.flex.rounded-md.p-2.gap-2.relative.cursor-pointer.items-center:contains("Pasta filha teste")')
       .within(() => {
         cy.get('.folder-actions svg.lucide-ellipsis-vertical')
@@ -851,9 +854,9 @@ cy.get('body').then(($body) => {
         cy.log('✅ 3 pontinhos da "Pasta filha teste" clicados');
       });
 
-    // Clicar em "Remover pasta" - estratégia robusta
-    cy.log('🔍 Procurando opção "Remover pasta"...');
-    cy.wait(2000);
+    // Clicar em "Remover pasta" - VISÍVEL NO VÍDEO
+    cy.log('🎯 Procurando opção "Remover pasta" da pasta filha...');
+    cy.wait(3000); // Mais tempo para ser visível
     
     cy.get('body').then(($body) => {
       let opcaoEncontrada = false;
@@ -912,13 +915,13 @@ cy.get('body').then(($body) => {
       }
     });
 
-    // Verifica se o card/modal de exclusão apareceu - estratégia robusta
-    cy.log('🔍 Procurando modal de confirmação de exclusão...');
-    cy.wait(2000);
+    // Verifica se o card/modal de exclusão apareceu - VISÍVEL NO VÍDEO
+    cy.log('🎯 Procurando modal de confirmação de exclusão da pasta filha...');
+    cy.wait(3000); // Mais tempo para ser visível
     
     cy.get('body').then(($body) => {
       if ($body.find('*:contains("Confirmar exclusão da pasta?")').length > 0) {
-        cy.log('✅ Modal de confirmação encontrado');
+        cy.log('✅ Modal de confirmação da pasta filha encontrado');
         cy.get('*:contains("Confirmar exclusão da pasta?")')
           .first()
           .should('be.visible');
@@ -927,19 +930,19 @@ cy.get('body').then(($body) => {
       }
     });
 
-    // Clica no botão "Excluir pasta" - estratégia robusta
-    cy.log('🔍 Procurando botão "Excluir pasta"...');
-    cy.wait(2000);
+    // Clica no botão "Excluir pasta" - VISÍVEL NO VÍDEO
+    cy.log('🎯 Procurando botão "Excluir pasta" da pasta filha...');
+    cy.wait(3000); // Mais tempo para ser visível
     
     cy.get('body').then(($body) => {
       if ($body.find('button:contains("Excluir pasta")').length > 0) {
-        cy.log('✅ Botão "Excluir pasta" encontrado');
+        cy.log('✅ Botão "Excluir pasta" da pasta filha encontrado');
         cy.get('button:contains("Excluir pasta")')
           .first()
           .should('be.visible')
           .click({ force: true });
       } else if ($body.find('*:contains("Excluir pasta")').length > 0) {
-        cy.log('✅ Elemento "Excluir pasta" encontrado');
+        cy.log('✅ Elemento "Excluir pasta" da pasta filha encontrado');
         cy.get('*:contains("Excluir pasta")')
           .first()
           .should('be.visible')
@@ -956,10 +959,12 @@ cy.get('body').then(($body) => {
 
     cy.log('✅ Pasta filha removida com sucesso!');
 
-    // Clicar 3 pontinhos da pasta principal
+    // Clicar 3 pontinhos da pasta principal - VISÍVEL NO VÍDEO
+    cy.log('🗑️ INICIANDO EXCLUSÃO DA PASTA PRINCIPAL "Pasta Teste 1"...');
     cy.log('🔍 Procurando pasta "Pasta Teste 1" para clicar nos 3 pontinhos...');
 
-    // Fazer hover sobre a pasta "Pasta Teste 1"
+    // Fazer hover sobre a pasta "Pasta Teste 1" COM LOGS VISÍVEIS
+    cy.log('🎯 Fazendo hover sobre "Pasta Teste 1"...');
     cy.get('div.flex.rounded-md.p-2.gap-2.relative.cursor-pointer.items-center:contains("Pasta Teste 1")')
       .should('be.visible')
       .scrollIntoView()
@@ -967,10 +972,11 @@ cy.get('body').then(($body) => {
       .trigger('mouseenter')
       .trigger('mousemove');
 
-    cy.log('⏳ Mantendo mouse sobre a pasta por 3 segundos...');
-    cy.wait(3000);
+    cy.log('⏳ Mantendo mouse sobre a pasta por 5 segundos...');
+    cy.wait(5000); // Mais tempo para ser visível no vídeo
 
-    // Clicar nos 3 pontinhos da pasta "Pasta Teste 1"
+    // Clicar nos 3 pontinhos da pasta "Pasta Teste 1" COM LOGS VISÍVEIS
+    cy.log('🎯 Clicando nos 3 pontinhos da "Pasta Teste 1"...');
     cy.get('div.flex.rounded-md.p-2.gap-2.relative.cursor-pointer.items-center:contains("Pasta Teste 1")')
       .within(() => {
         cy.get('.folder-actions svg.lucide-ellipsis-vertical')
@@ -979,9 +985,9 @@ cy.get('body').then(($body) => {
         cy.log('✅ 3 pontinhos da pasta "Pasta Teste 1" clicados');
       });
 
-    // Clicar em "Remover pasta" da pasta principal - estratégia robusta
-    cy.log('🔍 Procurando opção "Remover pasta" da pasta principal...');
-    cy.wait(2000);
+    // Clicar em "Remover pasta" da pasta principal - VISÍVEL NO VÍDEO
+    cy.log('🎯 Procurando opção "Remover pasta" da pasta principal...');
+    cy.wait(3000); // Mais tempo para ser visível
     
     cy.get('body').then(($body) => {
       let opcaoEncontrada = false;
@@ -1024,13 +1030,13 @@ cy.get('body').then(($body) => {
       }
     });
 
-    // Verifica se o card/modal de exclusão apareceu - estratégia robusta
-    cy.log('🔍 Procurando modal de confirmação de exclusão da pasta principal...');
-    cy.wait(2000);
+    // Verifica se o card/modal de exclusão apareceu - VISÍVEL NO VÍDEO
+    cy.log('🎯 Procurando modal de confirmação de exclusão da pasta principal...');
+    cy.wait(3000); // Mais tempo para ser visível
     
     cy.get('body').then(($body) => {
       if ($body.find('*:contains("Confirmar exclusão da pasta?")').length > 0) {
-        cy.log('✅ Modal de confirmação encontrado');
+        cy.log('✅ Modal de confirmação da pasta principal encontrado');
         cy.get('*:contains("Confirmar exclusão da pasta?")')
           .first()
           .should('be.visible');
@@ -1039,19 +1045,19 @@ cy.get('body').then(($body) => {
       }
     });
 
-    // Clica no botão "Excluir pasta" - estratégia robusta
-    cy.log('🔍 Procurando botão "Excluir pasta" da pasta principal...');
-    cy.wait(2000);
+    // Clica no botão "Excluir pasta" - VISÍVEL NO VÍDEO
+    cy.log('🎯 Procurando botão "Excluir pasta" da pasta principal...');
+    cy.wait(3000); // Mais tempo para ser visível
     
     cy.get('body').then(($body) => {
       if ($body.find('button:contains("Excluir pasta")').length > 0) {
-        cy.log('✅ Botão "Excluir pasta" encontrado');
+        cy.log('✅ Botão "Excluir pasta" da pasta principal encontrado');
         cy.get('button:contains("Excluir pasta")')
           .first()
           .should('be.visible')
           .click({ force: true });
       } else if ($body.find('*:contains("Excluir pasta")').length > 0) {
-        cy.log('✅ Elemento "Excluir pasta" encontrado');
+        cy.log('✅ Elemento "Excluir pasta" da pasta principal encontrado');
         cy.get('*:contains("Excluir pasta")')
           .first()
           .should('be.visible')
