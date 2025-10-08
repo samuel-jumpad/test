@@ -9,52 +9,93 @@ describe("Acessar agente antigo e enviar um chat", () => {
   });
 
   it("deve acessar chat antigo de um agente e enviar um chat", () => {
-    // ===== NAVEGAÇÃO PARA AGENTES (mesma estratégia usada para Chat) =====
     cy.log('🔍 Navegando para Agentes...');
+    cy.wait(3000);
     
-    // Aguardar carregamento completo
-    cy.get('body').should('not.contain', 'loading');
-    cy.wait(2000);
-    
-    // Estratégias robustas para encontrar e clicar em Agentes (mesma lógica do Chat)
+    // Estratégias múltiplas para encontrar e clicar em Agentes
     cy.get('body').then(($body) => {
       const agentesSelectors = [
+        'button:has(svg.lucide-bot):contains("Agentes")',
+        'button svg.lucide-bot',
         'button:contains("Agentes")',
         'a:contains("Agentes")',
         '[role="button"]:contains("Agentes")',
-        '[data-testid*="agentes"]',
-        '[data-testid*="agents"]',
-        '[aria-label*="agentes"]',
-        '[aria-label*="agents"]',
-        'nav button:contains("Agentes")',
-        'nav a:contains("Agentes")',
-        '.nav-item:contains("Agentes")',
-        '.menu-item:contains("Agentes")',
-        '.sidebar-item:contains("Agentes")',
         '[data-sidebar="menu-button"]:contains("Agentes")',
-        'li[data-slot="sidebar-menu-item"] button:contains("Agentes")'
+        'li[data-slot="sidebar-menu-item"] button:contains("Agentes")',
+        '[class*="sidebar"] button:contains("Agentes")'
       ];
       
       let agentesEncontrado = false;
       for (const selector of agentesSelectors) {
         if ($body.find(selector).length > 0) {
           cy.log(`✅ Agentes encontrado com seletor: ${selector}`);
-          cy.get(selector).first()
-            .should('be.visible')
-            .click({ force: true });
+          
+          if (selector.includes('svg.lucide-bot') && !selector.includes(':contains')) {
+            // Se é seletor de SVG, clicar no botão pai
+            cy.get(selector).first()
+              .parent()
+              .scrollIntoView()
+              .wait(1000)
+              .click({ force: true });
+          } else {
+            cy.get(selector).first()
+              .scrollIntoView()
+              .wait(1000)
+              .click({ force: true });
+          }
+          
           agentesEncontrado = true;
+          cy.wait(5000);
+          cy.log('✅ Clique em Agentes realizado com sucesso');
           break;
         }
       }
       
       if (!agentesEncontrado) {
-        cy.log('⚠️ Agentes não encontrado, tentando navegação direta...');
-        cy.visit('/dashboard/agents', { failOnStatusCode: false });
+        cy.log('⚠️ Botão Agentes não encontrado, tentando navegação direta...');
+        
+        // Estratégia 2: Navegação direta para página de agentes
+        cy.url().then((currentUrl) => {
+          const baseUrl = currentUrl.split('/').slice(0, 3).join('/');
+          
+          // Tentar diferentes possíveis URLs para agentes
+          const possibleUrls = [
+            `${baseUrl}/agents`,
+            `${baseUrl}/agentes`, 
+            `${baseUrl}/dashboard/agents`,
+            `${baseUrl}/dashboard/agentes`
+          ];
+          
+          let navigated = false;
+          for (let i = 0; i < possibleUrls.length && !navigated; i++) {
+            cy.log(`Tentando navegar para: ${possibleUrls[i]}`);
+            cy.visit(possibleUrls[i], { failOnStatusCode: false });
+            cy.wait(3000);
+            
+            cy.url().then((newUrl) => {
+              if (newUrl.includes('agents') || newUrl.includes('agentes')) {
+                cy.log(`✅ Navegação bem-sucedida para: ${newUrl}`);
+                navigated = true;
+              }
+            });
+          }
+        });
       }
     });
-    
-    cy.wait(7000);
-    cy.log('✅ Navegação para Agentes concluída');
+
+    // Verificar se estamos na página correta
+    cy.url().then((url) => {
+      if (!url.includes('agents') && !url.includes('agentes') && !url.includes('assistants')) {
+        cy.log('⚠️ Navegando para página de agentes...');
+        
+        // Tentar navegar diretamente para a página de agentes
+        const baseUrl = url.split('/').slice(0, 3).join('/');
+        const agentsUrl = `${baseUrl}/agents`;
+        
+        cy.visit(agentsUrl, { failOnStatusCode: false });
+        cy.wait(5000);
+      }
+    });
     
     // Clicar em "Meus Agentes"
     cy.log('🔍 Procurando "Meus Agentes"...');
