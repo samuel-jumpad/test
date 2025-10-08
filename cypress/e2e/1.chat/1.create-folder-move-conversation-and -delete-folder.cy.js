@@ -673,108 +673,52 @@ cy.get('body').then(($body) => {
 
 
 
-
-
-
-    // Clicando em "Geral" - estratégia SUPER robusta para pipeline
+    // Clicando em "Geral" - estratégia DRÁSTICA para pipeline
     cy.log('📋 Fase 3: Clicando em "Geral"...');
     cy.wait(8000); // Aguardar MUITO mais tempo após criar pasta filha
     
-    // Estratégia SUPER robusta para clicar em "Geral"
-    cy.log('🔍 Procurando elemento "Geral" com estratégias múltiplas...');
+    cy.log('🔍 Procurando elemento "Geral" com estratégias DRÁSTICAS...');
     
+    // ESTRATÉGIA DRÁSTICA 1: Procurar pelo primeiro elemento com SVG lucide-folder
+    cy.log('🚀 Estratégia DRÁSTICA 1: Primeiro elemento com SVG lucide-folder');
+    cy.get('svg.lucide-folder')
+      .first()
+      .should('be.visible')
+      .wait(2000)
+      .click({ force: true });
+    cy.log('✅ Clicado no primeiro SVG lucide-folder (provavelmente "Geral")');
+    
+    cy.wait(3000); // Aguardar após clique
+    
+    // Fallback caso a estratégia drástica não funcione
     cy.get('body').then(($body) => {
-      let geralClicado = false;
-      
-      // Debug: Listar todos os elementos que contêm "Geral"
+      // Debug: Verificar se existe algum elemento "Geral"
       const geralElements = $body.find('*:contains("Geral")');
       cy.log(`📊 Total de elementos com "Geral": ${geralElements.length}`);
       
-      // Listar os primeiros 5 elementos para debug
-      geralElements.slice(0, 5).each((i, el) => {
-        const $el = Cypress.$(el);
-        const text = $el.text().trim();
-        const visible = $el.is(':visible');
-        cy.log(`Elemento ${i + 1}: "${text}" - Visível: ${visible}`);
-      });
-      
-      // Estratégia 1: Seletores específicos com múltiplas tentativas
-      const selectorsGeral = [
-        'div.truncate:contains("Geral")',
-        'div.flex.rounded-md:contains("Geral")',
-        'div[class*="cursor-pointer"]:contains("Geral")',
-        'div[class*="bg-"]:contains("Geral")',
-        'div.p-2:contains("Geral")',
-        'div:contains("Geral")',
-        'span:contains("Geral")',
-        'button:contains("Geral")',
-        'a:contains("Geral")'
-      ];
-      
-      for (const selector of selectorsGeral) {
-        if (!geralClicado && $body.find(selector).length > 0) {
-          cy.log(`✅ "Geral" encontrado com seletor: ${selector}`);
-          cy.get(selector)
+      // Se ainda não clicou em "Geral", tentar outras estratégias
+      if (geralElements.length > 0) {
+        cy.log('⚠️ Ainda há elementos "Geral", tentando estratégias adicionais...');
+        
+        // Estratégia adicional: Procurar por div com classes específicas
+        if ($body.find('div.flex.rounded-md.p-2.gap-2.relative.cursor-pointer.items-center').length > 0) {
+          cy.log('✅ Encontrado div com classes específicas, tentando clicar...');
+          cy.get('div.flex.rounded-md.p-2.gap-2.relative.cursor-pointer.items-center')
             .first()
             .should('be.visible')
             .wait(1500)
-            .click({ force: true, multiple: true });
-          cy.log(`✅ "Geral" clicado com sucesso usando: ${selector}`);
-          geralClicado = true;
-          break;
+            .click({ force: true });
+          cy.log('✅ Clicado em div com classes específicas');
         }
-      }
-      
-      // Estratégia 2: cy.contains() com timeout maior
-      if (!geralClicado && $body.find('*:contains("Geral")').length > 0) {
+        
+        // Estratégia adicional: cy.contains() com timeout maior
         cy.log('✅ Tentando cy.contains() com timeout maior...');
         cy.contains('Geral', { timeout: 15000 })
+          .first()
           .should('be.visible')
           .wait(1500)
-          .click({ force: true, multiple: true });
-        cy.log('✅ "Geral" clicado com cy.contains()');
-        geralClicado = true;
-      }
-      
-      // Estratégia 3: Forçar clique via jQuery com dispatchEvent
-      if (!geralClicado && $body.find('*:contains("Geral")').length > 0) {
-        cy.log('✅ Tentando clique via jQuery com dispatchEvent...');
-        const $geral = $body.find('*:contains("Geral")').first();
-        if ($geral.length > 0) {
-          cy.wrap($geral).then(($el) => {
-            $el[0].dispatchEvent(new MouseEvent('click', { bubbles: true }));
-            $el[0].click();
-          });
-          cy.log('✅ "Geral" clicado via jQuery');
-          geralClicado = true;
-        }
-      }
-      
-      // Estratégia 4: Clique por coordenadas
-      if (!geralClicado && $body.find('*:contains("Geral")').length > 0) {
-        cy.log('✅ Tentando clique por coordenadas...');
-        cy.get('*:contains("Geral")')
-          .first()
-          .then(($el) => {
-            const rect = $el[0].getBoundingClientRect();
-            const x = rect.left + rect.width / 2;
-            const y = rect.top + rect.height / 2;
-            
-            cy.log(`📍 Coordenadas de "Geral": x=${x}, y=${y}`);
-            
-            cy.get('body')
-              .trigger('click', { clientX: x, clientY: y, force: true });
-            
-            cy.log('✅ "Geral" clicado por coordenadas');
-            geralClicado = true;
-          });
-      }
-      
-      if (!geralClicado) {
-        cy.log('⚠️ "Geral" não foi clicado após todas as estratégias');
-        cy.screenshot('geral-nao-clicado-todas-estrategias');
-      } else {
-        cy.log('✅ "Geral" clicado com sucesso!');
+          .click({ force: true });
+        cy.log('✅ "Geral" clicado via cy.contains()');
       }
     });
     
