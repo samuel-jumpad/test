@@ -257,9 +257,13 @@ describe("Descreva a imagem", () => {
     // ===== ENVIAR MENSAGEM =====
     cy.log('🔍 Enviando mensagem...');
     
+    // Aguardar o botão de enviar ficar habilitado (upload da imagem pode demorar)
+    cy.log('⏳ Aguardando botão de enviar ficar habilitado...');
+    cy.wait(3000); // Aguardar processamento do upload
+    
     cy.get('body').then(($body) => {
       const selectorsBotao = [
-        'button[type="submit"]:not([disabled])',
+        'button[type="submit"]',
         'button:contains("Enviar")',
         'button:contains("Send")',
         'form button[type="submit"]',
@@ -279,9 +283,20 @@ describe("Descreva a imagem", () => {
       for (const selector of selectorsBotao) {
         if ($body.find(selector).length > 0) {
           cy.log(`✅ Send button encontrado: ${selector}`);
-          cy.get(selector).first()
-            .should('be.visible')
-            .click();
+          
+          // Aguardar o botão não estar desabilitado
+          cy.get(selector).first().as('sendButton');
+          cy.get('@sendButton').should('be.visible');
+          
+          // Aguardar até o botão ficar habilitado (timeout de 30s)
+          cy.get('@sendButton').should('not.be.disabled', { timeout: 30000 });
+          cy.log('✅ Botão de enviar está habilitado');
+          
+          cy.wait(1000); // Aguardar mais um pouco para garantir
+          
+          // Clicar no botão
+          cy.get('@sendButton').click({ force: true });
+          
           botaoEncontrado = true;
           break;
         }
@@ -289,10 +304,18 @@ describe("Descreva a imagem", () => {
       
       if (!botaoEncontrado) {
         cy.log('⚠️ Send button não encontrado, tentando seletores genéricos...');
-        if ($body.find('button').length > 0) {
-          cy.get('button').last()
-            .should('be.visible')
-            .click();
+        if ($body.find('button[type="submit"]').length > 0) {
+          cy.get('button[type="submit"]').last().as('genericSendButton');
+          cy.get('@genericSendButton').should('be.visible');
+          cy.get('@genericSendButton').should('not.be.disabled', { timeout: 30000 });
+          cy.wait(1000);
+          cy.get('@genericSendButton').click({ force: true });
+        } else if ($body.find('button').length > 0) {
+          cy.get('button').last().as('lastButton');
+          cy.get('@lastButton').should('be.visible');
+          cy.get('@lastButton').should('not.be.disabled', { timeout: 30000 });
+          cy.wait(1000);
+          cy.get('@lastButton').click({ force: true });
         } else {
           cy.log('⚠️ Nenhum button encontrado');
         }
@@ -324,7 +347,7 @@ describe("Descreva a imagem", () => {
 
     // ===== AGUARDAR RESPOSTA DO CHAT =====
     cy.log('📋 Aguardando resposta do chat (palavra esperada: "cachorro" ou "cão")...');
-    cy.wait(25000);
+    cy.wait(35000);
     
     // Verificar se a resposta contém "cachorro" ou "cão" (sinônimos)
     cy.get('body').then(($body) => {
