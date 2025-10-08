@@ -746,7 +746,12 @@ cy.get('body').then(($body) => {
     });
 
     cy.xpath('//div[contains(@class,"cursor-pointer") and .//div[normalize-space(text())="Pasta Teste 1"]]')
-      .scrollIntoView()
+      .should('exist')
+      .then(($el) => {
+        if ($el.length > 0 && $el[0].isConnected) {
+          cy.wrap($el).scrollIntoView();
+        }
+      })
       .should('be.visible')
       .as('target');
 
@@ -903,12 +908,22 @@ cy.get('body').then(($body) => {
       cy.get(selector2)
         .first()
         .as('source2')
-        .scrollIntoView()
+        .should('exist')
+        .then(($el) => {
+          if ($el.length > 0 && $el[0].isConnected) {
+            cy.wrap($el).scrollIntoView();
+          }
+        })
         .should('be.visible');
 
       // Selecionar a pasta filha destino
       cy.xpath('//div[contains(@class,"cursor-pointer") and .//div[normalize-space(text())="Pasta filha teste"]]')
-        .scrollIntoView()
+        .should('exist')
+        .then(($el) => {
+          if ($el.length > 0 && $el[0].isConnected) {
+            cy.wrap($el).scrollIntoView();
+          }
+        })
         .should('be.visible')
         .as('target2');
 

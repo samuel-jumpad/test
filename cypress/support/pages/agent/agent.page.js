@@ -2,7 +2,6 @@ export class AgentPage {
   configurarInterceptacoes() {
     cy.log('🔧 Configurando interceptações e otimizações...');
     
-    // Interceptações baseadas no commands.js dos outros testes
     cy.intercept('POST', '**/translate-pa.googleapis.com/**', { 
       statusCode: 200, 
       body: { translatedText: 'Mock translation' } 
@@ -33,16 +32,12 @@ export class AgentPage {
       body: { llms: [] } 
     }).as('llmsRequest');
     
-    // Interceptação final para garantir bloqueio de tradução
     cy.intercept('**/translate**', { statusCode: 200, body: '{}' }).as('blockTranslateFinal');
-    
-    // Configurações para acelerar o teste
+   
     cy.window().then((win) => {
-      // Desabilitar animações CSS
       win.document.documentElement.style.setProperty('animation-duration', '0s');
       win.document.documentElement.style.setProperty('transition-duration', '0s');
       
-      // Desabilitar tradução automática do navegador
       win.document.documentElement.setAttribute('translate', 'no');
       win.document.documentElement.setAttribute('lang', 'en');
     });
@@ -51,13 +46,10 @@ export class AgentPage {
     return this;
   }
 
-  // Método para navegar para a seção de Agentes com estratégias robustas
   navegarParaSecaoAgentes() {
     cy.log('🔍 Navegando para seção de Agentes...');
     
-    // Estratégia 1: Tentar encontrar botão Agentes na navegação
     cy.get('body').then(($body) => {
-      // Procurar por botão ou link com texto "Agentes"
       const agentesButton = $body.find('button:contains("Agentes"), a:contains("Agentes"), [role="button"]:contains("Agentes")');
       
       if (agentesButton.length > 0) {
@@ -66,12 +58,9 @@ export class AgentPage {
         cy.wait(2000);
       } else {
         cy.log('⚠️ Botão Agentes não encontrado, tentando navegação direta...');
-        
-        // Estratégia 2: Navegação direta para página de agentes
         cy.url().then((currentUrl) => {
           const baseUrl = currentUrl.split('/').slice(0, 3).join('/');
           
-          // Tentar diferentes possíveis URLs para agentes
           const possibleUrls = [
             `${baseUrl}/agents`,
             `${baseUrl}/agentes`, 
@@ -96,15 +85,12 @@ export class AgentPage {
       }
     });
 
-    // Aguardar carregamento da página de agentes
     cy.wait(3000);
     
-    // Verificar se estamos na página correta
     cy.url().then((url) => {
       if (!url.includes('agents') && !url.includes('agentes') && !url.includes('assistants')) {
         cy.log('⚠️ Navegando para página de agentes...');
         
-        // Tentar navegar diretamente para a página de agentes
         const baseUrl = url.split('/').slice(0, 3).join('/');
         const agentsUrl = `${baseUrl}/agents`;
         
@@ -113,7 +99,6 @@ export class AgentPage {
       }
     });
 
-    // OBRIGATÓRIO: Clicar em "Meus Agentes" após navegar para Agentes
     cy.log('📋 Clicando em "Meus Agentes"...');
     cy.get('body').then(($body) => {
       const meusAgentesSelectors = [
@@ -145,12 +130,10 @@ export class AgentPage {
     return this;
   }
 
-  // Método para clicar em "Meus Agentes"
   clicarEmMeusAgentes() {
     cy.log('🔍 Procurando "Meus Agentes"...');
     
     cy.get('body').then(($body) => {
-      // Procurar por "Meus Agentes" com seletores simples
       const meusAgentesSelectors = [
         'button:contains("Meus Agentes")',
         'a:contains("Meus Agentes")',
@@ -163,7 +146,6 @@ export class AgentPage {
       
       let found = false;
       
-      // Tentar cada seletor CSS apenas
       for (let selector of meusAgentesSelectors) {
         if ($body.find(selector).length > 0) {
           cy.log(`✅ Encontrado "Meus Agentes"`);
@@ -182,20 +164,15 @@ export class AgentPage {
     return this;
   }
 
-  // Método para encontrar e clicar no botão de criar agente
   clicarEmCriarNovoAgente() {
     cy.log('🔍 Procurando botão "Cadastrar Novo Agente"...');
     cy.wait(3000);
     
     cy.get('body').then(($body) => {
-      // Lista de seletores para o botão de criar agente
       const criarAgenteSelectors = [
-        // Textos encontrados nos logs
         'div:contains("Criar novo agente")',
         'button:contains("Criar novo agente")',
         '*:contains("Criar novo agente")',
-        
-        // Variações de texto
         'button:contains("Cadastrar Novo Agente")',
         'div:contains("Cadastrar Novo Agente")',
         '*:contains("Cadastrar Novo Agente")',
@@ -205,8 +182,6 @@ export class AgentPage {
         'button:contains("Novo")',
         'button:contains("Criar")',
         'button:contains("+")',
-        
-        // Seletores por atributos
         '[data-testid*="create-agent"]',
         '[data-testid*="new-agent"]',
         '[data-testid*="add-agent"]',
@@ -228,7 +203,6 @@ export class AgentPage {
       if (!found) {
         cy.log('⚠️ Botão não encontrado, tentando abordagem alternativa...');
         
-        // Última tentativa: procurar qualquer elemento que contenha essas palavras
         cy.get('body').then(($body) => {
           const criarElements = $body.find('*:contains("criar"), *:contains("novo"), *:contains("Criar"), *:contains("Novo")');
           if (criarElements.length > 0) {
@@ -242,19 +216,16 @@ export class AgentPage {
       }
     });
     
-    // Aguardar carregamento do formulário
     cy.wait(5000);
     
     return this;
   }
 
-// Método para navegar para seção de agentes
 navegarParaSecaoAgentes() {
   cy.log('🔍 Navegando para seção de Agentes...');
   
-  // Estratégia 1: Tentar encontrar botão Agentes na navegação
   cy.get('body').then(($body) => {
-    // Procurar por botão ou link com texto "Agentes"
+
     const agentesButton = $body.find('button:contains("Agentes"), a:contains("Agentes"), [role="button"]:contains("Agentes")');
     
     if (agentesButton.length > 0) {
@@ -396,7 +367,6 @@ clicarEmCriarNovoAgente() {
     if (!found) {
       cy.log('⚠️ Botão não encontrado, tentando abordagem alternativa...');
       
-      // Última tentativa: procurar qualquer elemento que contenha essas palavras
       cy.get('body').then(($body) => {
         const criarElements = $body.find('*:contains("criar"), *:contains("novo"), *:contains("Criar"), *:contains("Novo")');
         if (criarElements.length > 0) {
@@ -413,15 +383,12 @@ clicarEmCriarNovoAgente() {
   return this;
 }
 
-// Método para verificar se o formulário carregou
 verificarFormularioCarregado() {
   cy.log('🔍 Verificando se o formulário de criação carregou...');
   
-  // Aguardar o formulário carregar completamente
   cy.wait(5000);
   
   cy.get('body').then(($body) => {
-    // Contar todos os elementos do formulário
     const inputs = $body.find('input').length;
     const textareas = $body.find('textarea').length;
     const selects = $body.find('select').length;
@@ -435,11 +402,9 @@ verificarFormularioCarregado() {
     cy.log(`  - Buttons: ${buttons}`);
     cy.log(`  - Comboboxes: ${comboboxes}`);
     
-    // Verificar especificamente o campo modelo
     const modeloElements = $body.find('button[role="combobox"], button:contains("GPT"), [role="combobox"]');
     cy.log(`  - Campos modelo: ${modeloElements.length}`);
     
-    // Listar todos os inputs disponíveis
     if (inputs > 0) {
       cy.log('📝 Inputs encontrados:');
       cy.get('input').each(($input, index) => {
@@ -452,8 +417,7 @@ verificarFormularioCarregado() {
       });
     }
     
-    // Listar todas as textareas disponíveis
-    if (textareas > 0) {
+       if (textareas > 0) {
       cy.log('📄 Textareas encontradas:');
       cy.get('textarea').each(($textarea, index) => {
         const name = $textarea.attr('name');
@@ -463,7 +427,6 @@ verificarFormularioCarregado() {
       });
     }
     
-    // Listar campos modelo encontrados
     if (modeloElements.length > 0) {
       cy.log('🤖 Campos modelo encontrados:');
       modeloElements.each((index, element) => {
@@ -477,12 +440,9 @@ verificarFormularioCarregado() {
   return this;
 }
 
-
-  // Método para encontrar o campo nome
   encontrarCampoNome() {
     cy.log('📝 Procurando campo nome...');
-    
-    // Aguardar o campo estar disponível com múltiplos seletores
+  
     cy.get('body').then(($body) => {
       let nameFieldFound = false;
       
