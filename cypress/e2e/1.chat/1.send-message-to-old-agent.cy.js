@@ -9,16 +9,49 @@ describe("Acessar agente antigo e enviar um chat", () => {
   });
 
   it("deve acessar chat antigo de um agente e enviar um chat", () => {
-    // Estratégia 1: Tentar encontrar botão Agentes na navegação
+    cy.log('🔍 Navegando para Agentes...');
+    cy.wait(3000);
+    
+    // Estratégias múltiplas para encontrar e clicar em Agentes
     cy.get('body').then(($body) => {
-      // Procurar por botão ou link com texto "Agentes"
-      const agentesButton = $body.find('button:contains("Agentes"), a:contains("Agentes"), [role="button"]:contains("Agentes")');
+      const agentesSelectors = [
+        'button:has(svg.lucide-bot):contains("Agentes")',
+        'button svg.lucide-bot',
+        'button:contains("Agentes")',
+        'a:contains("Agentes")',
+        '[role="button"]:contains("Agentes")',
+        '[data-sidebar="menu-button"]:contains("Agentes")',
+        'li[data-slot="sidebar-menu-item"] button:contains("Agentes")',
+        '[class*="sidebar"] button:contains("Agentes")'
+      ];
       
-      if (agentesButton.length > 0) {
-        cy.log('✅ Encontrado botão Agentes');
-        cy.wrap(agentesButton.first()).should('be.visible').click();
-        cy.wait(2000);
-      } else {
+      let agentesEncontrado = false;
+      for (const selector of agentesSelectors) {
+        if ($body.find(selector).length > 0) {
+          cy.log(`✅ Agentes encontrado com seletor: ${selector}`);
+          
+          if (selector.includes('svg.lucide-bot') && !selector.includes(':contains')) {
+            // Se é seletor de SVG, clicar no botão pai
+            cy.get(selector).first()
+              .parent()
+              .scrollIntoView()
+              .wait(1000)
+              .click({ force: true });
+          } else {
+            cy.get(selector).first()
+              .scrollIntoView()
+              .wait(1000)
+              .click({ force: true });
+          }
+          
+          agentesEncontrado = true;
+          cy.wait(5000);
+          cy.log('✅ Clique em Agentes realizado com sucesso');
+          break;
+        }
+      }
+      
+      if (!agentesEncontrado) {
         cy.log('⚠️ Botão Agentes não encontrado, tentando navegação direta...');
         
         // Estratégia 2: Navegação direta para página de agentes
