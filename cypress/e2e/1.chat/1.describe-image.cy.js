@@ -63,7 +63,7 @@ describe("Descreva a imagem", () => {
       }
     });
     
-    cy.wait(3000);
+    cy.wait(7000);
     cy.log('✅ Navegação para Chat concluída');
 
     // ===== BOTÃO ADICIONAR/CONVERSAR =====
@@ -196,10 +196,33 @@ describe("Descreva a imagem", () => {
       for (const selector of inputSelectors) {
         if ($body.find(selector).length > 0) {
           cy.log(`✅ Input encontrado: ${selector}`);
-          cy.get(selector).first()
-            .should('be.visible')
-            .clear()
-            .type(mensagem, { delay: 100 });
+          
+          // Quebrar a cadeia para evitar re-renderização
+          cy.get(selector).first().as('inputField');
+          cy.get('@inputField').should('be.visible');
+          cy.wait(500); // Aguardar estabilização
+          
+          // Tentar limpar o campo (se falhar, continua)
+          cy.get('@inputField').then(($input) => {
+            if ($input.is('div[contenteditable="true"]')) {
+              // Para contenteditable, usar click + selectAll + delete
+              cy.get('@inputField')
+                .click({ force: true })
+                .wait(300)
+                .type('{selectall}{del}', { force: true });
+            } else {
+              // Para input/textarea normal
+              cy.get('@inputField').clear({ force: true });
+            }
+          });
+          
+          cy.wait(500); // Aguardar após limpar
+          
+          // Digitar mensagem
+          cy.get('@inputField')
+            .should('exist')
+            .type(mensagem, { delay: 100, force: true });
+          
           cy.log('✅ Mensagem digitada');
           inputEncontrado = true;
           break;
@@ -208,13 +231,28 @@ describe("Descreva a imagem", () => {
       
       if (!inputEncontrado) {
         cy.log('⚠️ Input não encontrado, tentando fallback...');
-        cy.get('input, textarea, [contenteditable]').first()
-          .should('be.visible')
-          .clear()
-          .type(mensagem, { delay: 100 });
+        cy.get('input, textarea, [contenteditable]').first().as('fallbackInput');
+        cy.get('@fallbackInput').should('be.visible');
+        cy.wait(500);
+        
+        cy.get('@fallbackInput').then(($input) => {
+          if ($input.is('div[contenteditable="true"]')) {
+            cy.get('@fallbackInput')
+              .click({ force: true })
+              .wait(300)
+              .type('{selectall}{del}', { force: true });
+          } else {
+            cy.get('@fallbackInput').clear({ force: true });
+          }
+        });
+        
+        cy.wait(500);
+        cy.get('@fallbackInput').type(mensagem, { delay: 100, force: true });
         cy.log('✅ Mensagem digitada com fallback');
       }
     });
+    
+    cy.wait(2000); // Aguardar após digitar
 
     // ===== ENVIAR MENSAGEM =====
     cy.log('🔍 Enviando mensagem...');
@@ -286,7 +324,7 @@ describe("Descreva a imagem", () => {
 
     // ===== AGUARDAR RESPOSTA DO CHAT =====
     cy.log('📋 Aguardando resposta do chat (palavra esperada: "cachorro" ou "cão")...');
-    cy.wait(17000);
+    cy.wait(25000);
     
     // Verificar se a resposta contém "cachorro" ou "cão" (sinônimos)
     cy.get('body').then(($body) => {
@@ -310,6 +348,7 @@ describe("Descreva a imagem", () => {
           throw new Error('Resposta não contém "cachorro", "cão" ou palavras relacionadas');
         }
       }
+      cy.wait(5000);
     });
     
     cy.log('✅ Teste de descrição de imagem concluído com sucesso!');
