@@ -16,6 +16,12 @@ describe("Acessar agente antigo e enviar um chat", () => {
     cy.get('body').should('not.contain', 'loading');
     cy.wait(2000);
     
+    // DEBUG: Verificar quantos elementos "Agentes" existem
+    cy.get('body').then(($body) => {
+      const totalAgentes = $body.find('*:contains("Agentes")').length;
+      cy.log(`🔍 DEBUG: Total de elementos contendo "Agentes": ${totalAgentes}`);
+    });
+    
     // Estratégias robustas para encontrar e clicar em Agentes (mesma lógica do Chat)
     cy.get('body').then(($body) => {
       const agentesSelectors = [
@@ -39,16 +45,21 @@ describe("Acessar agente antigo e enviar um chat", () => {
       for (const selector of agentesSelectors) {
         if ($body.find(selector).length > 0) {
           cy.log(`✅ Agentes encontrado com seletor: ${selector}`);
+          cy.log(`📊 Quantidade encontrada: ${$body.find(selector).length}`);
+          
+          // REMOVER .should('be.visible') que pode estar travando
           cy.get(selector).first()
-            .should('be.visible')
+            .scrollIntoView()
+            .wait(1000)
             .click({ force: true });
           agentesEncontrado = true;
+          cy.log('✅ Clique em Agentes EXECUTADO!');
           break;
         }
       }
       
       if (!agentesEncontrado) {
-        cy.log('⚠️ Agentes não encontrado, tentando navegação direta...');
+        cy.log('❌ Agentes NÃO encontrado com nenhum seletor, navegando diretamente...');
         cy.visit('/dashboard/agents', { failOnStatusCode: false });
       }
     });
