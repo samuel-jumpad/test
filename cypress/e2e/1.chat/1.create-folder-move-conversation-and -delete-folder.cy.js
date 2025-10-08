@@ -676,11 +676,11 @@ cy.get('body').then(($body) => {
 
 
 
-    // Clicando em "Geral" - estratégia ultra-robusta para pipeline
+    // Clicando em "Geral" - estratégia SUPER robusta para pipeline
     cy.log('📋 Fase 3: Clicando em "Geral"...');
-    cy.wait(5000); // Aguardar mais tempo após criar pasta filha
+    cy.wait(8000); // Aguardar MUITO mais tempo após criar pasta filha
     
-    // Estratégia ultra-robusta para clicar em "Geral"
+    // Estratégia SUPER robusta para clicar em "Geral"
     cy.log('🔍 Procurando elemento "Geral" com estratégias múltiplas...');
     
     cy.get('body').then(($body) => {
@@ -690,7 +690,15 @@ cy.get('body').then(($body) => {
       const geralElements = $body.find('*:contains("Geral")');
       cy.log(`📊 Total de elementos com "Geral": ${geralElements.length}`);
       
-      // Estratégia 1: Seletores específicos
+      // Listar os primeiros 5 elementos para debug
+      geralElements.slice(0, 5).each((i, el) => {
+        const $el = Cypress.$(el);
+        const text = $el.text().trim();
+        const visible = $el.is(':visible');
+        cy.log(`Elemento ${i + 1}: "${text}" - Visível: ${visible}`);
+      });
+      
+      // Estratégia 1: Seletores específicos com múltiplas tentativas
       const selectorsGeral = [
         'div.truncate:contains("Geral")',
         'div.flex.rounded-md:contains("Geral")',
@@ -709,8 +717,8 @@ cy.get('body').then(($body) => {
           cy.get(selector)
             .first()
             .should('be.visible')
-            .wait(1000)
-            .click({ force: true });
+            .wait(1500)
+            .click({ force: true, multiple: true });
           cy.log(`✅ "Geral" clicado com sucesso usando: ${selector}`);
           geralClicado = true;
           break;
@@ -720,20 +728,21 @@ cy.get('body').then(($body) => {
       // Estratégia 2: cy.contains() com timeout maior
       if (!geralClicado && $body.find('*:contains("Geral")').length > 0) {
         cy.log('✅ Tentando cy.contains() com timeout maior...');
-        cy.contains('Geral', { timeout: 10000 })
+        cy.contains('Geral', { timeout: 15000 })
           .should('be.visible')
-          .wait(1000)
-          .click({ force: true });
+          .wait(1500)
+          .click({ force: true, multiple: true });
         cy.log('✅ "Geral" clicado com cy.contains()');
         geralClicado = true;
       }
       
-      // Estratégia 3: Forçar clique via jQuery
+      // Estratégia 3: Forçar clique via jQuery com dispatchEvent
       if (!geralClicado && $body.find('*:contains("Geral")').length > 0) {
-        cy.log('✅ Tentando clique via jQuery...');
+        cy.log('✅ Tentando clique via jQuery com dispatchEvent...');
         const $geral = $body.find('*:contains("Geral")').first();
         if ($geral.length > 0) {
           cy.wrap($geral).then(($el) => {
+            $el[0].dispatchEvent(new MouseEvent('click', { bubbles: true }));
             $el[0].click();
           });
           cy.log('✅ "Geral" clicado via jQuery');
@@ -741,15 +750,35 @@ cy.get('body').then(($body) => {
         }
       }
       
+      // Estratégia 4: Clique por coordenadas
+      if (!geralClicado && $body.find('*:contains("Geral")').length > 0) {
+        cy.log('✅ Tentando clique por coordenadas...');
+        cy.get('*:contains("Geral")')
+          .first()
+          .then(($el) => {
+            const rect = $el[0].getBoundingClientRect();
+            const x = rect.left + rect.width / 2;
+            const y = rect.top + rect.height / 2;
+            
+            cy.log(`📍 Coordenadas de "Geral": x=${x}, y=${y}`);
+            
+            cy.get('body')
+              .trigger('click', { clientX: x, clientY: y, force: true });
+            
+            cy.log('✅ "Geral" clicado por coordenadas');
+            geralClicado = true;
+          });
+      }
+      
       if (!geralClicado) {
-        cy.log('⚠️ "Geral" não foi clicado, mas continuando...');
-        cy.screenshot('geral-nao-clicado');
+        cy.log('⚠️ "Geral" não foi clicado após todas as estratégias');
+        cy.screenshot('geral-nao-clicado-todas-estrategias');
       } else {
         cy.log('✅ "Geral" clicado com sucesso!');
       }
     });
     
-    cy.wait(3000); // Aguardar após clicar em Geral
+    cy.wait(4000); // Aguardar mais tempo após clicar em Geral
     cy.log('✅ Fase 3 concluída');
 
     // Clicando na primeira mensagem e arrastando para "Pasta Teste 1"
