@@ -877,63 +877,76 @@ cy.get('body').then(($body) => {
         cy.log(`Elemento ${i + 1}: "${text}" - Visível: ${visible}`);
       });
       
-      // Estratégia 1: Procurar por elemento que contenha APENAS "Remover pasta" (mais específico)
-      const removerPastaElements = $body.find('*:contains("Remover pasta")');
-      if (removerPastaElements.length > 0) {
-        cy.log(`✅ ${removerPastaElements.length} elementos com "Remover pasta" encontrados`);
-        
-        // Filtrar para pegar o elemento mais específico (menor texto = mais específico)
-        let menorElemento = null;
-        let menorTexto = '';
-        
-        removerPastaElements.each((i, el) => {
-          const $el = Cypress.$(el);
-          const texto = $el.text().trim();
-          cy.log(`Analisando elemento ${i + 1}: "${texto}" (${texto.length} chars)`);
-          
-          // Pegar o elemento com menor texto (mais específico)
-          if (!menorElemento || texto.length < menorTexto.length) {
-            menorElemento = el;
-            menorTexto = texto;
-          }
-        });
-        
-        if (menorElemento) {
-          cy.log(`✅ Clicando no elemento mais específico: "${menorTexto}" (${menorTexto.length} chars)`);
-          cy.wrap(menorElemento)
-            .scrollIntoView()
-            .should('be.visible')
-            .wait(2000) // Aguardar antes de clicar
-            .click({ force: true });
-          opcaoEncontrada = true;
-        }
+      // Estratégia 1: Usar o seletor específico do elemento fornecido
+      if ($body.find('div.p-2.rounded-md.flex.items-center.cursor-pointer.transition-colors.hover\\:bg-gray-100:has(svg.lucide-trash2)').length > 0) {
+        cy.log('✅ Opção "Remover pasta" encontrada via seletor específico');
+        cy.get('div.p-2.rounded-md.flex.items-center.cursor-pointer.transition-colors.hover\\:bg-gray-100:has(svg.lucide-trash2)')
+          .first()
+          .scrollIntoView()
+          .should('be.visible')
+          .wait(2000) // Aguardar antes de clicar
+          .click({ force: true });
+        opcaoEncontrada = true;
       }
-      // Estratégia 2: Procurar por variações do texto
+      // Estratégia 2: Procurar por elemento que contenha APENAS "Remover pasta" (mais específico)
       else {
-        const textos = [
-          'Remover pasta',
-          'remover pasta', 
-          'Excluir pasta',
-          'excluir pasta',
-          'Delete folder',
-          'Remove folder',
-          'Remover',
-          'Excluir',
-          'Delete',
-          'Remove'
-        ];
-        
-        for (const texto of textos) {
-          if ($body.find(`*:contains("${texto}")`).length > 0) {
-            cy.log(`✅ Opção encontrada com texto "${texto}"`);
-            cy.get(`*:contains("${texto}")`)
-              .first()
+        const removerPastaElements = $body.find('*:contains("Remover pasta")');
+        if (removerPastaElements.length > 0) {
+          cy.log(`✅ ${removerPastaElements.length} elementos com "Remover pasta" encontrados`);
+          
+          // Filtrar para pegar o elemento mais específico (menor texto = mais específico)
+          let menorElemento = null;
+          let menorTexto = '';
+          
+          removerPastaElements.each((i, el) => {
+            const $el = Cypress.$(el);
+            const texto = $el.text().trim();
+            cy.log(`Analisando elemento ${i + 1}: "${texto}" (${texto.length} chars)`);
+            
+            // Pegar o elemento com menor texto (mais específico)
+            if (!menorElemento || texto.length < menorTexto.length) {
+              menorElemento = el;
+              menorTexto = texto;
+            }
+          });
+          
+          if (menorElemento) {
+            cy.log(`✅ Clicando no elemento mais específico: "${menorTexto}" (${menorTexto.length} chars)`);
+            cy.wrap(menorElemento)
               .scrollIntoView()
               .should('be.visible')
               .wait(2000) // Aguardar antes de clicar
               .click({ force: true });
             opcaoEncontrada = true;
-            break;
+          }
+        }
+        // Estratégia 3: Procurar por variações do texto
+        else {
+          const textos = [
+            'Remover pasta',
+            'remover pasta', 
+            'Excluir pasta',
+            'excluir pasta',
+            'Delete folder',
+            'Remove folder',
+            'Remover',
+            'Excluir',
+            'Delete',
+            'Remove'
+          ];
+          
+          for (const texto of textos) {
+            if ($body.find(`*:contains("${texto}")`).length > 0) {
+              cy.log(`✅ Opção encontrada com texto "${texto}"`);
+              cy.get(`*:contains("${texto}")`)
+                .first()
+                .scrollIntoView()
+                .should('be.visible')
+                .wait(2000) // Aguardar antes de clicar
+                .click({ force: true });
+              opcaoEncontrada = true;
+              break;
+            }
           }
         }
       }
@@ -1092,63 +1105,76 @@ cy.get('body').then(($body) => {
         cy.log(`Elemento ${i + 1}: "${text}" - Visível: ${visible}`);
       });
       
-      // Estratégia 1: Procurar por elemento que contenha APENAS "Remover pasta" (mais específico)
-      const removerPastaElements = $body.find('*:contains("Remover pasta")');
-      if (removerPastaElements.length > 0) {
-        cy.log(`✅ ${removerPastaElements.length} elementos com "Remover pasta" encontrados (pasta principal)`);
-        
-        // Filtrar para pegar o elemento mais específico (menor texto = mais específico)
-        let menorElemento = null;
-        let menorTexto = '';
-        
-        removerPastaElements.each((i, el) => {
-          const $el = Cypress.$(el);
-          const texto = $el.text().trim();
-          cy.log(`Analisando elemento ${i + 1}: "${texto}" (${texto.length} chars)`);
-          
-          // Pegar o elemento com menor texto (mais específico)
-          if (!menorElemento || texto.length < menorTexto.length) {
-            menorElemento = el;
-            menorTexto = texto;
-          }
-        });
-        
-        if (menorElemento) {
-          cy.log(`✅ Clicando no elemento mais específico da pasta principal: "${menorTexto}" (${menorTexto.length} chars)`);
-          cy.wrap(menorElemento)
-            .scrollIntoView()
-            .should('be.visible')
-            .wait(2000) // Aguardar antes de clicar
-            .click({ force: true });
-          opcaoEncontrada = true;
-        }
+      // Estratégia 1: Usar o seletor específico do elemento fornecido
+      if ($body.find('div.p-2.rounded-md.flex.items-center.cursor-pointer.transition-colors.hover\\:bg-gray-100:has(svg.lucide-trash2)').length > 0) {
+        cy.log('✅ Opção "Remover pasta" encontrada via seletor específico (pasta principal)');
+        cy.get('div.p-2.rounded-md.flex.items-center.cursor-pointer.transition-colors.hover\\:bg-gray-100:has(svg.lucide-trash2)')
+          .first()
+          .scrollIntoView()
+          .should('be.visible')
+          .wait(2000) // Aguardar antes de clicar
+          .click({ force: true });
+        opcaoEncontrada = true;
       }
-      // Estratégia 2: Procurar por variações do texto
+      // Estratégia 2: Procurar por elemento que contenha APENAS "Remover pasta" (mais específico)
       else {
-        const textos = [
-          'Remover pasta',
-          'remover pasta', 
-          'Excluir pasta',
-          'excluir pasta',
-          'Delete folder',
-          'Remove folder',
-          'Remover',
-          'Excluir',
-          'Delete',
-          'Remove'
-        ];
-        
-        for (const texto of textos) {
-          if ($body.find(`*:contains("${texto}")`).length > 0) {
-            cy.log(`✅ Opção encontrada com texto "${texto}"`);
-            cy.get(`*:contains("${texto}")`)
-              .first()
+        const removerPastaElements = $body.find('*:contains("Remover pasta")');
+        if (removerPastaElements.length > 0) {
+          cy.log(`✅ ${removerPastaElements.length} elementos com "Remover pasta" encontrados (pasta principal)`);
+          
+          // Filtrar para pegar o elemento mais específico (menor texto = mais específico)
+          let menorElemento = null;
+          let menorTexto = '';
+          
+          removerPastaElements.each((i, el) => {
+            const $el = Cypress.$(el);
+            const texto = $el.text().trim();
+            cy.log(`Analisando elemento ${i + 1}: "${texto}" (${texto.length} chars)`);
+            
+            // Pegar o elemento com menor texto (mais específico)
+            if (!menorElemento || texto.length < menorTexto.length) {
+              menorElemento = el;
+              menorTexto = texto;
+            }
+          });
+          
+          if (menorElemento) {
+            cy.log(`✅ Clicando no elemento mais específico da pasta principal: "${menorTexto}" (${menorTexto.length} chars)`);
+            cy.wrap(menorElemento)
               .scrollIntoView()
               .should('be.visible')
               .wait(2000) // Aguardar antes de clicar
               .click({ force: true });
             opcaoEncontrada = true;
-            break;
+          }
+        }
+        // Estratégia 3: Procurar por variações do texto
+        else {
+          const textos = [
+            'Remover pasta',
+            'remover pasta', 
+            'Excluir pasta',
+            'excluir pasta',
+            'Delete folder',
+            'Remove folder',
+            'Remover',
+            'Excluir',
+            'Delete',
+            'Remove'
+          ];
+          
+          for (const texto of textos) {
+            if ($body.find(`*:contains("${texto}")`).length > 0) {
+              cy.log(`✅ Opção encontrada com texto "${texto}"`);
+              cy.get(`*:contains("${texto}")`)
+                .first()
+                .scrollIntoView()
+                .should('be.visible')
+                .wait(2000) // Aguardar antes de clicar
+                .click({ force: true });
+              opcaoEncontrada = true;
+              break;
+            }
           }
         }
       }
