@@ -1004,8 +1004,18 @@ cy.get('body').then(($body) => {
     cy.get('body').then(($body) => {
       let botaoEncontrado = false;
       
-      // Estratégia 1: Botão com texto exato
-      if ($body.find('button:contains("Excluir pasta")').length > 0) {
+      // Estratégia 1: Usar o seletor específico do botão fornecido
+      if ($body.find('button.relative.inline-flex.items-center.justify-center.whitespace-nowrap.cursor-pointer.rounded-lg.text-sm.font-bold.transition-colors.bg-error-main.hover\\:bg-error-dark.text-white.shadow-xs.h-10.px-4.py-2:has(div:contains("Excluir pasta"))').length > 0) {
+        cy.log('✅ Botão "Excluir pasta" da pasta filha encontrado via seletor específico');
+        cy.get('button.relative.inline-flex.items-center.justify-center.whitespace-nowrap.cursor-pointer.rounded-lg.text-sm.font-bold.transition-colors.bg-error-main.hover\\:bg-error-dark.text-white.shadow-xs.h-10.px-4.py-2:has(div:contains("Excluir pasta"))')
+          .first()
+          .should('be.visible')
+          .wait(2000) // Aguardar antes de clicar
+          .click({ force: true });
+        botaoEncontrado = true;
+      }
+      // Estratégia 2: Botão com texto exato
+      else if ($body.find('button:contains("Excluir pasta")').length > 0) {
         cy.log('✅ Botão "Excluir pasta" da pasta filha encontrado');
         cy.get('button:contains("Excluir pasta")')
           .first()
@@ -1014,7 +1024,7 @@ cy.get('body').then(($body) => {
           .click({ force: true });
         botaoEncontrado = true;
       }
-      // Estratégia 2: Qualquer elemento com texto "Excluir pasta"
+      // Estratégia 3: Qualquer elemento com texto "Excluir pasta"
       else if ($body.find('*:contains("Excluir pasta")').length > 0) {
         cy.log('✅ Elemento "Excluir pasta" da pasta filha encontrado');
         cy.get('*:contains("Excluir pasta")')
@@ -1243,8 +1253,18 @@ cy.get('body').then(($body) => {
     cy.get('body').then(($body) => {
       let botaoEncontrado = false;
       
-      // Estratégia 1: Botão com texto exato
-      if ($body.find('button:contains("Excluir pasta")').length > 0) {
+      // Estratégia 1: Usar o seletor específico do botão fornecido
+      if ($body.find('button.relative.inline-flex.items-center.justify-center.whitespace-nowrap.cursor-pointer.rounded-lg.text-sm.font-bold.transition-colors.bg-error-main.hover\\:bg-error-dark.text-white.shadow-xs.h-10.px-4.py-2:has(div:contains("Excluir pasta"))').length > 0) {
+        cy.log('✅ Botão "Excluir pasta" da pasta principal encontrado via seletor específico');
+        cy.get('button.relative.inline-flex.items-center.justify-center.whitespace-nowrap.cursor-pointer.rounded-lg.text-sm.font-bold.transition-colors.bg-error-main.hover\\:bg-error-dark.text-white.shadow-xs.h-10.px-4.py-2:has(div:contains("Excluir pasta"))')
+          .first()
+          .should('be.visible')
+          .wait(2000) // Aguardar antes de clicar
+          .click({ force: true });
+        botaoEncontrado = true;
+      }
+      // Estratégia 2: Botão com texto exato
+      else if ($body.find('button:contains("Excluir pasta")').length > 0) {
         cy.log('✅ Botão "Excluir pasta" da pasta principal encontrado');
         cy.get('button:contains("Excluir pasta")')
           .first()
@@ -1253,7 +1273,7 @@ cy.get('body').then(($body) => {
           .click({ force: true });
         botaoEncontrado = true;
       }
-      // Estratégia 2: Qualquer elemento com texto "Excluir pasta"
+      // Estratégia 3: Qualquer elemento com texto "Excluir pasta"
       else if ($body.find('*:contains("Excluir pasta")').length > 0) {
         cy.log('✅ Elemento "Excluir pasta" da pasta principal encontrado');
         cy.get('*:contains("Excluir pasta")')
