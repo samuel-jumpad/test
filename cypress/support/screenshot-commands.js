@@ -1,5 +1,3 @@
-// Custom commands for screenshots and debugging
-
 Cypress.Commands.add('takeScreenshot', (name) => {
   const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
   const screenshotName = name ? `${name}-${timestamp}` : `screenshot-${timestamp}`;
@@ -28,9 +26,3 @@ Cypress.Commands.add('failureScreenshot', () => {
   cy.takeScreenshot('failure');
   cy.log('📸 Screenshot taken on failure');
 });
-
-// Auto screenshot on test failure - disabled to prevent promise conflicts
-// Cypress.on('fail', (error, runnable) => {
-//   cy.takeScreenshot(`failure-${runnable.title.replace(/\s+/g, '-').toLowerCase()}`);
-//   throw error;
-// });

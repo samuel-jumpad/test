@@ -12,20 +12,11 @@
 // https://on.cypress.io/configuration
 // ***********************************************************
 require('cypress-xpath');
-// Import commands.js using ES2015 syntax:
 import './commands'
 import './screenshot-commands'
 import './video-commands'
-
-// Import cypress-xpath
 import 'cypress-xpath'
-
-// Alternatively you can use CommonJS syntax:
-// require('./commands')
-
-// Enhanced global error handling for CI/CD stability
 Cypress.on('uncaught:exception', (err, runnable) => {
-  // Don't fail tests on common browser errors
   const ignoredErrors = [
     'ResizeObserver loop limit exceeded',
     'Non-Error promise rejection captured',
@@ -45,44 +36,31 @@ Cypress.on('uncaught:exception', (err, runnable) => {
     console.warn('Ignoring uncaught exception:', err.message);
     return false;
   }
-  
-  // Log other errors for debugging
+
   console.error('Uncaught exception:', err.message);
   console.error('Stack trace:', err.stack);
   
   return true;
 });
 
-// Global before hook for all tests
 beforeEach(() => {
-  // Don't setup interceptors globally - let each test handle its own
-  // This prevents conflicts with tests that need specific interceptor configurations
-  
-  // Ensure clean state
   cy.window().then((win) => {
-    // Clear any pending timeouts
     if (win && win.clearTimeout) {
       win.clearTimeout();
     }
-    // Clear any pending intervals
-    if (win && win.clearInterval) {
+        if (win && win.clearInterval) {
       win.clearInterval();
     }
   });
 });
 
-// Global after hook for all tests
 afterEach(() => {
-  // Clean up any pending requests
-  cy.window().then((win) => {
+    cy.window().then((win) => {
     if (win.fetch) {
-      // Abort any pending fetch requests
-      win.fetch = () => Promise.reject(new Error('Test cleanup'));
+    win.fetch = () => Promise.reject(new Error('Test cleanup'));
     }
   });
 });
-
-// Custom logging
 Cypress.Commands.add('logTestStep', (step, details = '') => {
   const timestamp = new Date().toLocaleTimeString();
   cy.log(`[${timestamp}] ${step} ${details}`);

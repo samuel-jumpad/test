@@ -754,13 +754,29 @@ cy.get('body').then(($body) => {
 
     cy.get('@source').then(($src) => {
       cy.get('@target').then(($tgt) => {
+        // Verificar se os elementos existem e são válidos
+        if (!$src || !$src[0] || !$tgt || !$tgt[0]) {
+          cy.log('❌ Elementos de drag and drop não encontrados');
+          cy.screenshot('drag-drop-elementos-invalidos');
+          throw new Error('Elementos de drag and drop não são válidos');
+        }
+
         const s = $src[0].getBoundingClientRect();
         const t = $tgt[0].getBoundingClientRect();
+
+        // Verificar se os elementos têm dimensões válidas
+        if (!s || !t || s.width === 0 || t.width === 0) {
+          cy.log('❌ Elementos não têm dimensões válidas');
+          cy.screenshot('drag-drop-dimensoes-invalidas');
+          throw new Error('Elementos não têm dimensões válidas para drag and drop');
+        }
 
         const startX = s.x + s.width / 2;
         const startY = s.y + s.height / 2;
         const endX = t.x + t.width / 2;
         const endY = t.y + t.height / 2;
+
+        cy.log(`📍 Coordenadas: origem (${startX}, ${startY}) -> destino (${endX}, ${endY})`);
 
         const dataTransfer = new DataTransfer();
 
@@ -896,16 +912,32 @@ cy.get('body').then(($body) => {
         .should('be.visible')
         .as('target2');
 
-      // Drag and drop com coordenadas
+      // Drag and drop com coordenadas - com verificações de segurança
       cy.get('@source2').then(($src) => {
         cy.get('@target2').then(($tgt) => {
+          // Verificar se os elementos existem e são válidos
+          if (!$src || !$src[0] || !$tgt || !$tgt[0]) {
+            cy.log('❌ Elementos de drag and drop da segunda mensagem não encontrados');
+            cy.screenshot('drag-drop-segunda-mensagem-elementos-invalidos');
+            throw new Error('Elementos de drag and drop da segunda mensagem não são válidos');
+          }
+
           const s = $src[0].getBoundingClientRect();
           const t = $tgt[0].getBoundingClientRect();
+
+          // Verificar se os elementos têm dimensões válidas
+          if (!s || !t || s.width === 0 || t.width === 0) {
+            cy.log('❌ Elementos da segunda mensagem não têm dimensões válidas');
+            cy.screenshot('drag-drop-segunda-mensagem-dimensoes-invalidas');
+            throw new Error('Elementos da segunda mensagem não têm dimensões válidas para drag and drop');
+          }
 
           const startX = s.x + s.width / 2;
           const startY = s.y + s.height / 2;
           const endX = t.x + t.width / 2;
           const endY = t.y + t.height / 2;
+
+          cy.log(`📍 Coordenadas segunda mensagem: origem (${startX}, ${startY}) -> destino (${endX}, ${endY})`);
 
           const dataTransfer2 = new DataTransfer();
 
