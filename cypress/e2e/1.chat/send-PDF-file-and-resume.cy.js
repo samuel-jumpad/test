@@ -1,7 +1,7 @@
 import { LoginPage } from "../../support/pages/login/login.page.js";
 import { ChatPage } from "../../support/pages/chat/chat.page.js";
 
-describe("Criar Pasta, Mover Conversa e Deletar Pasta", () => {
+describe("Enviar PDF e aguardar resumo", () => {
   const loginPage = new LoginPage();
   const chatPage = new ChatPage();
 
@@ -10,7 +10,7 @@ describe("Criar Pasta, Mover Conversa e Deletar Pasta", () => {
     loginPage.login();
   });
 
-  it("Deve mover mensagem para a pasta corretamente", () => {
-    chatPage.gerenciarPastasCompleto();
+  it("deve acessar chat e descrever o PDF", () => {
+    chatPage.analisarPDFCompletoAvancado();
   });
 });
