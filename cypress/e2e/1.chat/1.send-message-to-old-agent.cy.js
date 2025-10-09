@@ -377,42 +377,67 @@ describe("Acessar agente antigo e enviar um chat", () => {
     cy.wait(10000);
     cy.log('✅ Navegação para Chat concluída');
 
-    // Clicar no agente antigo com fallbacks para pipeline
-    cy.log('🔍 Procurando agente "Cypress"...');
+    // Aguardar lista de agentes carregar
+    cy.log('⏳ Aguardando lista de agentes carregar...');
+    cy.wait(5000);
+
+    // DEBUG: Verificar quantos elementos "Cypress" existem
     cy.get('body').then(($body) => {
-      // Estratégia 1: XPath específico
-      if ($body.find('div:contains("Agentes")').length > 0) {
-        try {
-          cy.xpath('//div[contains(text(),"Agentes")]/following::div[contains(@class,"truncate") and text()="Cypress"][1]')
-            .should('be.visible')
-            .scrollIntoView()
-            .click({ force: true });
-          cy.log('✅ Agente Cypress clicado via XPath');
-        } catch (e) {
-          cy.log('⚠️ XPath do agente falhou, tentando fallback...');
+      const totalCypress = $body.find('*:contains("Cypress")').length;
+      cy.log(`🔍 DEBUG: Total de elementos contendo "Cypress": ${totalCypress}`);
+      
+      // Verificar se existe div com classe truncate
+      const truncateElements = $body.find('div.truncate').length;
+      cy.log(`🔍 DEBUG: Total de elementos div.truncate: ${truncateElements}`);
+    });
+
+    // Clicar no agente "Cypress" (mesma estratégia robusta)
+    cy.log('🔍 Procurando agente "Cypress"...');
+    
+    cy.get('body').then(($body) => {
+      const cypressSelectors = [
+        'div.truncate:contains("Cypress")',
+        'div[class*="cursor-pointer"]:contains("Cypress")',
+        'div.flex.items-center:contains("Cypress")',
+        'div:contains("Cypress")'
+      ];
+      
+      let cypressEncontrado = false;
+      
+      for (const selector of cypressSelectors) {
+        if ($body.find(selector).length > 0) {
+          cy.log(`✅ Agente "Cypress" encontrado com seletor: ${selector}`);
+          cy.log(`📊 Quantidade encontrada: ${$body.find(selector).length}`);
+          
+          // Se for div.truncate, precisa clicar no pai
+          if (selector.includes('truncate')) {
+            cy.get(selector).first()
+              .parent()
+              .scrollIntoView()
+              .wait(1500)
+              .click({ force: true });
+            cy.log('✅ Clique no PARENT do agente "Cypress" EXECUTADO!');
+          } else {
+            cy.get(selector).first()
+              .scrollIntoView()
+              .wait(1500)
+              .click({ force: true });
+            cy.log('✅ Clique no agente "Cypress" EXECUTADO!');
+          }
+          
+          cypressEncontrado = true;
+          break;
         }
       }
       
-      // Estratégia 2: Fallback CSS
-      if ($body.find('div:contains("Cypress")').length > 0) {
-        cy.get('div:contains("Cypress")').first()
-          .scrollIntoView()
-          .click({ force: true });
-        cy.log('✅ Agente Cypress clicado via CSS fallback');
-      }
-      
-      // Estratégia 3: Fallback genérico
-      else if ($body.find('div[class*="truncate"]').length > 0) {
-        cy.get('div[class*="truncate"]').first()
-          .scrollIntoView()
-          .click({ force: true });
-        cy.log('✅ Primeiro agente clicado via fallback genérico');
-      }
-      
-      else {
-        cy.log('⚠️ Nenhum agente encontrado, continuando...');
+      if (!cypressEncontrado) {
+        cy.log('❌ Agente "Cypress" NÃO encontrado');
+        cy.screenshot('agente-cypress-nao-encontrado');
       }
     });
+    
+    cy.wait(5000);
+    cy.log('✅ Agente Cypress acessado');
 
 
 //FASE 4: DIGITAR MENSAGEM =====
