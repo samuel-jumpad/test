@@ -641,10 +641,28 @@ verificarFormularioCarregado() {
     // Aguardar um pouco para os campos serem processados
     cy.wait(2000);
 
-    // Rolar até o final
-    cy.get('[data-radix-scroll-area-viewport]')
-      .first()
-      .scrollTo('bottom', { duration: 1000 });
+    // Rolar até o final com verificação de elemento
+    cy.get('body').then(($body) => {
+      if ($body.find('[data-radix-scroll-area-viewport]').length > 0) {
+        cy.log('✅ Elemento de scroll encontrado');
+        cy.get('[data-radix-scroll-area-viewport]')
+          .first()
+          .then(($el) => {
+            // Verificar se o elemento é scrollável
+            const isScrollable = $el[0].scrollHeight > $el[0].clientHeight;
+            if (isScrollable) {
+              cy.log('✅ Elemento é scrollável, rolando...');
+              cy.wrap($el).scrollTo('bottom', { duration: 1000 });
+            } else {
+              cy.log('⚠️ Elemento não é scrollável, usando scroll alternativo...');
+              cy.window().scrollTo('bottom', { duration: 1000 });
+            }
+          });
+      } else {
+        cy.log('⚠️ Elemento de scroll não encontrado, usando scroll da janela...');
+        cy.window().scrollTo('bottom', { duration: 1000 });
+      }
+    });
     cy.wait(1000);
     
     return this;
@@ -1050,8 +1068,25 @@ verificarFormularioCarregado() {
       .should('be.visible')
       .clear()
       .type('Teste automatizado Cypress', { delay: 150 });
-    cy.xpath('//*[@data-radix-scroll-area-viewport]')
-      .scrollTo('bottom', { duration: 2000 });
+    
+    // Rolar com verificação
+    cy.get('body').then(($body) => {
+      if ($body.find('[data-radix-scroll-area-viewport]').length > 0) {
+        cy.get('[data-radix-scroll-area-viewport]')
+          .first()
+          .then(($el) => {
+            const isScrollable = $el[0].scrollHeight > $el[0].clientHeight;
+            if (isScrollable) {
+              cy.wrap($el).scrollTo('bottom', { duration: 2000 });
+            } else {
+              cy.window().scrollTo('bottom', { duration: 2000 });
+            }
+          });
+      } else {
+        cy.window().scrollTo('bottom', { duration: 2000 });
+      }
+    });
+    
     cy.xpath('//button[@type="submit"]')
       .should('be.visible')
       .click();
