@@ -654,13 +654,31 @@ verificarFormularioCarregado() {
               cy.log('✅ Elemento é scrollável, rolando...');
               cy.wrap($el).scrollTo('bottom', { duration: 1000 });
             } else {
-              cy.log('⚠️ Elemento não é scrollável, usando scroll alternativo...');
-              cy.window().scrollTo('bottom', { duration: 1000 });
+              cy.log('⚠️ Elemento não é scrollável, tentando scroll da janela...');
+              // Verificar se a janela é scrollável
+              cy.window().then((win) => {
+                const isWindowScrollable = win.document.body.scrollHeight > win.innerHeight;
+                if (isWindowScrollable) {
+                  cy.log('✅ Janela é scrollável, rolando...');
+                  cy.window().scrollTo(0, win.document.body.scrollHeight);
+                } else {
+                  cy.log('✅ Não é necessário rolar - conteúdo está visível');
+                }
+              });
             }
           });
       } else {
-        cy.log('⚠️ Elemento de scroll não encontrado, usando scroll da janela...');
-        cy.window().scrollTo('bottom', { duration: 1000 });
+        cy.log('⚠️ Elemento de scroll não encontrado, tentando scroll da janela...');
+        // Verificar se a janela é scrollável
+        cy.window().then((win) => {
+          const isWindowScrollable = win.document.body.scrollHeight > win.innerHeight;
+          if (isWindowScrollable) {
+            cy.log('✅ Janela é scrollável, rolando...');
+            cy.window().scrollTo(0, win.document.body.scrollHeight);
+          } else {
+            cy.log('✅ Não é necessário rolar - conteúdo está visível');
+          }
+        });
       }
     });
     cy.wait(1000);
@@ -1079,11 +1097,23 @@ verificarFormularioCarregado() {
             if (isScrollable) {
               cy.wrap($el).scrollTo('bottom', { duration: 2000 });
             } else {
-              cy.window().scrollTo('bottom', { duration: 2000 });
+              // Verificar se a janela é scrollável
+              cy.window().then((win) => {
+                const isWindowScrollable = win.document.body.scrollHeight > win.innerHeight;
+                if (isWindowScrollable) {
+                  cy.window().scrollTo(0, win.document.body.scrollHeight);
+                }
+              });
             }
           });
       } else {
-        cy.window().scrollTo('bottom', { duration: 2000 });
+        // Verificar se a janela é scrollável
+        cy.window().then((win) => {
+          const isWindowScrollable = win.document.body.scrollHeight > win.innerHeight;
+          if (isWindowScrollable) {
+            cy.window().scrollTo(0, win.document.body.scrollHeight);
+          }
+        });
       }
     });
     
