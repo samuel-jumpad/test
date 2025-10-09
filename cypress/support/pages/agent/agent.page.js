@@ -103,20 +103,15 @@ export class AgentPage {
 
   clicarEmMeusAgentes() {
     cy.log('🔍 Procurando "Meus Agentes"...');
-    cy.wait(2000); // Aguardar elementos carregarem
+    cy.wait(2000);
     
     cy.get('body').then(($body) => {
       const meusAgentesSelectors = [
-        // Estratégia 1: Link direto com href (mais confiável)
         'a[href="/dashboard/assistants/list"]',
         'a[href*="/assistants/list"]',
-        
-        // Estratégia 2: Botões e links específicos
         'button:contains("Meus Agentes")',
         'a:contains("Meus Agentes")',
         '[role="button"]:contains("Meus Agentes")',
-        
-        // Estratégia 3: Textos mais específicos (evitar divs genéricos)
         'button:contains("Meus")',
         'a:contains("Meus")'
       ];
@@ -127,30 +122,26 @@ export class AgentPage {
         if (elements.length > 0) {
           cy.log(`✅ "Meus Agentes" encontrado com seletor: ${selector}`);
           cy.log(`📊 Quantidade encontrada: ${elements.length}`);
-          
-          // Filtrar elementos que sejam realmente clicáveis
+
           cy.get(selector).then($els => {
-            // Procurar o elemento mais específico (não um container pai)
+
             let targetElement = null;
             
             $els.each((index, el) => {
               const $el = Cypress.$(el);
               const text = $el.text().trim();
-              
-              // Log para debug
+
               cy.log(`🔍 Elemento ${index}: tag="${el.tagName}", text="${text}"`);
-              
-              // Priorizar elementos que são exatamente "Meus Agentes" ou links
+
               if (el.tagName === 'A' || el.tagName === 'BUTTON') {
                 if (text === 'Meus Agentes' || text.includes('Meus Agentes')) {
                   targetElement = $el;
                   cy.log(`✅ Elemento alvo encontrado: ${el.tagName}`);
-                  return false; // Break do each
+                  return false; 
                 }
               }
             });
-            
-            // Se não encontrou elemento específico, usar o primeiro button/a
+
             if (!targetElement && $els.length > 0) {
               $els.each((index, el) => {
                 if (el.tagName === 'A' || el.tagName === 'BUTTON') {
@@ -160,14 +151,12 @@ export class AgentPage {
                 }
               });
             }
-            
-            // Fallback: usar o primeiro elemento
+
             if (!targetElement) {
               targetElement = $els.first();
               cy.log('⚠️ Usando primeiro elemento encontrado (fallback)');
             }
-            
-            // Clicar no elemento encontrado
+
             cy.wrap(targetElement)
               .scrollIntoView()
               .should('be.visible')
@@ -400,32 +389,20 @@ clicarEmCriarNovoAgente() {
   cy.wait(3000);
   
   cy.get('body').then(($body) => {
-    // Lista de seletores baseado no HTML real da aplicação
     const criarAgenteSelectors = [
-      // Estratégia 1: Link direto com href (mais confiável)
       'a[href="/dashboard/assistants/new"]',
       'a[href*="/assistants/new"]',
-      
-      // Estratégia 2: Botão com classes específicas
       'button.bg-primary-main:contains("Cadastrar Novo Agente")',
       'button.bg-primary-main',
-      
-      // Estratégia 3: Link que contém botão
       'a:has(button:contains("Cadastrar Novo Agente"))',
       'a:has(button):contains("Cadastrar Novo Agente")',
-      
-      // Estratégia 4: Textos específicos
       'button:contains("Cadastrar Novo Agente")',
       'div:contains("Cadastrar Novo Agente")',
       'a:contains("Cadastrar Novo Agente")',
       '*:contains("Cadastrar Novo Agente")',
-      
-      // Estratégia 5: Variações
       'button:contains("Criar novo agente")',
       'div:contains("Criar novo agente")',
       'button:contains("Novo Agente")',
-      
-      // Estratégia 6: Por atributos
       '[data-testid*="create-agent"]',
       '[data-testid*="new-agent"]',
       'button[aria-label*="criar"]'
@@ -518,8 +495,7 @@ verificarFormularioCarregado() {
   
     cy.get('body').then(($body) => {
       let nameFieldFound = false;
-      
-      // Lista de seletores possíveis para o campo nome
+
       const nameSelectors = [
         'input[name="name"]',
         'input[placeholder*="nome"]',
@@ -544,7 +520,6 @@ verificarFormularioCarregado() {
         cy.log('❌ Campo nome não encontrado, aguardando mais tempo...');
         cy.wait(3000);
         
-        // Tentar novamente após aguardar
         cy.get('input').first().should('be.visible');
         cy.log('✅ Usando primeiro input encontrado');
       }
