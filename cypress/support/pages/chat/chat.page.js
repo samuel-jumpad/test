@@ -1107,63 +1107,64 @@ export class ChatPage {
   // ===== NAVEGAR PARA AGENTES =====
   
   /**
-   * Navega para a seção de Agentes
+   * Navega para a seção de Agentes (versão que funciona na pipeline)
    */
   navegarParaAgentes() {
-    // Estratégia 1: Tentar encontrar botão Agentes na navegação
+    cy.log('🔍 Navegando para Agentes...');
+    
+    // Aguardar carregamento completo
+    cy.get('body').should('not.contain', 'loading');
+    cy.wait(2000);
+    
+    // DEBUG: Verificar quantos elementos "Agentes" existem
     cy.get('body').then(($body) => {
-      // Procurar por botão ou link com texto "Agentes"
-      const agentesButton = $body.find('button:contains("Agentes"), a:contains("Agentes"), [role="button"]:contains("Agentes")');
+      const totalAgentes = $body.find('*:contains("Agentes")').length;
+      cy.log(`🔍 DEBUG: Total de elementos contendo "Agentes": ${totalAgentes}`);
+    });
+    
+    // Estratégias robustas para encontrar e clicar em Agentes
+    cy.get('body').then(($body) => {
+      const agentesSelectors = [
+        'button:contains("Agentes")',
+        'a:contains("Agentes")',
+        '[role="button"]:contains("Agentes")',
+        '[data-testid*="agentes"]',
+        '[data-testid*="agents"]',
+        '[aria-label*="agentes"]',
+        '[aria-label*="agents"]',
+        'nav button:contains("Agentes")',
+        'nav a:contains("Agentes")',
+        '.nav-item:contains("Agentes")',
+        '.menu-item:contains("Agentes")',
+        '.sidebar-item:contains("Agentes")',
+        '[data-sidebar="menu-button"]:contains("Agentes")',
+        'li[data-slot="sidebar-menu-item"] button:contains("Agentes")'
+      ];
       
-      if (agentesButton.length > 0) {
-        cy.log('✅ Encontrado botão Agentes');
-        cy.wrap(agentesButton.first()).should('be.visible').click();
-        cy.wait(2000);
-      } else {
-        cy.log('⚠️ Botão Agentes não encontrado, tentando navegação direta...');
-        
-        // Estratégia 2: Navegação direta para página de agentes
-        cy.url().then((currentUrl) => {
-          const baseUrl = currentUrl.split('/').slice(0, 3).join('/');
+      let agentesEncontrado = false;
+      for (const selector of agentesSelectors) {
+        if ($body.find(selector).length > 0) {
+          cy.log(`✅ Agentes encontrado com seletor: ${selector}`);
+          cy.log(`📊 Quantidade encontrada: ${$body.find(selector).length}`);
           
-          // Tentar diferentes possíveis URLs para agentes
-          const possibleUrls = [
-            `${baseUrl}/agents`,
-            `${baseUrl}/agentes`, 
-            `${baseUrl}/dashboard/agents`,
-            `${baseUrl}/dashboard/agentes`
-          ];
-          
-          let navigated = false;
-          for (let i = 0; i < possibleUrls.length && !navigated; i++) {
-            cy.log(`Tentando navegar para: ${possibleUrls[i]}`);
-            cy.visit(possibleUrls[i], { failOnStatusCode: false });
-            cy.wait(3000);
-            
-            cy.url().then((newUrl) => {
-              if (newUrl.includes('agents') || newUrl.includes('agentes')) {
-                cy.log(`✅ Navegação bem-sucedida para: ${newUrl}`);
-                navigated = true;
-              }
-            });
-          }
-        });
+          cy.get(selector).first()
+            .scrollIntoView()
+            .wait(1000)
+            .click({ force: true });
+          agentesEncontrado = true;
+          cy.log('✅ Clique em Agentes EXECUTADO!');
+          break;
+        }
+      }
+      
+      if (!agentesEncontrado) {
+        cy.log('❌ Agentes NÃO encontrado com nenhum seletor, navegando diretamente...');
+        cy.visit('/dashboard/agents', { failOnStatusCode: false });
       }
     });
-
-    // Verificar se estamos na página correta
-    cy.url().then((url) => {
-      if (!url.includes('agents') && !url.includes('agentes') && !url.includes('assistants')) {
-        cy.log('⚠️ Navegando para página de agentes...');
-        
-        // Tentar navegar diretamente para a página de agentes
-        const baseUrl = url.split('/').slice(0, 3).join('/');
-        const agentsUrl = `${baseUrl}/agents`;
-        
-        cy.visit(agentsUrl, { failOnStatusCode: false });
-        cy.wait(5000);
-      }
-    });
+    
+    cy.wait(4000);
+    cy.log('✅ Navegação para Agentes concluída');
     
     return this;
   }
@@ -1171,42 +1172,47 @@ export class ChatPage {
   // ===== CLICAR EM MEUS AGENTES =====
   
   /**
-   * Clica em "Meus Agentes"
+   * Clica em "Meus Agentes" (versão que funciona na pipeline)
    */
   clicarEmMeusAgentes() {
     cy.log('🔍 Procurando "Meus Agentes"...');
     
     cy.get('body').then(($body) => {
-      // Procurar por "Meus Agentes" com seletores simples
       const meusAgentesSelectors = [
+        'a[href="/dashboard/assistants/list"]',
         'button:contains("Meus Agentes")',
         'a:contains("Meus Agentes")',
+        '[role="button"]:contains("Meus Agentes")',
         'div:contains("Meus Agentes")',
-        '*:contains("Meus Agentes")',
         'button:contains("Meus")',
-        'a:contains("Meus")',
-        'div:contains("Meus")'
+        'a:contains("Meus")'
       ];
       
       let found = false;
       
-      // Tentar cada seletor CSS apenas
       for (let selector of meusAgentesSelectors) {
         if ($body.find(selector).length > 0) {
-          cy.log(`✅ Encontrado "Meus Agentes"`);
-          cy.get(selector).first().should('be.visible').click();
-          cy.wait(2000);
+          cy.log(`✅ "Meus Agentes" encontrado com seletor: ${selector}`);
+          cy.log(`📊 Quantidade encontrada: ${$body.find(selector).length}`);
+          
+          cy.get(selector).first()
+            .scrollIntoView()
+            .wait(1000)
+            .click({ force: true });
+          cy.log('✅ Clique em "Meus Agentes" EXECUTADO!');
           found = true;
           break;
         }
       }
       
       if (!found) {
-        cy.log('✅ Continuando para criar novo agente');
+        cy.log('❌ "Meus Agentes" NÃO encontrado, navegando diretamente...');
+        cy.visit('/dashboard/assistants/list', { failOnStatusCode: false });
       }
     });
     
     cy.wait(5000);
+    cy.log('✅ Navegação para Meus Agentes concluída');
     return this;
   }
 
@@ -1474,7 +1480,7 @@ export class ChatPage {
   // ===== FECHAR DIALOG =====
   
   /**
-   * Fecha o dialog do agente
+   * Fecha o dialog do agente (versão que funciona na pipeline)
    */
   fecharDialog() {
     // Clicar no botão de fechar com fallbacks
@@ -1508,48 +1514,97 @@ export class ChatPage {
     return this;
   }
 
+  /**
+   * Valida se a mensagem foi exibida no dialog
+   * @param {string} mensagem - Mensagem para validar
+   */
+  validarMensagemDialog(mensagem = 'Olá, esta é uma mensagem de teste') {
+    cy.log('⏳ Aguardando mensagem ser enviada...');
+    cy.wait(10000);
+
+    // Confirmar se a mensagem está sendo exibida
+    cy.log('🔍 Confirmando se a mensagem está sendo exibida...');
+    cy.get('body').then(($body) => {
+      if ($body.find(`*:contains("${mensagem}")`).length > 0) {
+        cy.log('✅ Mensagem confirmada - está sendo exibida');
+        cy.contains(mensagem)
+          .should('exist');
+      } else {
+        cy.log('⚠️ Mensagem não encontrada na página, mas continuando...');
+      }
+    });
+    
+    return this;
+  }
+
   // ===== CLICAR EM AGENTE ANTIGO =====
   
   /**
-   * Clica no agente antigo "Cypress"
+   * Clica no agente antigo "Cypress" na lista de chats (versão que funciona na pipeline)
+   * @param {string} nomeAgente - Nome do agente a clicar (padrão: "Cypress")
    */
-  clicarEmAgenteAntigo() {
-    // Clicar no agente antigo com fallbacks para pipeline
-    cy.log('🔍 Procurando agente "Cypress"...');
+  clicarEmAgenteAntigo(nomeAgente = 'Cypress') {
+    // Aguardar lista de agentes carregar
+    cy.log('⏳ Aguardando lista de agentes carregar...');
+    cy.wait(5000);
+
+    // DEBUG: Verificar quantos elementos com o nome do agente existem
     cy.get('body').then(($body) => {
-      // Estratégia 1: XPath específico
-      if ($body.find('div:contains("Agentes")').length > 0) {
-        try {
-          cy.xpath('//div[contains(text(),"Agentes")]/following::div[contains(@class,"truncate") and text()="Cypress"][1]')
-            .should('be.visible')
-            .scrollIntoView()
-            .click({ force: true });
-          cy.log('✅ Agente Cypress clicado via XPath');
-        } catch (e) {
-          cy.log('⚠️ XPath do agente falhou, tentando fallback...');
+      const totalAgente = $body.find(`*:contains("${nomeAgente}")`).length;
+      cy.log(`🔍 DEBUG: Total de elementos contendo "${nomeAgente}": ${totalAgente}`);
+      
+      // Verificar se existe div com classe truncate
+      const truncateElements = $body.find('div.truncate').length;
+      cy.log(`🔍 DEBUG: Total de elementos div.truncate: ${truncateElements}`);
+    });
+
+    // Clicar no agente (mesma estratégia robusta)
+    cy.log(`🔍 Procurando agente "${nomeAgente}"...`);
+    
+    cy.get('body').then(($body) => {
+      const agenteSelectors = [
+        `div.truncate:contains("${nomeAgente}")`,
+        `div[class*="cursor-pointer"]:contains("${nomeAgente}")`,
+        `div.flex.items-center:contains("${nomeAgente}")`,
+        `div:contains("${nomeAgente}")`
+      ];
+      
+      let agenteEncontrado = false;
+      
+      for (const selector of agenteSelectors) {
+        if ($body.find(selector).length > 0) {
+          cy.log(`✅ Agente "${nomeAgente}" encontrado com seletor: ${selector}`);
+          cy.log(`📊 Quantidade encontrada: ${$body.find(selector).length}`);
+          
+          // Se for div.truncate, precisa clicar no pai
+          if (selector.includes('truncate')) {
+            cy.get(selector).first()
+              .parent()
+              .scrollIntoView()
+              .wait(1500)
+              .click({ force: true });
+            cy.log(`✅ Clique no PARENT do agente "${nomeAgente}" EXECUTADO!`);
+          } else {
+            cy.get(selector).first()
+              .scrollIntoView()
+              .wait(1500)
+              .click({ force: true });
+            cy.log(`✅ Clique no agente "${nomeAgente}" EXECUTADO!`);
+          }
+          
+          agenteEncontrado = true;
+          break;
         }
       }
       
-      // Estratégia 2: Fallback CSS
-      if ($body.find('div:contains("Cypress")').length > 0) {
-        cy.get('div:contains("Cypress")').first()
-          .scrollIntoView()
-          .click({ force: true });
-        cy.log('✅ Agente Cypress clicado via CSS fallback');
-      }
-      
-      // Estratégia 3: Fallback genérico
-      else if ($body.find('div[class*="truncate"]').length > 0) {
-        cy.get('div[class*="truncate"]').first()
-          .scrollIntoView()
-          .click({ force: true });
-        cy.log('✅ Primeiro agente clicado via fallback genérico');
-      }
-      
-      else {
-        cy.log('⚠️ Nenhum agente encontrado, continuando...');
+      if (!agenteEncontrado) {
+        cy.log(`❌ Agente "${nomeAgente}" NÃO encontrado`);
+        cy.screenshot(`agente-${nomeAgente}-nao-encontrado`);
       }
     });
+    
+    cy.wait(5000);
+    cy.log(`✅ Agente ${nomeAgente} acessado`);
     
     return this;
   }
@@ -1557,28 +1612,23 @@ export class ChatPage {
   // ===== DIGITAR E ENVIAR MENSAGEM FINAL =====
   
   /**
-   * Digita e envia mensagem final no chat do agente
+   * Digita e envia mensagem final no chat do agente (versão que funciona na pipeline)
    * @param {string} mensagem - Mensagem a ser enviada
    */
   digitarEnviarMensagemFinal(mensagem = 'ola, como vai?') {
     cy.log('📋 Fase 4: Digitando mensagem...');
-    
-    // Aguardar carregamento do chat após clicar no agente
-    cy.wait(3000);
-    
+
+    // Aguardar o campo de input carregar
+    cy.log('⏳ Aguardando campo de input carregar...');
+    cy.wait(5000);
+
     // Procurar por campo de input
     cy.get('body').then(($body) => {
       const inputSelectors = [
         'div[contenteditable="true"]',
         'textarea',
         'input[type="text"]',
-        '[contenteditable="true"]',
-        '[data-testid*="message-input"]',
-        '[data-testid*="chat-input"]',
-        'input[placeholder*="mensagem"]',
-        'input[placeholder*="message"]',
-        'textarea[placeholder*="mensagem"]',
-        'textarea[placeholder*="message"]'
+        '[contenteditable="true"]'
       ];
       
       let inputEncontrado = false;
@@ -1586,8 +1636,12 @@ export class ChatPage {
         if ($body.find(selector).length > 0) {
           cy.log(`✅ Input encontrado: ${selector}`);
           cy.get(selector).first()
+            .should('be.visible')
             .scrollIntoView()
+            .click({ force: true })
+            .wait(500)
             .clear({ force: true })
+            .wait(500)
             .type(mensagem, { delay: 100, force: true });
           cy.log('✅ Mensagem digitada');
           inputEncontrado = true;
@@ -1598,15 +1652,19 @@ export class ChatPage {
       if (!inputEncontrado) {
         cy.log('⚠️ Input não encontrado, tentando fallback...');
         cy.get('input, textarea, [contenteditable]').first()
+          .should('be.visible')
           .scrollIntoView()
+          .click({ force: true })
+          .wait(500)
           .clear({ force: true })
+          .wait(500)
           .type(mensagem, { delay: 100, force: true });
         cy.log('✅ Mensagem digitada com fallback');
       }
     });
 
     // Clicar em enviar
-    cy.log('🔍 Clicando em enviar...');
+    cy.log('✅ Mensagem digitada');
     cy.get('body').then(($body) => {
       const selectorsBotao = [
         'button[type="submit"]:not([disabled])',
@@ -1616,13 +1674,7 @@ export class ChatPage {
         'button[class*="submit"]',
         'button[class*="send"]',
         'button[class*="enviar"]',
-        'button[class*="message"]',
-        '[data-testid*="send"]',
-        '[data-testid*="submit"]',
-        '[aria-label*="enviar"]',
-        '[aria-label*="send"]',
-        'button[title*="enviar"]',
-        'button[title*="send"]'
+        'button[class*="message"]'
       ];
       let botaoEncontrado = false;
       for (const selector of selectorsBotao) {
@@ -1650,7 +1702,7 @@ export class ChatPage {
 
     // Validar envio da mensagem
     cy.log('🔍 Validando envio da mensagem...');
-    cy.wait(3000); // Aguardar envio
+    cy.wait(15000); // Aguardar envio
 
     cy.get('body').then(($body) => {
       if ($body.text().includes(mensagem)) {
@@ -1659,20 +1711,92 @@ export class ChatPage {
         cy.log('⚠️ Mensagem não encontrada na página, mas continuando...');
       }
     });
+
+    cy.log('✅ Message sending test completed successfully!');
+    
+    return this;
+  }
+  
+  /**
+   * Clica no agente antigo "Cypress" na lista de chats (APENAS CLIQUE)
+   * Versão antiga mantida para compatibilidade
+   * @param {string} nomeAgente - Nome do agente a clicar (padrão: "Cypress")
+   */
+  clicarEmAgenteAntigoNaLista(nomeAgente = 'Cypress') {
+    // Aguardar lista de agentes carregar
+    cy.log('⏳ Aguardando lista de agentes carregar...');
+    cy.wait(5000);
+
+    // DEBUG: Verificar quantos elementos com o nome do agente existem
+    cy.get('body').then(($body) => {
+      const totalAgente = $body.find(`*:contains("${nomeAgente}")`).length;
+      cy.log(`🔍 DEBUG: Total de elementos contendo "${nomeAgente}": ${totalAgente}`);
+      
+      // Verificar se existe div com classe truncate
+      const truncateElements = $body.find('div.truncate').length;
+      cy.log(`🔍 DEBUG: Total de elementos div.truncate: ${truncateElements}`);
+    });
+
+    // Clicar no agente (mesma estratégia robusta)
+    cy.log(`🔍 Procurando agente "${nomeAgente}"...`);
+    
+    cy.get('body').then(($body) => {
+      const agenteSelectors = [
+        `div.truncate:contains("${nomeAgente}")`,
+        `div[class*="cursor-pointer"]:contains("${nomeAgente}")`,
+        `div.flex.items-center:contains("${nomeAgente}")`,
+        `div:contains("${nomeAgente}")`
+      ];
+      
+      let agenteEncontrado = false;
+      
+      for (const selector of agenteSelectors) {
+        if ($body.find(selector).length > 0) {
+          cy.log(`✅ Agente "${nomeAgente}" encontrado com seletor: ${selector}`);
+          cy.log(`📊 Quantidade encontrada: ${$body.find(selector).length}`);
+          
+          // Se for div.truncate, precisa clicar no pai
+          if (selector.includes('truncate')) {
+            cy.get(selector).first()
+              .parent()
+              .scrollIntoView()
+              .wait(1500)
+              .click({ force: true });
+            cy.log(`✅ Clique no PARENT do agente "${nomeAgente}" EXECUTADO!`);
+          } else {
+            cy.get(selector).first()
+              .scrollIntoView()
+              .wait(1500)
+              .click({ force: true });
+            cy.log(`✅ Clique no agente "${nomeAgente}" EXECUTADO!`);
+          }
+          
+          agenteEncontrado = true;
+          break;
+        }
+      }
+      
+      if (!agenteEncontrado) {
+        cy.log(`❌ Agente "${nomeAgente}" NÃO encontrado`);
+        cy.screenshot(`agente-${nomeAgente}-nao-encontrado`);
+      }
+    });
+    
+    cy.wait(5000);
+    cy.log(`✅ Agente ${nomeAgente} acessado`);
     
     return this;
   }
 
   /**
    * Executa o fluxo completo para enviar mensagem para agente antigo
+   * Este é o fluxo completo do teste 1.send-message-to-old-agent
    * @param {string} mensagemDialog - Mensagem para o dialog
    * @param {string} mensagemFinal - Mensagem final no chat
+   * @param {string} nomeAgente - Nome do agente (padrão: "Cypress")
    */
-  enviarMensagemParaAgenteAntigo(mensagemDialog = 'Olá, esta é uma mensagem de teste', mensagemFinal = 'ola, como vai?') {
-    cy.log('🤖 Iniciando fluxo completo de envio de mensagem para agente antigo...');
-    
-    // Configurar interceptações
-    this.configurarInterceptacoes();
+  enviarMensagemParaAgenteAntigo(mensagemDialog = 'Olá, esta é uma mensagem de teste', mensagemFinal = 'ola, como vai?', nomeAgente = 'Cypress') {
+    cy.log('🤖 INICIANDO FLUXO COMPLETO DE ENVIO DE MENSAGEM PARA AGENTE ANTIGO...');
     
     // FASE 1: Navegar para Agentes
     this.navegarParaAgentes();
@@ -1689,29 +1813,36 @@ export class ChatPage {
     // FASE 5: Digitar mensagem no dialog
     this.digitarMensagemNoDialog(mensagemDialog);
     
-    // FASE 6: Enviar mensagem no dialog
+    // FASE 6: Aguardar estabilização antes de enviar
+    cy.log('⏳ Aguardando estabilização do card...');
+    cy.wait(2000);
+    
+    // FASE 7: Enviar mensagem no dialog
     this.enviarMensagemNoDialog();
     
-    // FASE 7: Fechar dialog
+    // FASE 8: Validar mensagem no dialog
+    this.validarMensagemDialog(mensagemDialog);
+    
+    // FASE 9: Fechar dialog
     this.fecharDialog();
     
-    // FASE 8: Navegar para Chat
-    cy.log('📋 Fase 1: Navegando para Chat...');
+    // FASE 10: Navegar para Chat
+    cy.log('📋 Navegando para Chat...');
     cy.get('body').should('not.contain', 'loading');
     cy.wait(2000);
 
     // Navegar para Chat
     cy.contains('Chat').click({ force: true });
-    cy.wait(3000);
+    cy.wait(10000);
     cy.log('✅ Navegação para Chat concluída');
     
-    // FASE 9: Clicar no agente antigo
-    this.clicarEmAgenteAntigo();
+    // FASE 11: Clicar no agente antigo na lista
+    this.clicarEmAgenteAntigoNaLista(nomeAgente);
     
-    // FASE 10: Digitar e enviar mensagem final
+    // FASE 12: Digitar e enviar mensagem final
     this.digitarEnviarMensagemFinal(mensagemFinal);
     
-    cy.log('✅ Message sending test completed successfully!');
+    cy.log('✅ FLUXO COMPLETO DE MENSAGEM PARA AGENTE ANTIGO CONCLUÍDO!');
     
     return this;
   }

@@ -1,0 +1,286 @@
+{
+  "cenarios": {
+    "criacaoBasica": {
+      "descricao": "Criar agente com dados mínimos obrigatórios",
+      "dados": {
+        "nome": "Agente Básico Teste"
+      },
+      "resultado": "sucesso"
+    },
+    "criacaoCompleta": {
+      "descricao": "Criar agente com todos os campos preenchidos",
+      "dados": {
+        "nome": "Agente Completo Teste",
+        "descricao": "Descrição completa do agente de teste",
+        "instrucoes": "Instruções detalhadas para o agente",
+        "modelo": "GPT-4",
+        "temperatura": 0.7,
+        "maxTokens": 2000,
+        "topP": 0.9,
+        "frequencyPenalty": 0.5,
+        "presencePenalty": 0.5
+      },
+      "resultado": "sucesso"
+    },
+    "nomeInvalido": {
+      "descricao": "Tentar criar agente com nome muito curto",
+      "dados": {
+        "nome": "Ab"
+      },
+      "resultado": "erro",
+      "mensagemEsperada": "Nome deve ter no mínimo 3 caracteres"
+    },
+    "nomeMuitoLongo": {
+      "descricao": "Tentar criar agente com nome muito longo",
+      "dados": {
+        "nome": "A".repeat(150)
+      },
+      "resultado": "erro",
+      "mensagemEsperada": "Nome deve ter no máximo 100 caracteres"
+    },
+    "camposVazios": {
+      "descricao": "Tentar criar agente sem preencher campos obrigatórios",
+      "dados": {},
+      "resultado": "erro",
+      "mensagemEsperada": "Campo obrigatório"
+    },
+    "caracteresEspeciais": {
+      "descricao": "Criar agente com caracteres especiais no nome",
+      "dados": {
+        "nome": "Agente @#$% Teste 123",
+        "descricao": "Teste com caracteres especiais: !@#$%^&*()"
+      },
+      "resultado": "sucesso"
+    },
+    "emojiNoNome": {
+      "descricao": "Criar agente com emoji no nome",
+      "dados": {
+        "nome": "Agente 🤖 Teste Emoji",
+        "descricao": "Descrição com emoji 🎉"
+      },
+      "resultado": "sucesso"
+    },
+    "descricaoLonga": {
+      "descricao": "Criar agente com descrição muito longa",
+      "dados": {
+        "nome": "Agente Descrição Longa",
+        "descricao": "Lorem ipsum dolor sit amet, consectetur adipiscing elit. ".repeat(10)
+      },
+      "resultado": "sucesso"
+    },
+    "instrucoesComplexas": {
+      "descricao": "Criar agente com instruções complexas",
+      "dados": {
+        "nome": "Agente Instruções Complexas",
+        "instrucoes": "Você é um assistente especializado em:\n1. Análise de dados\n2. Machine Learning\n3. Desenvolvimento web\n\nSuas responsabilidades incluem:\n- Responder perguntas técnicas\n- Fornecer exemplos de código\n- Explicar conceitos complexos de forma simples"
+      },
+      "resultado": "sucesso"
+    },
+    "temperaturaMinima": {
+      "descricao": "Criar agente com temperatura mínima",
+      "dados": {
+        "nome": "Agente Temperatura Zero",
+        "temperatura": 0
+      },
+      "resultado": "sucesso"
+    },
+    "temperaturaMaxima": {
+      "descricao": "Criar agente com temperatura máxima",
+      "dados": {
+        "nome": "Agente Temperatura Max",
+        "temperatura": 1
+      },
+      "resultado": "sucesso"
+    },
+    "temperaturaInvalida": {
+      "descricao": "Tentar criar agente com temperatura inválida",
+      "dados": {
+        "nome": "Agente Temperatura Inválida",
+        "temperatura": 2
+      },
+      "resultado": "erro",
+      "mensagemEsperada": "Temperatura deve estar entre 0 e 1"
+    },
+    "multiplasTags": {
+      "descricao": "Criar agente com múltiplas tags",
+      "dados": {
+        "nome": "Agente Multi Tags",
+        "tags": ["teste", "desenvolvimento", "qa", "automação", "cypress", "e2e"]
+      },
+      "resultado": "sucesso"
+    },
+    "agentePublico": {
+      "descricao": "Criar agente público",
+      "dados": {
+        "nome": "Agente Público Teste",
+        "isPublic": true
+      },
+      "resultado": "sucesso"
+    },
+    "agentePrivado": {
+      "descricao": "Criar agente privado",
+      "dados": {
+        "nome": "Agente Privado Teste",
+        "isPublic": false
+      },
+      "resultado": "sucesso"
+    },
+    "nomeDuplicado": {
+      "descricao": "Tentar criar agente com nome duplicado",
+      "dados": {
+        "nome": "Agente Teste Automatizado"
+      },
+      "resultado": "erro",
+      "mensagemEsperada": "Já existe um agente com este nome"
+    },
+    "acentosNoNome": {
+      "descricao": "Criar agente com acentos no nome",
+      "dados": {
+        "nome": "Agente Açúcar Café Pão",
+        "descricao": "Descrição com acentuação: João, café, açúcar"
+      },
+      "resultado": "sucesso"
+    },
+    "numeroNoNome": {
+      "descricao": "Criar agente com números no nome",
+      "dados": {
+        "nome": "Agente Teste 123456789",
+        "descricao": "Descrição 0123456789"
+      },
+      "resultado": "sucesso"
+    },
+    "espacosExtras": {
+      "descricao": "Criar agente com espaços extras no nome",
+      "dados": {
+        "nome": "  Agente   Teste   Espaços  ",
+        "descricao": "  Descrição   com   espaços  "
+      },
+      "resultado": "sucesso",
+      "observacao": "Sistema deve trimmar os espaços"
+    },
+    "quebraLinha": {
+      "descricao": "Criar agente com quebras de linha",
+      "dados": {
+        "nome": "Agente Quebra Linha",
+        "descricao": "Linha 1\nLinha 2\nLinha 3",
+        "instrucoes": "Instrução linha 1\n\nInstrução linha 2\n\nInstrução linha 3"
+      },
+      "resultado": "sucesso"
+    }
+  },
+  "fluxos": {
+    "fluxoCriacaoCompleto": {
+      "descricao": "Fluxo completo de criação de agente",
+      "passos": [
+        "Login no sistema",
+        "Navegar para seção de agentes",
+        "Clicar em 'Meus Agentes'",
+        "Clicar em 'Criar Novo Agente'",
+        "Preencher formulário",
+        "Salvar agente",
+        "Verificar toast de sucesso",
+        "Verificar agente na lista"
+      ]
+    },
+    "fluxoCriacaoEdicao": {
+      "descricao": "Criar e editar agente",
+      "passos": [
+        "Criar agente",
+        "Navegar para lista",
+        "Buscar agente criado",
+        "Abrir edição",
+        "Modificar dados",
+        "Salvar alterações",
+        "Verificar sucesso"
+      ]
+    },
+    "fluxoCriacaoDelecao": {
+      "descricao": "Criar e deletar agente",
+      "passos": [
+        "Criar agente",
+        "Navegar para lista",
+        "Buscar agente criado",
+        "Clicar em deletar",
+        "Confirmar deleção",
+        "Verificar remoção"
+      ]
+    },
+    "fluxoValidacaoCampos": {
+      "descricao": "Validar todos os campos do formulário",
+      "passos": [
+        "Abrir formulário",
+        "Testar campo nome vazio",
+        "Testar nome muito curto",
+        "Testar nome muito longo",
+        "Testar descrição válida",
+        "Testar instruções válidas",
+        "Verificar validações"
+      ]
+    }
+  },
+  "dataBuilders": {
+    "agenteMinimo": {
+      "nome": "{{NOME_UNICO}}"
+    },
+    "agenteCompleto": {
+      "nome": "{{NOME_UNICO}}",
+      "descricao": "{{DESCRICAO}}",
+      "instrucoes": "{{INSTRUCOES}}",
+      "modelo": "GPT-4",
+      "temperatura": 0.7
+    },
+    "agenteCustomizado": {
+      "nome": "{{NOME_CUSTOMIZADO}}",
+      "descricao": "{{DESCRICAO_CUSTOMIZADA}}",
+      "instrucoes": "{{INSTRUCOES_CUSTOMIZADAS}}",
+      "modelo": "{{MODELO}}",
+      "temperatura": "{{TEMPERATURA}}"
+    }
+  },
+  "validacoes": {
+    "nome": {
+      "obrigatorio": true,
+      "minLength": 3,
+      "maxLength": 100,
+      "pattern": "^[\\s\\S]+$",
+      "mensagensErro": {
+        "required": "Nome é obrigatório",
+        "minLength": "Nome deve ter no mínimo 3 caracteres",
+        "maxLength": "Nome deve ter no máximo 100 caracteres"
+      }
+    },
+    "descricao": {
+      "obrigatorio": false,
+      "maxLength": 500,
+      "mensagensErro": {
+        "maxLength": "Descrição deve ter no máximo 500 caracteres"
+      }
+    },
+    "instrucoes": {
+      "obrigatorio": false,
+      "maxLength": 5000,
+      "mensagensErro": {
+        "maxLength": "Instruções devem ter no máximo 5000 caracteres"
+      }
+    },
+    "temperatura": {
+      "obrigatorio": false,
+      "min": 0,
+      "max": 1,
+      "step": 0.1,
+      "default": 0.7,
+      "mensagensErro": {
+        "min": "Temperatura deve ser no mínimo 0",
+        "max": "Temperatura deve ser no máximo 1"
+      }
+    }
+  },
+  "configuracoes": {
+    "retryAttempts": 3,
+    "defaultTimeout": 10000,
+    "screenshotOnFailure": true,
+    "videoOnFailure": true,
+    "limparDadosAposTeste": true
+  }
+}
+

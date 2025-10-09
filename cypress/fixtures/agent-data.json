@@ -1,0 +1,59 @@
+{
+  "createAgent": {
+    "nome": "Agente Teste Automatizado",
+    "descricao": "Descrição do Agente de Teste Automatizado",
+    "instrucoes": "Relacionado a teste automatizado com cypress.",
+    "modelo": "GPT-4",
+    "temperatura": 0.7,
+    "tags": ["teste", "automatizado", "cypress"]
+  },
+  "updateAgent": {
+    "nome": "Agente Teste Atualizado",
+    "descricao": "Descrição atualizada do agente",
+    "instrucoes": "Instruções atualizadas para teste automatizado"
+  },
+  "mensagensSucesso": {
+    "criacao": [
+      "O agente foi criado com sucesso!",
+      "Agente criado com sucesso",
+      "Agent created successfully",
+      "Sucesso",
+      "Success"
+    ],
+    "atualizacao": [
+      "Agente atualizado com sucesso",
+      "Agent updated successfully"
+    ],
+    "delecao": [
+      "Agente removido",
+      "Agente deletado",
+      "Agente excluído",
+      "removido com sucesso",
+      "deletado com sucesso"
+    ]
+  },
+  "camposObrigatorios": {
+    "nome": true,
+    "descricao": false,
+    "instrucoes": false
+  },
+  "validacoes": {
+    "nomeMinLength": 3,
+    "nomeMaxLength": 100,
+    "descricaoMaxLength": 500
+  },
+  "urls": {
+    "agentes": "/agents",
+    "meusAgentes": "/agents/my",
+    "criarAgente": "/agents/new",
+    "editarAgente": "/agents/edit"
+  },
+  "timeouts": {
+    "carregamentoPagina": 5000,
+    "carregamentoFormulario": 3000,
+    "salvarAgente": 5000,
+    "toast": 3000,
+    "busca": 2000
+  }
+}
+

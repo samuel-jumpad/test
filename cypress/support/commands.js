@@ -1,6 +1,7 @@
 import { LoginPage } from './pages/login/login.page.js';
 import 'cypress-real-events/support';
 import '@4tw/cypress-drag-drop';
+import './commands/agent-commands.js';
 
 
 // Handler global para ignorar erros específicos - SEMPRE retorna false para esses erros
