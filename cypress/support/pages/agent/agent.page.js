@@ -562,7 +562,7 @@ verificarFormularioCarregado() {
   preencherCampoDescricao(descricao = 'Descrição do Agente de Teste Automatizado') {
     cy.log('📝 Preenchendo campo descrição...');
     cy.get('body').then(($body) => {
-      // Lista de seletores possíveis para o campo descrição
+      // Lista de seletores específicos para descrição (EXCLUINDO o editor markdown)
       const descriptionSelectors = [
         'textarea[name="description"]',
         'textarea[placeholder*="descrição"]',
@@ -570,15 +570,16 @@ verificarFormularioCarregado() {
         'textarea[placeholder*="description"]',
         'textarea[placeholder*="Description"]',
         'textarea[placeholder*="Descrição do agente"]',
-        'textarea',
         'input[name="description"]'
       ];
       
       let found = false;
       for (let selector of descriptionSelectors) {
-        if ($body.find(selector).length > 0) {
+        // Excluir explicitamente o editor markdown
+        const elements = $body.find(selector).not('.w-md-editor-text-input');
+        if (elements.length > 0) {
           cy.log(`✅ Campo descrição encontrado com seletor: ${selector}`);
-          cy.get(selector).first()
+          cy.get(selector).not('.w-md-editor-text-input').first()
             .should('be.visible')
             .clear()
             .type(descricao, { delay: 100 })
@@ -598,21 +599,27 @@ verificarFormularioCarregado() {
     return this;
   }
 
-  // Método para preencher campo de instruções
+  // Método para preencher campo de instruções (Editor Markdown)
   preencherCampoInstrucoes(instrucoes = 'Relacionado a teste automatizado com cypress.') {
-    cy.log('📝 Preenchendo campo de instruções...');
+    cy.log('📝 Preenchendo campo de instruções (Editor Markdown)...');
     cy.get('body').then(($body) => {
-      // Procurar por campo de instruções com múltiplas estratégias
+      // Seletores específicos para o editor markdown de instruções
       const instructionSelectors = [
-        'textarea:contains("You are a helpful AI assistant.")',
+        // Editor markdown específico
+        '.w-md-editor-text-input',
+        'textarea.w-md-editor-text-input',
+        
+        // Por atributos
+        'textarea[name="instructions"]',
+        'textarea[name="prompt"]',
+        
+        // Por placeholder
         'textarea[placeholder*="instrução"]',
         'textarea[placeholder*="Instrução"]',
         'textarea[placeholder*="instruction"]',
         'textarea[placeholder*="Instruction"]',
-        'textarea[placeholder*="Prompt"]',
-        'textarea[placeholder*="prompt"]',
-        'textarea[name="instructions"]',
-        'textarea[name="prompt"]',
+        
+        // Último textarea (geralmente é o de instruções)
         'textarea:last-of-type'
       ];
       
@@ -620,7 +627,7 @@ verificarFormularioCarregado() {
       for (let selector of instructionSelectors) {
         if ($body.find(selector).length > 0) {
           cy.log(`✅ Campo instruções encontrado com seletor: ${selector}`);
-          cy.get(selector).first()
+          cy.get(selector).last() // Usar .last() ao invés de .first() para pegar o editor markdown
             .should('be.visible')
             .clear()
             .type(instrucoes, { delay: 100 })
