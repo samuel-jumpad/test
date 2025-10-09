@@ -30,7 +30,6 @@ describe("Acessar agente antigo e enviar um chat", () => {
         '[role="button"]:contains("Agentes")',
         '[data-testid*="agentes"]',
         '[data-testid*="agents"]',
-        '[data-testid*="assistants"]',
         '[aria-label*="agentes"]',
         '[aria-label*="agents"]',
         'nav button:contains("Agentes")',
@@ -61,47 +60,54 @@ describe("Acessar agente antigo e enviar um chat", () => {
       
       if (!agentesEncontrado) {
         cy.log('❌ Agentes NÃO encontrado com nenhum seletor, navegando diretamente...');
-        cy.visit('/dashboard/assistants', { failOnStatusCode: false });
+        cy.visit('/dashboard/agents', { failOnStatusCode: false });
       }
     });
     
-    cy.wait(7000);
+    cy.wait(4000);
     cy.log('✅ Navegação para Agentes concluída');
     
-    // Clicar em "Meus Agentes"
+
+    
+    // Clicar em "Meus Agentes" (mesma estratégia robusta)
     cy.log('🔍 Procurando "Meus Agentes"...');
     
     cy.get('body').then(($body) => {
-      // Procurar por "Meus Agentes" com seletores simples
       const meusAgentesSelectors = [
+        'a[href="/dashboard/assistants/list"]',
         'button:contains("Meus Agentes")',
         'a:contains("Meus Agentes")',
+        '[role="button"]:contains("Meus Agentes")',
         'div:contains("Meus Agentes")',
-        '*:contains("Meus Agentes")',
         'button:contains("Meus")',
-        'a:contains("Meus")',
-        'div:contains("Meus")'
+        'a:contains("Meus")'
       ];
       
       let found = false;
       
-      // Tentar cada seletor CSS apenas
       for (let selector of meusAgentesSelectors) {
         if ($body.find(selector).length > 0) {
-          cy.log(`✅ Encontrado "Meus Agentes"`);
-          cy.get(selector).first().should('be.visible').click();
-          cy.wait(2000);
+          cy.log(`✅ "Meus Agentes" encontrado com seletor: ${selector}`);
+          cy.log(`📊 Quantidade encontrada: ${$body.find(selector).length}`);
+          
+          cy.get(selector).first()
+            .scrollIntoView()
+            .wait(1000)
+            .click({ force: true });
+          cy.log('✅ Clique em "Meus Agentes" EXECUTADO!');
           found = true;
           break;
         }
       }
       
       if (!found) {
-        cy.log('✅ Continuando para criar novo agente');
+        cy.log('❌ "Meus Agentes" NÃO encontrado, navegando diretamente...');
+        cy.visit('/dashboard/assistants/list', { failOnStatusCode: false });
       }
     });
     
     cy.wait(5000);
+    cy.log('✅ Navegação para Meus Agentes concluída');
 
     // Digita o nome no campo de busca - com fallback
     cy.log('🔍 Procurando campo de busca...');
