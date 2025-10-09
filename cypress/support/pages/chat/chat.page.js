@@ -1,44 +1,20 @@
-/**
- * ChatPage - Page Object Model para funcionalidades de Chat
- * Centraliza todas as interações relacionadas ao chat
- */
-
 export class ChatPage {
   
-  // ===== CONFIGURAÇÕES E INTERCEPTAÇÕES =====
-  
-  /**
-   * Configura interceptações para otimizar o teste
-   */
   configurarInterceptacoes() {
     cy.log('🔧 Configurando interceptações...');
-    
-    // Interceptar APIs de chat para acelerar execução
     cy.intercept('GET', '**/api/chat/**', { fixture: 'chat-response.json' }).as('chatApi');
     cy.intercept('POST', '**/api/chat/**', { fixture: 'chat-response.json' }).as('chatSend');
     cy.intercept('POST', '**/api/upload/**', { fixture: 'upload-response.json' }).as('uploadApi');
-    
-    // Bloquear recursos desnecessários
     cy.intercept('GET', '**/translations/**', { body: {} }).as('translations');
     cy.intercept('GET', '**/*.woff*', { body: '' }).as('fonts');
-    
     cy.log('✅ Interceptações configuradas');
     return this;
   }
 
-  // ===== NAVEGAÇÃO PARA CHAT =====
-  
-  /**
-   * Navega para a seção de Chat com estratégias robustas
-   */
   navegarParaChat() {
     cy.log('🔍 Navegando para Chat...');
-    
-    // Aguardar carregamento completo
     cy.get('body').should('not.contain', 'loading');
     cy.wait(2000);
-    
-    // Estratégias robustas para encontrar e clicar em Chat
     cy.get('body').then(($body) => {
       const chatSelectors = [
         'button:contains("Chat")',
@@ -76,18 +52,10 @@ export class ChatPage {
     return this;
   }
 
-  /**
-   * Navega para a seção de Chat com wait estendido
-   * Usado quando há necessidade de mais tempo de carregamento
-   */
   navegarParaChatEstendido() {
     cy.log('🔍 Navegando para Chat...');
-    
-    // Aguardar carregamento completo
     cy.get('body').should('not.contain', 'loading');
     cy.wait(2000);
-    
-    // Estratégias robustas para encontrar e clicar em Chat
     cy.get('body').then(($body) => {
       const chatSelectors = [
         'button:contains("Chat")',
@@ -126,11 +94,6 @@ export class ChatPage {
     return this;
   }
 
-  // ===== BOTÃO ADICIONAR/CONVERSAR =====
-  
-  /**
-   * Clica no botão + para iniciar nova conversa com estratégias robustas
-   */
   clicarBotaoAdicionar() {
     cy.log('🔍 Clicando no botão +...');
     
@@ -155,7 +118,6 @@ export class ChatPage {
           cy.log(`✅ Botão + encontrado com seletor: ${selector}`);
           
           if (selector.includes('svg')) {
-            // Para SVGs, tentar clicar no botão pai primeiro
             cy.get(selector).first()
               .should('be.visible')
               .parent()
@@ -183,11 +145,6 @@ export class ChatPage {
     return this;
   }
 
-  // ===== ANEXAR ARQUIVO =====
-  
-  /**
-   * Clica na opção "Anexar" no menu com estratégias robustas
-   */
   clicarEmAnexar() {
     cy.log('🔍 Clicando em Anexar...');
     
@@ -237,7 +194,6 @@ export class ChatPage {
   anexarImagem(caminhoImagem = 'cypress/fixtures/uploads/imagem-teste.jpg') {
     cy.log('🔍 Anexando imagem...');
     
-    // Aguardar o input de arquivo aparecer
     cy.get('input[type="file"]')
       .should('exist')
       .first()
@@ -245,10 +201,8 @@ export class ChatPage {
     
     cy.log('✅ Imagem anexada com sucesso');
     
-    // Aguardar o upload da imagem
-    cy.wait(5000); // Aumentar tempo para garantir upload completo
+    cy.wait(5000); 
     
-    // Validar que a imagem foi carregada (opcional - não falha se não encontrar)
     const nomeArquivo = caminhoImagem.split('/').pop();
     cy.get('body').then(($body) => {
       if ($body.text().includes(nomeArquivo)) {
@@ -268,18 +222,15 @@ export class ChatPage {
   anexarImagemComValidacao(caminhoImagem = 'cypress/fixtures/uploads/imagem-teste.jpg') {
     cy.log('🔍 Anexando imagem...');
     
-    // Aguardar o input de arquivo aparecer
     cy.get('input[type="file"]')
       .should('exist')
       .first()
       .selectFile(caminhoImagem, { force: true });
     
     cy.log('✅ Imagem anexada com sucesso');
-    
-    // Aguardar o upload da imagem
+
     cy.wait(3000);
-    
-    // Validar que a imagem foi carregada - OBRIGATÓRIO
+ 
     const nomeArquivo = caminhoImagem.split('/').pop();
     cy.get('body').should('contain.text', nomeArquivo);
     cy.log(`✅ Imagem carregada e visível na interface: ${nomeArquivo}`);
@@ -294,18 +245,15 @@ export class ChatPage {
   anexarPDF(caminhoPDF = 'cypress/fixtures/uploads/teste-pdf.pdf') {
     cy.log('🔍 Anexando PDF...');
     
-    // Aguardar o input de arquivo aparecer
     cy.get('input[type="file"]')
       .should('exist')
       .first()
       .selectFile(caminhoPDF, { force: true });
     
     cy.log('✅ PDF anexado com sucesso');
-    
-    // Aguardar o upload do PDF
-    cy.wait(5000); // Aumentar tempo para garantir upload completo
-    
-    // Validar que o PDF foi carregado (opcional - não falha se não encontrar)
+  
+    cy.wait(5000);
+
     const nomeArquivo = caminhoPDF.split('/').pop();
     cy.get('body').then(($body) => {
       if ($body.text().includes(nomeArquivo)) {
@@ -317,8 +265,6 @@ export class ChatPage {
     
     return this;
   }
-
-  // ===== DIGITAR MENSAGEM =====
   
   /**
    * Digita uma mensagem no campo de input com estratégias robustas
@@ -327,10 +273,8 @@ export class ChatPage {
   digitarMensagem(mensagem) {
     cy.log('📋 Digitando mensagem...');
     
-    // Aguardar estabilização
     cy.wait(2000);
     
-    // Procurar por campo de input
     cy.get('body').then(($body) => {
       const inputSelectors = [
         'div[contenteditable="true"]',
@@ -343,29 +287,26 @@ export class ChatPage {
       for (const selector of inputSelectors) {
         if ($body.find(selector).length > 0) {
           cy.log(`✅ Input encontrado: ${selector}`);
-          
-          // Quebrar a cadeia para evitar re-renderização
+
           cy.get(selector).first().as('inputField');
           cy.get('@inputField').should('be.visible');
-          cy.wait(500); // Aguardar estabilização
-          
-          // Tentar limpar o campo (se falhar, continua)
+          cy.wait(500);
+
           cy.get('@inputField').then(($input) => {
             if ($input.is('div[contenteditable="true"]')) {
-              // Para contenteditable, usar click + selectAll + delete
+
               cy.get('@inputField')
                 .click({ force: true })
                 .wait(300)
                 .type('{selectall}{del}', { force: true });
             } else {
-              // Para input/textarea normal
+             
               cy.get('@inputField').clear({ force: true });
             }
           });
           
-          cy.wait(500); // Aguardar após limpar
-          
-          // Digitar mensagem
+          cy.wait(500); 
+        
           cy.get('@inputField')
             .should('exist')
             .type(mensagem, { delay: 100, force: true });
@@ -399,7 +340,7 @@ export class ChatPage {
       }
     });
     
-    cy.wait(2000); // Aguardar após digitar
+    cy.wait(2000);
     
     return this;
   }
@@ -411,11 +352,9 @@ export class ChatPage {
    */
   digitarMensagemSemLimpar(mensagem) {
     cy.log('📋 Digitando mensagem (sem limpar campo)...');
-    
-    // Aguardar estabilização
+
     cy.wait(2000);
-    
-    // Procurar por campo de input
+
     cy.get('body').then(($body) => {
       const inputSelectors = [
         'div[contenteditable="true"]',
@@ -434,18 +373,15 @@ export class ChatPage {
       for (const selector of inputSelectors) {
         if ($body.find(selector).length > 0) {
           cy.log(`✅ Input encontrado: ${selector}`);
-          
-          // Quebrar a cadeia para evitar re-renderização
+ 
           cy.get(selector).first().as('inputField');
           cy.get('@inputField').should('be.visible');
-          cy.wait(500); // Aguardar estabilização
-          
-          // NÃO limpar o campo - apenas clicar e digitar
+          cy.wait(500); 
+       
           cy.get('@inputField')
             .click({ force: true })
             .wait(300);
-          
-          // Digitar mensagem
+   
           cy.get('@inputField')
             .should('exist')
             .type(mensagem, { delay: 100, force: true });
@@ -461,8 +397,7 @@ export class ChatPage {
         cy.get('input, textarea, [contenteditable]').first().as('fallbackInput');
         cy.get('@fallbackInput').should('be.visible');
         cy.wait(500);
-        
-        // Apenas clicar e digitar - SEM limpar
+
         cy.get('@fallbackInput')
           .click({ force: true })
           .wait(300)
@@ -472,16 +407,11 @@ export class ChatPage {
       }
     });
     
-    cy.wait(2000); // Aguardar após digitar
+    cy.wait(2000); 
     
     return this;
   }
 
-  // ===== ENVIAR MENSAGEM =====
-  
-  /**
-   * Envia a mensagem digitada com estratégias robustas
-   */
   enviarMensagem() {
     cy.log('✅ Mensagem digitada');
     cy.get('body').then(($body) => {
@@ -523,16 +453,11 @@ export class ChatPage {
     return this;
   }
 
-  /**
-   * Envia mensagem aguardando o botão ficar habilitado
-   * Usado quando há upload de arquivo que pode demorar
-   */
   enviarMensagemAguardandoHabilitar() {
     cy.log('🔍 Enviando mensagem...');
-    
-    // Aguardar o botão de enviar ficar habilitado (upload da imagem pode demorar)
+
     cy.log('⏳ Aguardando botão de enviar ficar habilitado...');
-    cy.wait(3000); // Aguardar processamento do upload
+    cy.wait(3000); 
     
     cy.get('body').then(($body) => {
       const selectorsBotao = [
@@ -556,18 +481,11 @@ export class ChatPage {
       for (const selector of selectorsBotao) {
         if ($body.find(selector).length > 0) {
           cy.log(`✅ Send button encontrado: ${selector}`);
-          
-          // Aguardar o botão não estar desabilitado
           cy.get(selector).first().as('sendButton');
           cy.get('@sendButton').should('be.visible');
-          
-          // Aguardar até o botão ficar habilitado (timeout de 30s)
           cy.get('@sendButton').should('not.be.disabled', { timeout: 30000 });
           cy.log('✅ Botão de enviar está habilitado');
-          
-          cy.wait(1000); // Aguardar mais um pouco para garantir
-          
-          // Clicar no botão
+          cy.wait(1000); 
           cy.get('@sendButton').click({ force: true });
           
           botaoEncontrado = true;
@@ -605,7 +523,7 @@ export class ChatPage {
    * @param {string} mensagem - Mensagem enviada para validação
    */
   validarEnvioMensagem(mensagem) {
-    // Validar envio da mensagem
+  
     cy.log('🔍 Validando envio da mensagem...');
     cy.log('⏳ Aguardando 5 segundos após envio...');
     cy.wait(5000);
@@ -626,8 +544,6 @@ export class ChatPage {
     
     return this;
   }
-
-  // ===== AGUARDAR RESPOSTA =====
   
   /**
    * Aguarda e valida a resposta do chat
@@ -638,7 +554,6 @@ export class ChatPage {
     cy.log(`📋 Aguardando resposta do chat (palavra esperada: "${palavraEsperada}")...`);
     cy.wait(timeout);
     
-    // Verificar se a resposta contém a palavra esperada
     cy.get('body').should('contain.text', palavraEsperada);
     cy.log(`✅ Resposta do chat contém a palavra "${palavraEsperada}"`);
     
@@ -655,12 +570,10 @@ export class ChatPage {
   aguardarRespostaComPalavrasRelacionadas(palavrasPrincipais = ['cachorro', 'cão'], palavrasRelacionadas = ['dog', 'labrador', 'retriever', 'canino', 'animal', 'pet'], timeout = 40000) {
     cy.log(`📋 Aguardando resposta do chat (palavras esperadas: "${palavrasPrincipais.join('", "')}")...`);
     cy.wait(timeout);
-    
-    // Verificar se a resposta contém "cachorro" ou "cão" (sinônimos)
+
     cy.get('body').then(($body) => {
       const bodyText = $body.text();
-      
-      // Verificar palavras principais
+
       const contemPrincipal = palavrasPrincipais.some(palavra => 
         bodyText.toLowerCase().includes(palavra.toLowerCase())
       );
@@ -672,8 +585,7 @@ export class ChatPage {
         cy.log(`✅ Resposta do chat contém palavra principal: "${palavraEncontrada}"`);
       } else {
         cy.log(`⚠️ Resposta não contém palavras principais (${palavrasPrincipais.join(', ')}), verificando palavras relacionadas...`);
-        
-        // Verificar palavras relacionadas
+
         const contemRelacionada = palavrasRelacionadas.some(palavra => 
           bodyText.toLowerCase().includes(palavra.toLowerCase())
         );
@@ -694,8 +606,6 @@ export class ChatPage {
     return this;
   }
 
-  // ===== MÉTODO COMPLETO =====
-  
   /**
    * Executa o fluxo completo de descrição de imagem
    * @param {string} caminhoImagem - Caminho para a imagem
@@ -706,32 +616,23 @@ export class ChatPage {
                           mensagem = 'Descreva essa imagem', 
                           palavraEsperada = 'cachorro') {
     cy.log('🖼️ Iniciando fluxo completo de descrição de imagem...');
-    
-    // Configurar interceptações
+
     this.configurarInterceptacoes();
-    
-    // Navegar para chat
+
     this.navegarParaChat();
-    
-    // Clicar no botão +
+
     this.clicarBotaoAdicionar();
-    
-    // Clicar em anexar
+ 
     this.clicarEmAnexar();
-    
-    // Anexar imagem
+  
     this.anexarImagem(caminhoImagem);
-    
-    // Digitar mensagem SEM limpar campo (para não remover a imagem)
+
     this.digitarMensagemSemLimpar(mensagem);
-    
-    // Enviar mensagem
+
     this.enviarMensagem();
-    
-    // Validar envio
+
     this.validarEnvioMensagem(mensagem);
-    
-    // Aguardar resposta
+
     this.aguardarResposta(palavraEsperada);
     
     cy.log('✅ Teste de descrição de imagem concluído com sucesso!');
@@ -753,32 +654,23 @@ export class ChatPage {
     palavrasRelacionadas = ['dog', 'labrador', 'retriever', 'canino', 'animal', 'pet']
   ) {
     cy.log('🖼️ Iniciando fluxo completo de descrição de imagem (avançado)...');
-    
-    // Configurar interceptações
+
     this.configurarInterceptacoes();
-    
-    // Navegar para chat com wait estendido
+
     this.navegarParaChatEstendido();
-    
-    // Clicar no botão +
+  
     this.clicarBotaoAdicionar();
-    
-    // Clicar em anexar
+
     this.clicarEmAnexar();
-    
-    // Anexar imagem com validação obrigatória do nome
+ 
     this.anexarImagemComValidacao(caminhoImagem);
     
-    // Digitar mensagem SEM limpar campo (para não remover a imagem)
     this.digitarMensagemSemLimpar(mensagem);
-    
-    // Enviar mensagem aguardando o botão ficar habilitado
+ 
     this.enviarMensagemAguardandoHabilitar();
-    
-    // Validar envio
+
     this.validarEnvioMensagem(mensagem);
-    
-    // Aguardar resposta com validação de palavras relacionadas
+
     this.aguardarRespostaComPalavrasRelacionadas(palavrasPrincipais, palavrasRelacionadas);
     
     cy.log('✅ Teste de descrição de imagem concluído com sucesso!');
@@ -795,32 +687,23 @@ export class ChatPage {
                       mensagem = 'Resumir o PDF', 
                       palavraEsperada = 'futebol') {
     cy.log('📄 Iniciando fluxo completo de análise de PDF...');
-    
-    // Configurar interceptações
+
     this.configurarInterceptacoes();
-    
-    // Navegar para chat
+ 
     this.navegarParaChat();
-    
-    // Clicar no botão +
+
     this.clicarBotaoAdicionar();
     
-    // Clicar em anexar
     this.clicarEmAnexar();
     
-    // Anexar PDF
     this.anexarPDF(caminhoPDF);
-    
-    // Digitar mensagem SEM limpar campo (para não remover o PDF)
+
     this.digitarMensagemSemLimpar(mensagem);
-    
-    // Enviar mensagem
+  
     this.enviarMensagem();
     
-    // Validar envio
     this.validarEnvioMensagem(mensagem);
     
-    // Aguardar resposta
     this.aguardarResposta(palavraEsperada);
     
     cy.log('✅ Teste de análise de PDF concluído com sucesso!');
@@ -842,23 +725,17 @@ export class ChatPage {
     timeoutResposta = 40000
   ) {
     cy.log('📄 Iniciando fluxo completo de análise de PDF (avançado)...');
-    
-    // Configurar interceptações
+
     this.configurarInterceptacoes();
     
-    // Navegar para chat com wait estendido
     this.navegarParaChatEstendido();
     
-    // Clicar no botão +
     this.clicarBotaoAdicionar();
     
-    // Clicar em anexar
     this.clicarEmAnexar();
     
-    // Anexar PDF com validação
     cy.log('🔍 Anexando PDF...');
-    
-    // Aguardar o input de arquivo aparecer
+   
     cy.get('input[type="file"]')
       .should('exist')
       .first()
@@ -866,10 +743,8 @@ export class ChatPage {
     
     cy.log('✅ PDF anexado com sucesso');
     
-    // Aguardar o upload do PDF
     cy.wait(5000);
-    
-    // Validar que o PDF foi carregado (opcional - não falha se não encontrar)
+
     const nomeArquivo = caminhoPDF.split('/').pop();
     cy.get('body').then(($body) => {
       if ($body.text().includes(nomeArquivo)) {
@@ -878,17 +753,13 @@ export class ChatPage {
         cy.log('⚠️ Nome do arquivo não visível, mas upload foi realizado (verificado via network)');
       }
     });
-    
-    // Digitar mensagem SEM limpar campo (para não remover o PDF)
+
     this.digitarMensagemSemLimpar(mensagem);
-    
-    // Enviar mensagem aguardando o botão ficar habilitado
+  
     this.enviarMensagemAguardandoHabilitar();
-    
-    // Validar envio
+   
     this.validarEnvioMensagem(mensagem);
-    
-    // Aguardar resposta com timeout estendido (PDFs demoram mais para processar)
+   
     cy.log(`📋 Aguardando resposta do chat (palavra esperada: "${palavraEsperada}", timeout: ${timeoutResposta}ms)...`);
     this.aguardarResposta(palavraEsperada, timeoutResposta);
     
@@ -896,21 +767,14 @@ export class ChatPage {
     return this;
   }
 
-  // ===== CLICAR EM GERAL =====
-  
-  /**
-   * Clica na conversa "Geral" após navegar para Chat
-   */
   clicarEmGeral() {
     cy.log('📋 Tentando clicar em "Geral"...');
     cy.wait(2000);
-    
-    // Verificar se "Geral" existe na página antes de tentar clicar
+
     cy.get('body').then(($body) => {
       if ($body.find('*:contains("Geral")').length > 0) {
         cy.log('✅ Elemento "Geral" encontrado na página');
-        
-        // Usar seletores específicos baseados no HTML fornecido
+
         const selectorsGeral = [
           'div.truncate:contains("Geral")',
           'div.flex.rounded-md:contains("Geral")',
@@ -955,17 +819,12 @@ export class ChatPage {
     return this;
   }
 
-  /**
-   * Clica em "Geral" usando estratégia DRÁSTICA para pipeline
-   * Esta é a versão que funciona melhor na pipeline
-   */
   clicarEmGeralDrastico() {
     cy.log('📋 Fase 3: Clicando em "Geral"...');
-    cy.wait(8000); // Aguardar MUITO mais tempo após criar pasta filha
+    cy.wait(8000); 
     
     cy.log('🔍 Procurando elemento "Geral" com estratégias DRÁSTICAS...');
     
-    // ESTRATÉGIA DRÁSTICA 1: Procurar pelo primeiro elemento com SVG lucide-folder
     cy.log('🚀 Estratégia DRÁSTICA 1: Primeiro elemento com SVG lucide-folder');
     cy.get('svg.lucide-folder')
       .first()
@@ -974,19 +833,16 @@ export class ChatPage {
       .click({ force: true });
     cy.log('✅ Clicado no primeiro SVG lucide-folder (provavelmente "Geral")');
     
-    cy.wait(3000); // Aguardar após clique
-    
-    // Fallback caso a estratégia drástica não funcione
+    cy.wait(3000); 
+  
     cy.get('body').then(($body) => {
-      // Debug: Verificar se existe algum elemento "Geral"
+ 
       const geralElements = $body.find('*:contains("Geral")');
       cy.log(`📊 Total de elementos com "Geral": ${geralElements.length}`);
-      
-      // Se ainda não clicou em "Geral", tentar outras estratégias
+
       if (geralElements.length > 0) {
         cy.log('⚠️ Ainda há elementos "Geral", tentando estratégias adicionais...');
-        
-        // Estratégia adicional: Procurar por div com classes específicas
+      
         if ($body.find('div.flex.rounded-md.p-2.gap-2.relative.cursor-pointer.items-center').length > 0) {
           cy.log('✅ Encontrado div com classes específicas, tentando clicar...');
           cy.get('div.flex.rounded-md.p-2.gap-2.relative.cursor-pointer.items-center')
@@ -996,8 +852,7 @@ export class ChatPage {
             .click({ force: true });
           cy.log('✅ Clicado em div com classes específicas');
         }
-        
-        // Estratégia adicional: cy.contains() com timeout maior
+
         cy.log('✅ Tentando cy.contains() com timeout maior...');
         cy.contains('Geral', { timeout: 15000 })
           .first()
@@ -1008,21 +863,15 @@ export class ChatPage {
       }
     });
     
-    cy.wait(4000); // Aguardar mais tempo após clicar em Geral
+    cy.wait(4000); 
     cy.log('✅ Fase 3 concluída');
     return this;
   }
 
-  // ===== CLICAR NA PRIMEIRA MENSAGEM =====
-  
-  /**
-   * Clica na primeira mensagem da conversa para ativar o campo de input
-   */
   clicarNaPrimeiraMensagem() {
     cy.log('📋 Tentando clicar na primeira mensagem...');
     cy.wait(2000);
     
-    // Procurar por elementos que parecem ser chats
     cy.get('body').then(($body) => {
       const chatSelectors = [
         'div[class*="flex gap-2 items-center"]',
@@ -1072,29 +921,21 @@ export class ChatPage {
    */
   enviarMensagemCompleta(mensagem = 'ola, como vai?', palavraEsperada = null) {
     cy.log('💬 Iniciando fluxo completo de envio de mensagem...');
-    
-    // Configurar interceptações
+  
     this.configurarInterceptacoes();
-    
-    // Navegar para chat
+
     this.navegarParaChat();
-    
-    // Clicar em Geral para acessar a conversa
+ 
     this.clicarEmGeral();
-    
-    // Clicar na primeira mensagem para ativar o campo de input
+  
     this.clicarNaPrimeiraMensagem();
-    
-    // Digitar mensagem
+
     this.digitarMensagem(mensagem);
-    
-    // Enviar mensagem
+  
     this.enviarMensagem();
-    
-    // Validar envio
+   
     this.validarEnvioMensagem(mensagem);
-    
-    // Se palavra esperada foi fornecida, aguardar resposta
+  
     if (palavraEsperada) {
       this.aguardarResposta(palavraEsperada);
     } else {
@@ -1104,25 +945,17 @@ export class ChatPage {
     return this;
   }
 
-  // ===== NAVEGAR PARA AGENTES =====
-  
-  /**
-   * Navega para a seção de Agentes (versão que funciona na pipeline)
-   */
   navegarParaAgentes() {
     cy.log('🔍 Navegando para Agentes...');
-    
-    // Aguardar carregamento completo
+ 
     cy.get('body').should('not.contain', 'loading');
     cy.wait(2000);
     
-    // DEBUG: Verificar quantos elementos "Agentes" existem
     cy.get('body').then(($body) => {
       const totalAgentes = $body.find('*:contains("Agentes")').length;
       cy.log(`🔍 DEBUG: Total de elementos contendo "Agentes": ${totalAgentes}`);
     });
     
-    // Estratégias robustas para encontrar e clicar em Agentes
     cy.get('body').then(($body) => {
       const agentesSelectors = [
         'button:contains("Agentes")',
@@ -1169,11 +1002,6 @@ export class ChatPage {
     return this;
   }
 
-  // ===== CLICAR EM MEUS AGENTES =====
-  
-  /**
-   * Clica em "Meus Agentes" (versão que funciona na pipeline)
-   */
   clicarEmMeusAgentes() {
     cy.log('🔍 Procurando "Meus Agentes"...');
     
@@ -1216,11 +1044,6 @@ export class ChatPage {
     return this;
   }
 
-  // ===== BUSCAR AGENTE =====
-  
-  /**
-   * Busca pelo agente "Cypress" no campo de busca
-   */
   buscarAgenteCypress() {
     cy.log('🔍 Procurando campo de busca...');
     cy.get('body').then(($body) => {
@@ -1260,23 +1083,16 @@ export class ChatPage {
       }
     });
 
-    // Aguarda a tabela carregar 
     cy.wait(5000);
     return this;
   }
 
-  // ===== CLICAR NO BOTÃO TESTAR =====
-  
-  /**
-   * Clica no botão "Testar" para abrir o dialog do agente
-   */
   clicarBotaoTestar() {
     cy.log('🔍 Procurando botão "Testar"...');
-    cy.wait(5000); // Aguardar página carregar
+    cy.wait(5000); 
 
-    // Estratégia mais robusta para encontrar o botão Testar
     cy.get('body').then(($body) => {
-      // Estratégia 1: Buscar por texto "Testar" com múltiplos seletores
+    
       const testarSelectors = [
         'button:contains("Testar")',
         'a:contains("Testar")',
@@ -1299,7 +1115,7 @@ export class ChatPage {
         }
       }
       
-      // Buscar por ícone sparkles
+   
       if (!testarEncontrado && $body.find('button svg[class*="sparkles"]').length > 0) {
         cy.log('✅ Botão Testar encontrado por ícone sparkles');
         cy.get('button svg[class*="sparkles"]').parent().first()
@@ -1308,8 +1124,7 @@ export class ChatPage {
           .click({ force: true });
         testarEncontrado = true;
       }
-      
-      // Buscar qualquer botão na linha da tabela
+ 
       if (!testarEncontrado && $body.find('table tbody tr button').length > 0) {
         cy.log('✅ Botões encontrados na tabela, clicando no primeiro');
         cy.get('table tbody tr button').first()
@@ -1318,8 +1133,7 @@ export class ChatPage {
           .click({ force: true });
         testarEncontrado = true;
       }
-      
-      // Buscar por qualquer elemento clicável
+
       if (!testarEncontrado) {
         cy.log('⚠️ Botão Testar não encontrado, tentando primeiro botão disponível');
         cy.get('button').first()
@@ -1329,11 +1143,9 @@ export class ChatPage {
       }
     });
 
-    // Aguardar o dialog abrir completamente
     cy.log('⏳ Aguardando dialog abrir...');
     cy.wait(3000);
-    
-    // Verificar se o dialog está aberto e aguardar estabilização
+
     cy.get('body').then(($body) => {
       if ($body.find('div[role="dialog"][data-state="open"]').length > 0) {
         cy.log('✅ Dialog aberto, aguardando estabilização...');
@@ -1347,7 +1159,6 @@ export class ChatPage {
     return this;
   }
 
-  // ===== DIGITAR MENSAGEM NO DIALOG =====
   
   /**
    * Digita mensagem no dialog do agente
@@ -1355,10 +1166,8 @@ export class ChatPage {
    */
   digitarMensagemNoDialog(mensagem = 'Olá, esta é uma mensagem de teste') {
     cy.log('🔍 Procurando campo de mensagem...');
-    
-    // Estratégia robusta com múltiplos fallbacks
+
     cy.get('body').then(($body) => {
-      // Estratégia 1: XPath específico (se disponível)
       if ($body.find('div[role="dialog"][data-state="open"]').length > 0) {
         cy.log('✅ Dialog encontrado, tentando XPath...');
         try {
@@ -1371,13 +1180,13 @@ export class ChatPage {
                   .scrollIntoView()
                   .click({ force: true })
                   .type(mensagem, { delay: 100, force: true })
-                  .wait(2000); // Aguardar para manter o card aberto
+                  .wait(2000); 
                 cy.log('✅ Mensagem digitada via XPath');
               }
             });
         } catch (e) {
           cy.log('⚠️ XPath falhou, tentando fallback...');
-          // Se XPath falhar, tentar CSS
+        
           if ($body.find('div[contenteditable="true"]').length > 0) {
             cy.log('✅ Campo contenteditable encontrado via CSS...');
             cy.get('div[contenteditable="true"]').first()
@@ -1390,25 +1199,23 @@ export class ChatPage {
         }
       }
       
-      // Estratégia 2: CSS fallback - campo contenteditable (se XPath não foi tentado)
       else if ($body.find('div[contenteditable="true"]').length > 0) {
         cy.log('✅ Campo contenteditable encontrado via CSS...');
         cy.get('div[contenteditable="true"]').first()
           .scrollIntoView()
           .click({ force: true })
           .type(mensagem, { delay: 100, force: true })
-          .wait(2000); // Aguardar para manter o card aberto
+          .wait(2000); 
         cy.log('✅ Mensagem digitada via CSS');
       }
       
-      // Estratégia 3: Fallback genérico
       else if ($body.find('textarea, input[type="text"]').length > 0) {
         cy.log('✅ Campo de texto encontrado via fallback...');
         cy.get('textarea, input[type="text"]').first()
           .scrollIntoView()
           .click({ force: true })
           .type(mensagem, { delay: 100, force: true })
-          .wait(2000); // Aguardar para manter o card aberto
+          .wait(2000); 
         cy.log('✅ Mensagem digitada via fallback');
       }
       
@@ -1417,23 +1224,17 @@ export class ChatPage {
       }
     });
 
-    // Aguardar estabilização antes de enviar
     cy.log('⏳ Aguardando estabilização do card...');
     cy.wait(3000);
     
     return this;
   }
 
-  // ===== ENVIAR MENSAGEM NO DIALOG =====
-  
-  /**
-   * Envia mensagem no dialog do agente
-   */
   enviarMensagemNoDialog() {
-    // Clicar em enviar - estratégia robusta
+    
     cy.log('🔍 Procurando botão de enviar...');
     cy.get('body').then(($body) => {
-      // Estratégia 1: XPath (se disponível)
+  
       if ($body.find('form#chat-message-input-form').length > 0) {
         try {
           cy.xpath('(//form[@id="chat-message-input-form"]//button)[last()]')
@@ -1444,8 +1245,7 @@ export class ChatPage {
           cy.log('⚠️ XPath do botão falhou, tentando fallback...');
         }
       }
-      
-      // Estratégia 2: CSS fallback
+
       if ($body.find('button').length > 0) {
         cy.get('button').last()
           .scrollIntoView()
@@ -1458,11 +1258,9 @@ export class ChatPage {
       }
     });
 
-    // Aguardar mensagem ser enviada
     cy.log('⏳ Aguardando mensagem ser enviada...');
     cy.wait(5000);
 
-    // Confirmar se a mensagem está sendo exibida
     cy.log('🔍 Confirmando se a mensagem está sendo exibida...');
     cy.get('body').then(($body) => {
       if ($body.find('*:contains("Olá, esta é uma mensagem de teste")').length > 0) {
@@ -1477,16 +1275,10 @@ export class ChatPage {
     return this;
   }
 
-  // ===== FECHAR DIALOG =====
-  
-  /**
-   * Fecha o dialog do agente (versão que funciona na pipeline)
-   */
   fecharDialog() {
-    // Clicar no botão de fechar com fallbacks
+
     cy.log('🔍 Procurando botão de fechar...');
     cy.get('body').then(($body) => {
-      // Estratégia 1: XPath específico
       if ($body.find('div[role="dialog"][data-state="open"]').length > 0) {
         try {
           cy.xpath('//div[@role="dialog" and @data-state="open"]//button//*[name()="svg" and contains(@class,"lucide-x")]')
@@ -1497,8 +1289,7 @@ export class ChatPage {
           cy.log('⚠️ XPath do botão fechar falhou, tentando fallback...');
         }
       }
-      
-      // Estratégia 2: Fallback CSS - apenas botões de fechar específicos do dialog
+
       if ($body.find('div[role="dialog"] button svg[class*="x"]').length > 0) {
         cy.get('div[role="dialog"] button svg[class*="x"]').parent()
           .scrollIntoView()
@@ -1522,7 +1313,6 @@ export class ChatPage {
     cy.log('⏳ Aguardando mensagem ser enviada...');
     cy.wait(10000);
 
-    // Confirmar se a mensagem está sendo exibida
     cy.log('🔍 Confirmando se a mensagem está sendo exibida...');
     cy.get('body').then(($body) => {
       if ($body.find(`*:contains("${mensagem}")`).length > 0) {
@@ -1537,28 +1327,23 @@ export class ChatPage {
     return this;
   }
 
-  // ===== CLICAR EM AGENTE ANTIGO =====
   
   /**
    * Clica no agente antigo "Cypress" na lista de chats (versão que funciona na pipeline)
    * @param {string} nomeAgente - Nome do agente a clicar (padrão: "Cypress")
    */
   clicarEmAgenteAntigo(nomeAgente = 'Cypress') {
-    // Aguardar lista de agentes carregar
     cy.log('⏳ Aguardando lista de agentes carregar...');
     cy.wait(5000);
 
-    // DEBUG: Verificar quantos elementos com o nome do agente existem
     cy.get('body').then(($body) => {
       const totalAgente = $body.find(`*:contains("${nomeAgente}")`).length;
       cy.log(`🔍 DEBUG: Total de elementos contendo "${nomeAgente}": ${totalAgente}`);
       
-      // Verificar se existe div com classe truncate
       const truncateElements = $body.find('div.truncate').length;
       cy.log(`🔍 DEBUG: Total de elementos div.truncate: ${truncateElements}`);
     });
 
-    // Clicar no agente (mesma estratégia robusta)
     cy.log(`🔍 Procurando agente "${nomeAgente}"...`);
     
     cy.get('body').then(($body) => {
@@ -1575,8 +1360,7 @@ export class ChatPage {
         if ($body.find(selector).length > 0) {
           cy.log(`✅ Agente "${nomeAgente}" encontrado com seletor: ${selector}`);
           cy.log(`📊 Quantidade encontrada: ${$body.find(selector).length}`);
-          
-          // Se for div.truncate, precisa clicar no pai
+     
           if (selector.includes('truncate')) {
             cy.get(selector).first()
               .parent()
@@ -1608,8 +1392,6 @@ export class ChatPage {
     
     return this;
   }
-
-  // ===== DIGITAR E ENVIAR MENSAGEM FINAL =====
   
   /**
    * Digita e envia mensagem final no chat do agente (versão que funciona na pipeline)
@@ -1618,11 +1400,9 @@ export class ChatPage {
   digitarEnviarMensagemFinal(mensagem = 'ola, como vai?') {
     cy.log('📋 Fase 4: Digitando mensagem...');
 
-    // Aguardar o campo de input carregar
     cy.log('⏳ Aguardando campo de input carregar...');
     cy.wait(5000);
 
-    // Procurar por campo de input
     cy.get('body').then(($body) => {
       const inputSelectors = [
         'div[contenteditable="true"]',
@@ -1663,7 +1443,6 @@ export class ChatPage {
       }
     });
 
-    // Clicar em enviar
     cy.log('✅ Mensagem digitada');
     cy.get('body').then(($body) => {
       const selectorsBotao = [
@@ -1700,9 +1479,8 @@ export class ChatPage {
     });
     cy.log('✅ Send button clicado');
 
-    // Validar envio da mensagem
     cy.log('🔍 Validando envio da mensagem...');
-    cy.wait(15000); // Aguardar envio
+    cy.wait(15000); 
 
     cy.get('body').then(($body) => {
       if ($body.text().includes(mensagem)) {
@@ -1723,21 +1501,17 @@ export class ChatPage {
    * @param {string} nomeAgente - Nome do agente a clicar (padrão: "Cypress")
    */
   clicarEmAgenteAntigoNaLista(nomeAgente = 'Cypress') {
-    // Aguardar lista de agentes carregar
     cy.log('⏳ Aguardando lista de agentes carregar...');
     cy.wait(5000);
 
-    // DEBUG: Verificar quantos elementos com o nome do agente existem
     cy.get('body').then(($body) => {
       const totalAgente = $body.find(`*:contains("${nomeAgente}")`).length;
       cy.log(`🔍 DEBUG: Total de elementos contendo "${nomeAgente}": ${totalAgente}`);
-      
-      // Verificar se existe div com classe truncate
+
       const truncateElements = $body.find('div.truncate').length;
       cy.log(`🔍 DEBUG: Total de elementos div.truncate: ${truncateElements}`);
     });
 
-    // Clicar no agente (mesma estratégia robusta)
     cy.log(`🔍 Procurando agente "${nomeAgente}"...`);
     
     cy.get('body').then(($body) => {
@@ -1754,8 +1528,7 @@ export class ChatPage {
         if ($body.find(selector).length > 0) {
           cy.log(`✅ Agente "${nomeAgente}" encontrado com seletor: ${selector}`);
           cy.log(`📊 Quantidade encontrada: ${$body.find(selector).length}`);
-          
-          // Se for div.truncate, precisa clicar no pai
+    
           if (selector.includes('truncate')) {
             cy.get(selector).first()
               .parent()
@@ -1797,57 +1570,42 @@ export class ChatPage {
    */
   enviarMensagemParaAgenteAntigo(mensagemDialog = 'Olá, esta é uma mensagem de teste', mensagemFinal = 'ola, como vai?', nomeAgente = 'Cypress') {
     cy.log('🤖 INICIANDO FLUXO COMPLETO DE ENVIO DE MENSAGEM PARA AGENTE ANTIGO...');
-    
-    // FASE 1: Navegar para Agentes
+
     this.navegarParaAgentes();
-    
-    // FASE 2: Clicar em Meus Agentes
+
     this.clicarEmMeusAgentes();
-    
-    // FASE 3: Buscar agente "Cypress"
+
     this.buscarAgenteCypress();
     
-    // FASE 4: Clicar no botão Testar
     this.clicarBotaoTestar();
-    
-    // FASE 5: Digitar mensagem no dialog
+
     this.digitarMensagemNoDialog(mensagemDialog);
-    
-    // FASE 6: Aguardar estabilização antes de enviar
+
     cy.log('⏳ Aguardando estabilização do card...');
     cy.wait(2000);
-    
-    // FASE 7: Enviar mensagem no dialog
+ 
     this.enviarMensagemNoDialog();
-    
-    // FASE 8: Validar mensagem no dialog
+ 
     this.validarMensagemDialog(mensagemDialog);
-    
-    // FASE 9: Fechar dialog
+
     this.fecharDialog();
     
-    // FASE 10: Navegar para Chat
     cy.log('📋 Navegando para Chat...');
     cy.get('body').should('not.contain', 'loading');
     cy.wait(2000);
 
-    // Navegar para Chat
     cy.contains('Chat').click({ force: true });
     cy.wait(10000);
     cy.log('✅ Navegação para Chat concluída');
-    
-    // FASE 11: Clicar no agente antigo na lista
+  
     this.clicarEmAgenteAntigoNaLista(nomeAgente);
     
-    // FASE 12: Digitar e enviar mensagem final
     this.digitarEnviarMensagemFinal(mensagemFinal);
     
     cy.log('✅ FLUXO COMPLETO DE MENSAGEM PARA AGENTE ANTIGO CONCLUÍDO!');
     
     return this;
   }
-
-  // ===== GERENCIAMENTO DE PASTAS =====
 
   /**
    * Clica em "Criar nova pasta"
@@ -1857,7 +1615,6 @@ export class ChatPage {
     cy.get('body', { timeout: 20000 }).should('exist');
     cy.wait(2000);
 
-    // Usar o seletor específico do elemento fornecido
     cy.get('div.truncate.flex.p-2.rounded-xl.gap-2.cursor-pointer.hover\\:bg-gray-100')
       .should('be.visible')
       .scrollIntoView()
@@ -1865,22 +1622,20 @@ export class ChatPage {
 
     cy.log('✅ "Criar nova pasta" clicado com sucesso');
 
-    // Fallback caso o seletor específico não funcione
     cy.get('body').then(($body) => {
       if ($body.find('div.truncate.flex.p-2.rounded-xl.gap-2.cursor-pointer.hover\\:bg-gray-100').length === 0) {
         cy.log('⚠️ Seletor específico não encontrado, tentando alternativas...');
-        
-        // Alternativa 1: Procurar por div com SVG lucide-folder-plus
+
         if ($body.find('div:has(svg.lucide-folder-plus)').length > 0) {
           cy.log('✅ Elemento encontrado via SVG lucide-folder-plus');
           cy.get('div:has(svg.lucide-folder-plus)').first().click({ force: true });
         }
-        // Alternativa 2: Procurar por div que contém "Criar nova pasta"
+    
         else if ($body.find('div:contains("Criar nova pasta")').length > 0) {
           cy.log('✅ Elemento encontrado via texto');
           cy.get('div:contains("Criar nova pasta")').first().click({ force: true });
         }
-        // Alternativa 3: Procurar por qualquer elemento com cursor-pointer que contenha o texto
+    
         else if ($body.find('[class*="cursor-pointer"]:contains("Criar nova pasta")').length > 0) {
           cy.log('✅ Elemento encontrado via cursor-pointer');
           cy.get('[class*="cursor-pointer"]:contains("Criar nova pasta")').first().click({ force: true });
@@ -1901,13 +1656,11 @@ export class ChatPage {
    */
   digitarNomePasta(nomePasta = 'Pasta Teste 1') {
     cy.log('🔍 Procurando input para nome da pasta...');
-    cy.wait(3000); // Aguardar mais tempo para o modal abrir
-    
-    // Primeiro, verificar se há algum modal/dialog visível
+    cy.wait(3000);
+   
     cy.get('body').then(($body) => {
       cy.log('🔍 Verificando se há modais/dialogs visíveis...');
-      
-      // Listar todos os elementos que podem ser modais
+    
       const modalSelectors = [
         'div[role="dialog"]',
         '[class*="modal"]',
@@ -1936,8 +1689,7 @@ export class ChatPage {
     
     cy.get('body').then(($body) => {
       let inputEncontrado = false;
-      
-      // Estratégia 1: Procurar por input com placeholder exato
+   
       if ($body.find('input[placeholder="Nome da nova pasta"]').length > 0) {
         cy.log('✅ Input encontrado via placeholder exato');
         cy.get('input[placeholder="Nome da nova pasta"]')
@@ -1947,11 +1699,9 @@ export class ChatPage {
         inputEncontrado = true;
       }
       
-      // Se não encontrou, tentar estratégias alternativas
       if (!inputEncontrado) {
         cy.log('⚠️ Input não encontrado, tentando estratégias alternativas...');
-        
-        // Estratégia 2: Procurar por input com placeholder contendo "pasta" ou "nome"
+
         if ($body.find('input[placeholder*="pasta"], input[placeholder*="Pasta"], input[placeholder*="nome"], input[placeholder*="Nome"]').length > 0) {
           cy.log('✅ Input encontrado via placeholder parcial');
           cy.get('input[placeholder*="pasta"], input[placeholder*="Pasta"], input[placeholder*="nome"], input[placeholder*="Nome"]')
@@ -1961,7 +1711,7 @@ export class ChatPage {
             .type(nomePasta, { delay: 100 });
           inputEncontrado = true;
         }
-        // Estratégia 3: Procurar por qualquer input dentro de dialog/modal
+ 
         else if ($body.find('div[role="dialog"] input, [class*="dialog"] input, [class*="modal"] input, [class*="popup"] input').length > 0) {
           cy.log('✅ Input encontrado dentro de modal/dialog');
           cy.get('div[role="dialog"] input, [class*="dialog"] input, [class*="modal"] input, [class*="popup"] input')
@@ -1971,7 +1721,6 @@ export class ChatPage {
             .type(nomePasta, { delay: 100 });
           inputEncontrado = true;
         }
-        // Estratégia 4: Procurar por qualquer input visível na página
         else if ($body.find('input:visible').length > 0) {
           cy.log('✅ Input visível encontrado');
           cy.get('input:visible')
@@ -1981,7 +1730,7 @@ export class ChatPage {
             .type(nomePasta, { delay: 100 });
           inputEncontrado = true;
         }
-        // Estratégia 5: Procurar por qualquer input de texto
+    
         else if ($body.find('input[type="text"], input:not([type]), input[type="input"]').length > 0) {
           cy.log('✅ Input de texto encontrado');
           cy.get('input[type="text"], input:not([type]), input[type="input"]')
@@ -1991,7 +1740,7 @@ export class ChatPage {
             .type(nomePasta, { delay: 100 });
           inputEncontrado = true;
         }
-        // Estratégia 6: Procurar por textarea
+ 
         else if ($body.find('textarea').length > 0) {
           cy.log('✅ Textarea encontrado');
           cy.get('textarea')
@@ -2007,15 +1756,13 @@ export class ChatPage {
           cy.log('🔍 Capturando screenshot para debug...');
           cy.screenshot('input-nome-pasta-nao-encontrado');
           
-          // Log adicional para debug
           cy.log('🔍 Elementos visíveis na página:');
           cy.get('body').then(($body) => {
             cy.log(`Inputs encontrados: ${$body.find('input').length}`);
             cy.log(`Textareas encontrados: ${$body.find('textarea').length}`);
             cy.log(`Modais encontrados: ${$body.find('[role="dialog"], [class*="modal"], [class*="dialog"]').length}`);
           });
-          
-          // Em vez de falhar, tentar continuar sem o input
+
           cy.log('⚠️ Continuando sem preencher o input...');
         }
       }
@@ -2024,26 +1771,20 @@ export class ChatPage {
     return this;
   }
 
-  /**
-   * Clica no botão de confirmação para criar pasta
-   */
   confirmarCriacaoPasta() {
     cy.log('🔍 Procurando botão de confirmação para criar pasta...');
     cy.wait(2000);
     
     cy.get('body').then(($body) => {
       let botaoEncontrado = false;
-      
-      // Debug: Verificar se há modais/dialogs visíveis
+
       cy.log('🔍 Verificando modais/dialogs disponíveis...');
       const modalCount = $body.find('div[role="dialog"], [class*="modal"], [class*="dialog"]').length;
       cy.log(`📊 Modais encontrados: ${modalCount}`);
-      
-      // Debug: Verificar botões disponíveis
+
       const buttonCount = $body.find('button').length;
       cy.log(`📊 Botões encontrados: ${buttonCount}`);
-      
-      // Lista de seletores para botão de confirmação
+
       const botaoSelectors = [
         'div[role="dialog"] button svg[class*="lucide-check"]',
         'button svg[class*="check"]',
@@ -2057,14 +1798,13 @@ export class ChatPage {
         '[class*="dialog"] button',
         '[class*="modal"] button'
       ];
-      
-      // Estratégia 1: Tentar cada seletor específico
+
       for (const selector of botaoSelectors) {
         if ($body.find(selector).length > 0) {
           cy.log(`✅ Botão encontrado com seletor: ${selector}`);
           
           if (selector.includes('svg')) {
-            // Se é um seletor de SVG, clicar no botão pai
+          
             cy.get(selector)
               .parent()
               .should('be.visible')
@@ -2072,7 +1812,7 @@ export class ChatPage {
               .wait(500)
               .click({ force: true });
           } else {
-            // Se é um seletor de botão direto
+      
             cy.get(selector)
               .first()
               .should('be.visible')
@@ -2085,12 +1825,10 @@ export class ChatPage {
           break;
         }
       }
-      
-      // Se não encontrou, tentar estratégias alternativas
+
       if (!botaoEncontrado) {
         cy.log('⚠️ Botão não encontrado com seletores específicos, tentando estratégias alternativas...');
-        
-        // Estratégia 2: Procurar por botão com ícone de check
+
         if ($body.find('button svg, [role="button"] svg').length > 0) {
           cy.log('✅ Botão com ícone encontrado');
           cy.get('button svg, [role="button"] svg')
@@ -2100,7 +1838,7 @@ export class ChatPage {
             .click({ force: true });
           botaoEncontrado = true;
         }
-        // Estratégia 3: Procurar por qualquer botão dentro de modal
+
         else if ($body.find('div[role="dialog"] button, [class*="dialog"] button, [class*="modal"] button').length > 0) {
           cy.log('✅ Botão dentro de modal encontrado');
           cy.get('div[role="dialog"] button, [class*="dialog"] button, [class*="modal"] button')
@@ -2111,7 +1849,7 @@ export class ChatPage {
             .click({ force: true });
           botaoEncontrado = true;
         }
-        // Estratégia 4: Procurar por qualquer botão visível
+    
         else if ($body.find('button:visible').length > 0) {
           cy.log('✅ Botão visível encontrado');
           cy.get('button:visible')
@@ -2122,7 +1860,7 @@ export class ChatPage {
             .click({ force: true });
           botaoEncontrado = true;
         }
-        // Estratégia 5: Tentar Enter no input (caso seja necessário)
+       
         else {
           cy.log('⚠️ Nenhum botão encontrado, tentando Enter no input...');
           cy.get('input:focus, input:visible')
@@ -2134,7 +1872,7 @@ export class ChatPage {
       
       if (botaoEncontrado) {
         cy.log('✅ Clique no botão de confirmação realizado!');
-        cy.wait(3000); // Aguardar mais tempo para processar
+        cy.wait(3000);
       } else {
         cy.log('❌ Nenhum botão de confirmação encontrado');
         cy.screenshot('botao-confirmacao-nao-encontrado');
@@ -2144,7 +1882,6 @@ export class ChatPage {
 
     cy.wait(300);
 
-    // Aguardar processamento da criação da pasta
     cy.log('⏳ Aguardando processamento da criação da pasta...');
     cy.wait(1000);
     cy.log('✅ Pasta criada processada');
@@ -2163,7 +1900,6 @@ export class ChatPage {
     cy.get('body').then(($body) => {
       let pastaEncontrada = false;
 
-      // Estratégia 1: Seletor original
       if ($body.find(`div.flex.rounded-md.p-2.gap-2.relative.cursor-pointer.items-center:contains("${nomePasta}")`).length > 0) {
         cy.log('✅ Pasta encontrada via seletor original');
         pastaEncontrada = true;
@@ -2177,7 +1913,6 @@ export class ChatPage {
         cy.log('⏳ Mantendo mouse sobre a pasta por 3 segundos...');
         cy.wait(3000);
 
-        // Clicar nos 3 pontinhos
         cy.get(`div.flex.rounded-md.p-2.gap-2.relative.cursor-pointer.items-center:contains("${nomePasta}")`)
           .within(() => {
             cy.get('.folder-actions svg.lucide-ellipsis-vertical')
@@ -2190,7 +1925,6 @@ export class ChatPage {
       if (!pastaEncontrada) {
         cy.log('⚠️ Pasta não encontrada via seletor original, tentando estratégias alternativas...');
         
-        // Estratégia 2: Procurar por qualquer elemento que contenha o nome da pasta
         if ($body.find(`*:contains("${nomePasta}")`).length > 0) {
           cy.log('✅ Pasta encontrada via texto');
           cy.get(`*:contains("${nomePasta}")`)
@@ -2203,7 +1937,6 @@ export class ChatPage {
 
           cy.wait(3000);
 
-          // Tentar encontrar os 3 pontinhos com estratégias múltiplas
           cy.get('body').then(($body2) => {
             if ($body2.find('.folder-actions svg.lucide-ellipsis-vertical').length > 0) {
               cy.log('✅ 3 pontinhos encontrados via classe original');
@@ -2243,25 +1976,21 @@ export class ChatPage {
     return this;
   }
 
-  /**
-   * Clica na opção "Criar pasta filha" no menu
-   */
   clicarCriarPastaFilha() {
     cy.log('🔍 Procurando opção "Criar pasta filha"...');
     cy.wait(3000);
-    
-    // Clique direto no segundo item do menu (Criar pasta filha)
+
     cy.log('✅ Clicando no segundo item do menu (Criar pasta filha)...');
     cy.get('.rounded.overflow-hidden.shadow-lg.bg-white')
       .find('div.p-2.rounded-md.flex.items-center.cursor-pointer.transition-colors')
-      .eq(1) // Segundo elemento (Criar pasta filha)
+      .eq(1) 
       .should('be.visible')
       .scrollIntoView()
       .wait(1000)
       .click({ force: true });
 
     cy.log('✅ "Criar pasta filha" clicado com sucesso!');
-    cy.wait(2000); // Aguardar o modal abrir
+    cy.wait(2000);
 
     return this;
   }
@@ -2272,12 +2001,10 @@ export class ChatPage {
    */
   digitarNomePastaFilha(nomePastaFilha = 'Pasta filha teste') {
     cy.log('🔍 Preenchendo nome da pasta filha...');
-    cy.wait(5000); // Aguardar mais tempo para o modal carregar completamente
+    cy.wait(5000); 
     
-    // Estratégia ultra-robusta com múltiplos fallbacks
     cy.log('✅ Procurando input com estratégia ultra-robusta...');
-    
-    // Estratégia 1: Tentar input com placeholder exato
+
     cy.get('body').then(($body) => {
       if ($body.find('input[placeholder="Nome da nova pasta"]').length > 0) {
         cy.log('✅ Input encontrado via placeholder exato');
@@ -2289,7 +2016,7 @@ export class ChatPage {
           .wait(1000)
           .type(nomePastaFilha, { delay: 100 });
       }
-      // Estratégia 2: Procurar por qualquer input visível
+    
       else if ($body.find('input:visible').length > 0) {
         cy.log('✅ Input visível encontrado como fallback');
         cy.get('input:visible')
@@ -2301,7 +2028,7 @@ export class ChatPage {
           .wait(1000)
           .type(nomePastaFilha, { delay: 100 });
       }
-      // Estratégia 3: Procurar por qualquer input
+   
       else if ($body.find('input').length > 0) {
         cy.log('✅ Qualquer input encontrado como último recurso');
         cy.get('input')
@@ -2333,22 +2060,17 @@ export class ChatPage {
     return this;
   }
 
-  /**
-   * Confirma a criação da pasta filha
-   */
   confirmarCriacaoPastaFilha() {
     cy.log('🔍 Procurando botão para adicionar pasta filha...');
-    cy.wait(5000); // Aguardar mais tempo para o botão ficar habilitado
-    
-    // Estratégia 1: Tentar aguardar botão ficar habilitado
+    cy.wait(5000); 
+ 
     cy.log('✅ Tentando aguardar botão de confirmação ficar habilitado...');
     
     cy.get('body').then(($body) => {
-      // Procurar por botão com ícone check
+     
       if ($body.find('button:has(svg.lucide-check)').length > 0) {
         cy.log('✅ Botão com ícone check encontrado');
         
-        // Tentar aguardar ficar habilitado, mas se não conseguir, forçar clique
         cy.get('button:has(svg.lucide-check)')
           .should('be.visible')
           .then(($button) => {
@@ -2365,7 +2087,7 @@ export class ChatPage {
             }
           });
       }
-      // Estratégia 2: Procurar por qualquer botão visível
+
       else if ($body.find('button:visible').length > 0) {
         cy.log('✅ Botão visível encontrado como fallback');
         cy.get('button:visible')
@@ -2380,14 +2102,13 @@ export class ChatPage {
       }
     });
 
-    cy.wait(3000); // Aguardar após clicar no botão de criar pasta filha
+    cy.wait(3000); 
 
-    // Aguardar processamento da criação da pasta filha
     cy.log('⏳ Aguardando processamento da criação da pasta filha...');
     cy.wait(1000);
     cy.log('✅ Pasta filha criada processada');
 
-    cy.wait(3000); // Aguardar após criar a pasta filha
+    cy.wait(3000);
 
     return this;
   }
@@ -2431,7 +2152,7 @@ export class ChatPage {
 
     cy.get('@source').then(($src) => {
       cy.get('@target').then(($tgt) => {
-        // Verificar se os elementos existem e são válidos
+        
         if (!$src || !$src[0] || !$tgt || !$tgt[0]) {
           cy.log('❌ Elementos de drag and drop não encontrados');
           cy.screenshot('drag-drop-elementos-invalidos');
@@ -2441,7 +2162,6 @@ export class ChatPage {
         const s = $src[0].getBoundingClientRect();
         const t = $tgt[0].getBoundingClientRect();
 
-        // Verificar se os elementos têm dimensões válidas
         if (!s || !t || s.width === 0 || t.width === 0) {
           cy.log('❌ Elementos não têm dimensões válidas');
           cy.screenshot('drag-drop-dimensoes-invalidas');
@@ -2476,7 +2196,6 @@ export class ChatPage {
 
         cy.wait(2000);
 
-        // Aguardar processamento do movimento da mensagem
         cy.log('⏳ Aguardando processamento do movimento da mensagem...');
         cy.wait(1000);
         cy.log('✅ Movimento da mensagem processado');
@@ -2504,26 +2223,20 @@ export class ChatPage {
     return this;
   }
 
-  /**
-   * Volta ao topo da página com estratégia ultra-robusta
-   */
   voltarAoTopo() {
     cy.log('🔄 Tentando voltar ao topo da página...');
-    
-    // Estratégia ultra-robusta: usar window.scrollTo via JavaScript
+
     cy.window().then((win) => {
       cy.log('✅ Usando window.scrollTo para garantir scroll ao topo...');
       win.scrollTo(0, 0);
     });
     
-    // Tentar também scroll no viewport do Radix se existir
     cy.get('body').then(($body) => {
       if ($body.find('[data-radix-scroll-area-viewport]').length > 0) {
         cy.log('✅ Viewport do Radix encontrado, tentando scroll via JavaScript...');
         cy.get('[data-radix-scroll-area-viewport]')
           .first()
           .then(($viewport) => {
-            // Usar scrollTop diretamente via JavaScript
             $viewport[0].scrollTop = 0;
             cy.log('✅ Scroll do viewport ajustado para o topo');
           });
@@ -2545,7 +2258,6 @@ export class ChatPage {
     cy.log(`🗑️ INICIANDO EXCLUSÃO DA PASTA ${tipo.toUpperCase()} "${nomePasta}"...`);
     cy.log(`🔍 Procurando pasta "${nomePasta}" para clicar nos 3 pontinhos...`);
 
-    // Fazer hover sobre a pasta COM LOGS VISÍVEIS - ESTRATÉGIA ROBUSTA
     cy.log(`🎯 Fazendo hover sobre "${nomePasta}"...`);
     cy.get(`div.flex.rounded-md.p-2.gap-2.relative.cursor-pointer.items-center:contains("${nomePasta}")`)
       .first()
@@ -2553,7 +2265,7 @@ export class ChatPage {
       .scrollIntoView()
       .should('not.be.disabled')
       .then(($el) => {
-        // Tentar hover, mas se falhar, continuar sem hover
+      
         try {
           cy.wrap($el)
             .trigger('mouseover', { force: true })
@@ -2566,9 +2278,8 @@ export class ChatPage {
       });
 
     cy.log(`⏳ Mantendo mouse sobre a pasta por 5 segundos...`);
-    cy.wait(5000); // Mais tempo para ser visível no vídeo
+    cy.wait(5000); 
 
-    // Clicar nos 3 pontinhos da pasta COM LOGS VISÍVEIS
     cy.log(`🎯 Clicando nos 3 pontinhos da "${nomePasta}"...`);
     cy.get(`div.flex.rounded-md.p-2.gap-2.relative.cursor-pointer.items-center:contains("${nomePasta}")`)
       .within(() => {
@@ -2578,22 +2289,18 @@ export class ChatPage {
         cy.log(`✅ 3 pontinhos da "${nomePasta}" clicados`);
       });
 
-    // Clicar em "Remover pasta" - ESTRATÉGIA SUPER ROBUSTA
     cy.log(`🎯 Procurando opção "Remover pasta" da pasta ${tipo}...`);
-    cy.wait(5000); // MUITO mais tempo para ser visível
+    cy.wait(5000); 
     
-    // Aguardar menu aparecer completamente
     cy.log('⏳ Aguardando menu de opções aparecer...');
     cy.wait(3000);
     
     cy.get('body').then(($body) => {
       let opcaoEncontrada = false;
       
-      // Debug: Listar todos os elementos que contêm "Remover"
       const removerElements = $body.find('*:contains("Remover"), *:contains("Excluir"), *:contains("Delete")');
       cy.log(`📊 Total de elementos com "Remover/Excluir/Delete" (pasta ${tipo}): ${removerElements.length}`);
       
-      // Listar os primeiros 5 elementos para debug
       removerElements.slice(0, 5).each((i, el) => {
         const $el = Cypress.$(el);
         const text = $el.text().trim();
@@ -2601,24 +2308,22 @@ export class ChatPage {
         cy.log(`Elemento ${i + 1}: "${text}" - Visível: ${visible}`);
       });
       
-      // Estratégia 1: Usar o seletor específico do elemento fornecido
       if ($body.find('div.p-2.rounded-md.flex.items-center.cursor-pointer.transition-colors.hover\\:bg-gray-100:has(svg.lucide-trash2)').length > 0) {
         cy.log(`✅ Opção "Remover pasta" encontrada via seletor específico (pasta ${tipo})`);
         cy.get('div.p-2.rounded-md.flex.items-center.cursor-pointer.transition-colors.hover\\:bg-gray-100:has(svg.lucide-trash2)')
           .first()
           .scrollIntoView()
           .should('be.visible')
-          .wait(2000) // Aguardar antes de clicar
+          .wait(2000) 
           .click({ force: true });
         opcaoEncontrada = true;
       }
-      // Estratégia 2: Procurar por elemento que contenha APENAS "Remover pasta" (mais específico)
+     
       else {
         const removerPastaElements = $body.find('*:contains("Remover pasta")');
         if (removerPastaElements.length > 0) {
           cy.log(`✅ ${removerPastaElements.length} elementos com "Remover pasta" encontrados (pasta ${tipo})`);
-          
-          // Filtrar para pegar o elemento mais específico (menor texto = mais específico)
+        
           let menorElemento = null;
           let menorTexto = '';
           
@@ -2626,8 +2331,7 @@ export class ChatPage {
             const $el = Cypress.$(el);
             const texto = $el.text().trim();
             cy.log(`Analisando elemento ${i + 1}: "${texto}" (${texto.length} chars)`);
-            
-            // Pegar o elemento com menor texto (mais específico)
+          
             if (!menorElemento || texto.length < menorTexto.length) {
               menorElemento = el;
               menorTexto = texto;
@@ -2639,12 +2343,12 @@ export class ChatPage {
             cy.wrap(menorElemento)
               .scrollIntoView()
               .should('be.visible')
-              .wait(2000) // Aguardar antes de clicar
+              .wait(2000) 
               .click({ force: true });
             opcaoEncontrada = true;
           }
         }
-        // Estratégia 3: Procurar por variações do texto
+        
         else {
           const textos = [
             'Remover pasta',
@@ -2666,7 +2370,7 @@ export class ChatPage {
                 .first()
                 .scrollIntoView()
                 .should('be.visible')
-                .wait(2000) // Aguardar antes de clicar
+                .wait(2000) 
                 .click({ force: true });
               opcaoEncontrada = true;
               break;
@@ -2678,21 +2382,19 @@ export class ChatPage {
       if (!opcaoEncontrada) {
         cy.log('❌ Opção "Remover pasta" não encontrada');
         cy.screenshot(`remover-pasta-${tipo}-nao-encontrado`);
-        // Não falhar, apenas continuar
+     
         cy.log(`⚠️ Continuando sem excluir pasta ${tipo}...`);
       }
     });
 
-    // Verifica se o card/modal de exclusão apareceu
     cy.log(`🎯 Procurando modal de confirmação de exclusão da pasta ${tipo}...`);
-    cy.wait(5000); // MUITO mais tempo para ser visível
+    cy.wait(5000); 
     
     cy.get('body').then(($body) => {
-      // Debug: Listar todos os elementos de modal/confirmação
+      
       const modalElements = $body.find('*:contains("Confirmar"), *:contains("Excluir"), *:contains("Delete"), *:contains("Remover")');
       cy.log(`📊 Total de elementos de modal/confirmação (pasta ${tipo}): ${modalElements.length}`);
       
-      // Listar os primeiros 5 elementos para debug
       modalElements.slice(0, 5).each((i, el) => {
         const $el = Cypress.$(el);
         const text = $el.text().trim();
@@ -2710,17 +2412,14 @@ export class ChatPage {
       }
     });
 
-    // Clica no botão "Excluir pasta"
     cy.log(`🎯 Procurando botão "Excluir pasta" da pasta ${tipo}...`);
-    cy.wait(5000); // MUITO mais tempo para ser visível
+    cy.wait(5000); 
     
-    // Estratégia 1: Procurar por qualquer botão que contenha "Excluir pasta"
     cy.get('body').then(($body) => {
-      // Debug: Listar todos os botões
+      
       const botoes = $body.find('button');
       cy.log(`📊 Total de botões encontrados (pasta ${tipo}): ${botoes.length}`);
       
-      // Listar os primeiros 5 botões para debug
       botoes.slice(0, 5).each((i, el) => {
         const $el = Cypress.$(el);
         const text = $el.text().trim();
@@ -2735,7 +2434,7 @@ export class ChatPage {
           .first()
           .should('be.visible')
           .scrollIntoView()
-          .wait(2000) // Aguardar antes de clicar
+          .wait(2000) 
           .click({ force: true });
       } else if ($body.find('*:contains("Excluir pasta")').length > 0) {
         cy.log(`✅ Elemento "Excluir pasta" da pasta ${tipo} encontrado`);
@@ -2743,7 +2442,7 @@ export class ChatPage {
           .first()
           .should('be.visible')
           .scrollIntoView()
-          .wait(2000) // Aguardar antes de clicar
+          .wait(2000) 
           .click({ force: true });
       } else {
         cy.log('⚠️ Botão "Excluir pasta" não encontrado, tentando variações...');
@@ -2774,7 +2473,6 @@ export class ChatPage {
 
     cy.wait(3000);
 
-    // Aguardar processamento da exclusão da pasta
     cy.log(`⏳ Aguardando processamento da exclusão da pasta ${tipo}...`);
     cy.wait(1000);
     cy.log(`✅ Exclusão da pasta ${tipo} processada`);
@@ -2784,46 +2482,32 @@ export class ChatPage {
     return this;
   }
 
-  // ===== FLUXO COMPLETO DE GERENCIAMENTO DE PASTAS =====
-
-  /**
-   * Executa o fluxo completo de criar pasta, mover conversa e deletar pasta
-   * Este é o fluxo completo do teste create-folder-move-conversation-and-delete-folder
-   */
   gerenciarPastasCompleto() {
     cy.log('📁 INICIANDO FLUXO COMPLETO DE GERENCIAMENTO DE PASTAS...');
 
-    // Navegar para Chat
     this.navegarParaChat();
 
-    // Criar nova pasta principal
     this.clicarCriarNovaPasta();
     this.digitarNomePasta('Pasta Teste 1');
     this.confirmarCriacaoPasta();
 
-    // Criar pasta filha dentro da pasta principal
     this.clicarTresPontinhosPasta('Pasta Teste 1');
     this.clicarCriarPastaFilha();
     this.digitarNomePastaFilha('Pasta filha teste');
     this.confirmarCriacaoPastaFilha();
 
-    // Clicar em "Geral" usando estratégia drástica para pipeline
     this.clicarEmGeralDrastico();
 
-    // Arrastar primeira mensagem para "Pasta Teste 1"
     this.arrastarMensagemParaPasta('Pasta Teste 1', 0);
 
-    // Acessar "Pasta Teste 1"
     this.abrirPasta('Pasta Teste 1');
 
-    // Voltar ao topo e arrastar segunda mensagem para "Pasta filha teste"
+   
     this.voltarAoTopo();
     this.arrastarMensagemParaPasta('Pasta filha teste', 0);
 
-    // Deletar "Pasta filha teste"
     this.removerPasta('Pasta filha teste', false);
 
-    // Deletar "Pasta Teste 1" (pasta principal)
     this.removerPasta('Pasta Teste 1', true);
 
     cy.log('✅ FLUXO COMPLETO DE GERENCIAMENTO DE PASTAS CONCLUÍDO COM SUCESSO!');
@@ -2831,19 +2515,12 @@ export class ChatPage {
     return this;
   }
 
-  // ===== FLUXO COMPLETO DE CHAT ANTIGO =====
-
-  /**
-   * Navega para Chat de forma simplificada (sem estratégias robustas)
-   * Usado especificamente para o teste de chat antigo
-   */
-  navegarParaChatSimples() {
+   navegarParaChatSimples() {
     cy.log('📋 Fase 1: Navegando para Chat...');
     cy.get('body').should('not.contain', 'loading');
     cy.wait(2000);
 
-    // Navegar para Chat
-    cy.contains('Chat').click({ force: true });
+        cy.contains('Chat').click({ force: true });
     cy.wait(3000);
     cy.log('✅ Navegação para Chat concluída');
 
@@ -2856,8 +2533,7 @@ export class ChatPage {
    */
   digitarMensagemSimples(mensagem = 'ola, como vai?') {
     cy.log('📋 Fase 4: Digitando mensagem...');
-    
-    // Procurar por campo de input
+  
     cy.get('body').then(($body) => {
       const inputSelectors = [
         'div[contenteditable="true"]',
@@ -2893,10 +2569,7 @@ export class ChatPage {
     return this;
   }
 
-  /**
-   * Envia mensagem com estratégia simplificada
-   */
-  enviarMensagemSimples() {
+    enviarMensagemSimples() {
     cy.log('✅ Mensagem digitada');
     cy.get('body').then(($body) => {
       const selectorsBotao = [
@@ -2974,17 +2647,14 @@ export class ChatPage {
   enviarMensagemChatAntigoCompleto(mensagem = 'ola, como vai?') {
     cy.log('💬 INICIANDO FLUXO COMPLETO DE ENVIO DE MENSAGEM EM CHAT ANTIGO...');
 
-    // Fase 1: Navegar para Chat (forma simplificada)
-    this.navegarParaChatSimples();
+    
+   this.navegarParaChatSimples();
 
-    // Fase 2: Clicar em "Geral" com estratégia drástica para pipeline
-    this.clicarEmGeralDrastico();
+   this.clicarEmGeralDrastico();
 
-    // Fase 3: Clicar na primeira mensagem (opcional)
     cy.log('📋 Fase 3: Tentando clicar na primeira mensagem...');
     cy.wait(2000);
-    
-    // Procurar por elementos que parecem ser chats
+
     cy.get('body').then(($body) => {
       const chatSelectors = [
         'div[class*="flex gap-2 items-center"]',
@@ -3025,14 +2695,12 @@ export class ChatPage {
     cy.wait(5000);
     cy.log('✅ Fase 3 concluída');
 
-    // Fase 4: Digitar mensagem
+    
     this.digitarMensagemSimples(mensagem);
 
-    // Fase 5: Enviar mensagem
-    this.enviarMensagemSimples();
+       this.enviarMensagemSimples();
 
-    // Fase 6: Validar envio
-    this.validarEnvioMensagemEstendido(mensagem);
+       this.validarEnvioMensagemEstendido(mensagem);
 
     cy.log('✅ FLUXO COMPLETO DE CHAT ANTIGO CONCLUÍDO COM SUCESSO!');
 

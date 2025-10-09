@@ -11,7 +11,6 @@ describe("Teste Delet - Delet agent", () => {
   });
 
   it("deve deletar agente com sucesso", () => {
-    // Deletar agente usando o Page Object
-    agentPage.deletarAgenteCompleto('Agente Teste Automatizado');
+       agentPage.deletarAgenteCompleto('Agente Teste Automatizado');
   });
 });

@@ -11,7 +11,6 @@ describe("Teste Creat - Criar Agente", () => {
   });
 
   it("deve criar agente com sucesso", () => {
-    // Criar agente usando o Page Object
     agentPage.criarAgenteCompleto(
       'Agente Teste Automatizado',
       'Descrição do Agente de Teste Automatizado',

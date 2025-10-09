@@ -1,12 +1,3 @@
-/**
- * Comandos customizados do Cypress para testes de Agentes
- * Adiciona comandos reutilizáveis para facilitar os testes
- */
-
-/**
- * Comando para criar agente completo
- * @example cy.criarAgente({ nome: 'Teste', descricao: 'Desc' })
- */
 Cypress.Commands.add('criarAgente', (dados) => {
   const {
     nome,
@@ -16,7 +7,6 @@ Cypress.Commands.add('criarAgente', (dados) => {
 
   cy.log(`🤖 Criando agente: ${nome}`);
 
-  // Importar page object dentro do comando
   const { AgentPage } = require('../pages/agent/agent.page.js');
   const agentPage = new AgentPage();
 
@@ -38,10 +28,6 @@ Cypress.Commands.add('criarAgente', (dados) => {
   cy.log(`✅ Agente "${nome}" criado com sucesso`);
 });
 
-/**
- * Comando para deletar agente
- * @example cy.deletarAgente('Nome do Agente')
- */
 Cypress.Commands.add('deletarAgente', (nomeAgente) => {
   cy.log(`🗑️ Deletando agente: ${nomeAgente}`);
 
@@ -56,10 +42,6 @@ Cypress.Commands.add('deletarAgente', (nomeAgente) => {
   cy.log(`✅ Agente "${nomeAgente}" deletado`);
 });
 
-/**
- * Comando para buscar agente na lista
- * @example cy.buscarAgente('Nome do Agente')
- */
 Cypress.Commands.add('buscarAgente', (nomeAgente) => {
   cy.log(`🔍 Buscando agente: ${nomeAgente}`);
 
@@ -68,16 +50,11 @@ Cypress.Commands.add('buscarAgente', (nomeAgente) => {
 
   agentPage.buscarAgenteNoCampo(nomeAgente);
 
-  // Verificar se o agente aparece na lista
   cy.get('body').should('contain', nomeAgente);
 
   cy.log(`✅ Agente "${nomeAgente}" encontrado`);
 });
 
-/**
- * Comando para validar toast de sucesso
- * @example cy.validarToastSucesso('Agente criado')
- */
 Cypress.Commands.add('validarToastSucesso', (mensagemEsperada = null) => {
   cy.log('🔍 Validando toast de sucesso');
 
@@ -87,7 +64,6 @@ Cypress.Commands.add('validarToastSucesso', (mensagemEsperada = null) => {
     cy.get('body').should('contain', mensagemEsperada);
     cy.log(`✅ Toast com mensagem "${mensagemEsperada}" encontrado`);
   } else {
-    // Validar qualquer toast de sucesso
     cy.get('body').then(($body) => {
       const mensagensSucesso = [
         'sucesso',
@@ -116,10 +92,6 @@ Cypress.Commands.add('validarToastSucesso', (mensagemEsperada = null) => {
   }
 });
 
-/**
- * Comando para validar campos obrigatórios
- * @example cy.validarCamposObrigatorios()
- */
 Cypress.Commands.add('validarCamposObrigatorios', () => {
   cy.log('🔍 Validando campos obrigatórios');
 
@@ -147,10 +119,6 @@ Cypress.Commands.add('validarCamposObrigatorios', () => {
   });
 });
 
-/**
- * Comando para gerar nome único de agente
- * @example cy.gerarNomeUnico('Agente Teste').then(nome => { ... })
- */
 Cypress.Commands.add('gerarNomeUnico', (nomeBase = 'Agente Teste') => {
   const timestamp = Date.now();
   const nomeUnico = `${nomeBase} ${timestamp}`;
@@ -158,10 +126,6 @@ Cypress.Commands.add('gerarNomeUnico', (nomeBase = 'Agente Teste') => {
   return cy.wrap(nomeUnico);
 });
 
-/**
- * Comando para aguardar carregamento completo
- * @example cy.aguardarCarregamento()
- */
 Cypress.Commands.add('aguardarCarregamento', (tempo = 2000) => {
   cy.log(`⏳ Aguardando carregamento (${tempo}ms)`);
   cy.wait(tempo);
@@ -170,10 +134,6 @@ Cypress.Commands.add('aguardarCarregamento', (tempo = 2000) => {
   cy.log('✅ Carregamento concluído');
 });
 
-/**
- * Comando para navegar para agentes
- * @example cy.navegarParaAgentes()
- */
 Cypress.Commands.add('navegarParaAgentes', () => {
   cy.log('🔍 Navegando para seção de agentes');
 
@@ -186,10 +146,6 @@ Cypress.Commands.add('navegarParaAgentes', () => {
   cy.log('✅ Navegação para agentes concluída');
 });
 
-/**
- * Comando para abrir formulário de criação de agente
- * @example cy.abrirFormularioCriarAgente()
- */
 Cypress.Commands.add('abrirFormularioCriarAgente', () => {
   cy.log('📝 Abrindo formulário de criação de agente');
 
@@ -202,10 +158,6 @@ Cypress.Commands.add('abrirFormularioCriarAgente', () => {
   cy.log('✅ Formulário aberto');
 });
 
-/**
- * Comando para preencher campo com validação
- * @example cy.preencherCampoValidado('input[name="nome"]', 'Valor')
- */
 Cypress.Commands.add('preencherCampoValidado', (seletor, valor) => {
   cy.log(`📝 Preenchendo campo: ${seletor}`);
 
@@ -222,10 +174,6 @@ Cypress.Commands.add('preencherCampoValidado', (seletor, valor) => {
   cy.log(`✅ Campo preenchido: "${valor}"`);
 });
 
-/**
- * Comando para clicar com retry
- * @example cy.clicarComRetry('button:contains("Salvar")')
- */
 Cypress.Commands.add('clicarComRetry', (seletor, maxTentativas = 3) => {
   let tentativa = 1;
 
@@ -250,10 +198,6 @@ Cypress.Commands.add('clicarComRetry', (seletor, maxTentativas = 3) => {
   tentarClicar();
 });
 
-/**
- * Comando para verificar se elemento existe sem falhar
- * @example cy.elementoExiste('button').then(existe => { ... })
- */
 Cypress.Commands.add('elementoExiste', (seletor) => {
   return cy.get('body').then(($body) => {
     const existe = $body.find(seletor).length > 0;
@@ -262,10 +206,6 @@ Cypress.Commands.add('elementoExiste', (seletor) => {
   });
 });
 
-/**
- * Comando para log colorido
- * @example cy.logColorido('success', 'Operação bem-sucedida')
- */
 Cypress.Commands.add('logColorido', (tipo, mensagem) => {
   const emojis = {
     info: 'ℹ️',
@@ -284,37 +224,26 @@ Cypress.Commands.add('logColorido', (tipo, mensagem) => {
   cy.log(`${emoji} ${mensagem}`);
 });
 
-/**
- * Comando para limpar todos os agentes de teste
- * @example cy.limparAgentesTestecypress()
- */
 Cypress.Commands.add('limparAgentesTest', () => {
   cy.log('🧹 Limpando agentes de teste');
 
   cy.navegarParaAgentes();
   cy.wait(2000);
 
-  // Buscar por agentes que contenham "Teste" no nome
   cy.get('body').then(($body) => {
     const agentesTest = $body.find('*:contains("Teste"), *:contains("Test")');
 
     if (agentesTest.length > 0) {
       cy.log(`🗑️ Encontrados ${agentesTest.length} agentes de teste`);
-      // Aqui você pode implementar lógica para deletar cada um
     } else {
       cy.log('ℹ️ Nenhum agente de teste encontrado');
     }
   });
 });
 
-/**
- * Comando para configurar interceptações otimizadas
- * @example cy.configurarInterceptacoes()
- */
 Cypress.Commands.add('configurarInterceptacoes', () => {
   cy.log('🔧 Configurando interceptações');
 
-  // Mockar APIs de tradução
   cy.intercept('POST', '**/translate-pa.googleapis.com/**', {
     statusCode: 200,
     body: { translatedText: 'Mock translation' }
@@ -325,7 +254,6 @@ Cypress.Commands.add('configurarInterceptacoes', () => {
     body: { translatedText: 'Mock translation' }
   }).as('googleTranslationRequest');
 
-  // Mockar outras APIs
   cy.intercept('POST', '**/chats/**/messages', {
     statusCode: 200,
     body: { success: true }
@@ -334,10 +262,6 @@ Cypress.Commands.add('configurarInterceptacoes', () => {
   cy.log('✅ Interceptações configuradas');
 });
 
-/**
- * Comando para tirar screenshot com nome descritivo
- * @example cy.screenshotDescritivo('teste-criacao', 'passo-1')
- */
 Cypress.Commands.add('screenshotDescritivo', (nomeTest, passo) => {
   const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
   const nomeArquivo = `${nomeTest}_${passo}_${timestamp}`;
@@ -345,6 +269,4 @@ Cypress.Commands.add('screenshotDescritivo', (nomeTest, passo) => {
   cy.log(`📸 Screenshot: ${nomeArquivo}`);
 });
 
-// Exportar para uso em outros arquivos se necessário
 module.exports = {};
-

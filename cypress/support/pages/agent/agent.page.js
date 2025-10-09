@@ -46,8 +46,6 @@ export class AgentPage {
     return this;
   }
 
-  // ========== MÉTODOS PARA NAVEGAÇÃO ==========
-  
   navegarParaAgentes() {
     cy.log('🔍 Navegando para Agentes...');
     cy.get('body').should('not.contain', 'loading');
@@ -105,29 +103,80 @@ export class AgentPage {
 
   clicarEmMeusAgentes() {
     cy.log('🔍 Procurando "Meus Agentes"...');
+    cy.wait(2000); // Aguardar elementos carregarem
     
     cy.get('body').then(($body) => {
       const meusAgentesSelectors = [
+        // Estratégia 1: Link direto com href (mais confiável)
         'a[href="/dashboard/assistants/list"]',
+        'a[href*="/assistants/list"]',
+        
+        // Estratégia 2: Botões e links específicos
         'button:contains("Meus Agentes")',
         'a:contains("Meus Agentes")',
         '[role="button"]:contains("Meus Agentes")',
-        'div:contains("Meus Agentes")',
+        
+        // Estratégia 3: Textos mais específicos (evitar divs genéricos)
         'button:contains("Meus")',
         'a:contains("Meus")'
       ];
       
       let found = false;
       for (let selector of meusAgentesSelectors) {
-        if ($body.find(selector).length > 0) {
+        const elements = $body.find(selector);
+        if (elements.length > 0) {
           cy.log(`✅ "Meus Agentes" encontrado com seletor: ${selector}`);
-          cy.log(`📊 Quantidade encontrada: ${$body.find(selector).length}`);
+          cy.log(`📊 Quantidade encontrada: ${elements.length}`);
           
-          cy.get(selector).first()
-            .scrollIntoView()
-            .wait(1000)
-            .click({ force: true });
-          cy.log('✅ Clique em "Meus Agentes" EXECUTADO!');
+          // Filtrar elementos que sejam realmente clicáveis
+          cy.get(selector).then($els => {
+            // Procurar o elemento mais específico (não um container pai)
+            let targetElement = null;
+            
+            $els.each((index, el) => {
+              const $el = Cypress.$(el);
+              const text = $el.text().trim();
+              
+              // Log para debug
+              cy.log(`🔍 Elemento ${index}: tag="${el.tagName}", text="${text}"`);
+              
+              // Priorizar elementos que são exatamente "Meus Agentes" ou links
+              if (el.tagName === 'A' || el.tagName === 'BUTTON') {
+                if (text === 'Meus Agentes' || text.includes('Meus Agentes')) {
+                  targetElement = $el;
+                  cy.log(`✅ Elemento alvo encontrado: ${el.tagName}`);
+                  return false; // Break do each
+                }
+              }
+            });
+            
+            // Se não encontrou elemento específico, usar o primeiro button/a
+            if (!targetElement && $els.length > 0) {
+              $els.each((index, el) => {
+                if (el.tagName === 'A' || el.tagName === 'BUTTON') {
+                  targetElement = Cypress.$(el);
+                  cy.log(`⚠️ Usando primeiro elemento clicável: ${el.tagName}`);
+                  return false;
+                }
+              });
+            }
+            
+            // Fallback: usar o primeiro elemento
+            if (!targetElement) {
+              targetElement = $els.first();
+              cy.log('⚠️ Usando primeiro elemento encontrado (fallback)');
+            }
+            
+            // Clicar no elemento encontrado
+            cy.wrap(targetElement)
+              .scrollIntoView()
+              .should('be.visible')
+              .wait(1000)
+              .click({ force: true });
+            
+            cy.log('✅ Clique em "Meus Agentes" EXECUTADO!');
+          });
+          
           found = true;
           break;
         }
@@ -228,71 +277,25 @@ export class AgentPage {
     return this;
   }
 
-  clicarEmMeusAgentes() {
-    cy.log('🔍 Procurando "Meus Agentes"...');
-    
-    cy.get('body').then(($body) => {
-      const meusAgentesSelectors = [
-        'button:contains("Meus Agentes")',
-        'a:contains("Meus Agentes")',
-        'div:contains("Meus Agentes")',
-        '*:contains("Meus Agentes")',
-        'button:contains("Meus")',
-        'a:contains("Meus")',
-        'div:contains("Meus")'
-      ];
-      
-      let found = false;
-      
-      for (let selector of meusAgentesSelectors) {
-        if ($body.find(selector).length > 0) {
-          cy.log(`✅ Encontrado "Meus Agentes"`);
-          cy.get(selector).first().should('be.visible').click();
-          cy.wait(2000);
-          found = true;
-          break;
-        }
-      }
-      
-      if (!found) {
-        cy.log('✅ Continuando para criar novo agente');
-      }
-    });
-    
-    return this;
-  }
-
   clicarEmCriarNovoAgente() {
     cy.log('🔍 Procurando botão "Cadastrar Novo Agente"...');
     cy.wait(3000);
     
     cy.get('body').then(($body) => {
-      // Lista de seletores baseado no HTML real da aplicação
       const criarAgenteSelectors = [
-        // Estratégia 1: Link direto com href (mais confiável)
         'a[href="/dashboard/assistants/new"]',
         'a[href*="/assistants/new"]',
-        
-        // Estratégia 2: Botão com classes específicas
         'button.bg-primary-main:contains("Cadastrar Novo Agente")',
         'button.bg-primary-main',
-        
-        // Estratégia 3: Link que contém botão
         'a:has(button:contains("Cadastrar Novo Agente"))',
         'a:has(button):contains("Cadastrar Novo Agente")',
-        
-        // Estratégia 4: Textos específicos
         'button:contains("Cadastrar Novo Agente")',
         'div:contains("Cadastrar Novo Agente")',
         'a:contains("Cadastrar Novo Agente")',
         '*:contains("Cadastrar Novo Agente")',
-        
-        // Estratégia 5: Variações
         'button:contains("Criar novo agente")',
         'div:contains("Criar novo agente")',
         'button:contains("Novo Agente")',
-        
-        // Estratégia 6: Por atributos
         '[data-testid*="create-agent"]',
         '[data-testid*="new-agent"]',
         'button[aria-label*="criar"]'
@@ -320,7 +323,6 @@ export class AgentPage {
       }
     });
     
-    // Aguardar e verificar se está na página correta
     cy.wait(3000);
     cy.url().then((url) => {
       if (url.includes('/assistants/new') || url.includes('/agents/new')) {
@@ -349,11 +351,9 @@ navegarParaSecaoAgentes() {
     } else {
       cy.log('⚠️ Botão Agentes não encontrado, tentando navegação direta...');
       
-      // Estratégia 2: Navegação direta para página de agentes
       cy.url().then((currentUrl) => {
         const baseUrl = currentUrl.split('/').slice(0, 3).join('/');
         
-        // Tentar diferentes possíveis URLs para agentes
         const possibleUrls = [
           `${baseUrl}/agents`,
           `${baseUrl}/agentes`, 
@@ -376,17 +376,14 @@ navegarParaSecaoAgentes() {
         }
       });
     }
-  });
+    });
 
-  // Aguardar carregamento da página de agentes
   cy.wait(3000);
   
-  // Verificar se estamos na página correta
   cy.url().then((url) => {
     if (!url.includes('agents') && !url.includes('agentes') && !url.includes('assistants')) {
       cy.log('⚠️ Navegando para página de agentes...');
       
-      // Tentar navegar diretamente para a página de agentes
       const baseUrl = url.split('/').slice(0, 3).join('/');
       const agentsUrl = `${baseUrl}/agents`;
       
@@ -398,44 +395,6 @@ navegarParaSecaoAgentes() {
   return this;
 }
 
-// Método para clicar em "Meus Agentes"
-clicarEmMeusAgentes() {
-  cy.log('🔍 Procurando "Meus Agentes"...');
-  
-  cy.get('body').then(($body) => {
-    // Procurar por "Meus Agentes" com seletores simples
-    const meusAgentesSelectors = [
-      'button:contains("Meus Agentes")',
-      'a:contains("Meus Agentes")',
-      'div:contains("Meus Agentes")',
-      '*:contains("Meus Agentes")',
-      'button:contains("Meus")',
-      'a:contains("Meus")',
-      'div:contains("Meus")'
-    ];
-    
-    let found = false;
-    
-    // Tentar cada seletor CSS apenas
-    for (let selector of meusAgentesSelectors) {
-      if ($body.find(selector).length > 0) {
-        cy.log(`✅ Encontrado "Meus Agentes"`);
-        cy.get(selector).first().should('be.visible').click();
-        cy.wait(2000);
-        found = true;
-        break;
-      }
-    }
-    
-    if (!found) {
-      cy.log('✅ Continuando para criar novo agente');
-    }
-  });
-  
-  return this;
-}
-
-// Método para clicar em "Criar Novo Agente"
 clicarEmCriarNovoAgente() {
   cy.log('🔍 Procurando botão "Cadastrar Novo Agente"...');
   cy.wait(3000);
@@ -594,14 +553,11 @@ verificarFormularioCarregado() {
     return this;
   }
 
-  // Método para preencher campo nome com simulação humana
   preencherCampoNome(nomeAgente) {
     cy.log(`📝 Preenchendo campo nome: ${nomeAgente}`);
     
-    // Aguardar um pouco antes de tentar encontrar o campo
     cy.wait(1000);
     
-    // Encontrar o seletor correto
     const nameSelectors = [
       'input[name="name"]',
       'input[placeholder*="nome"]',
@@ -613,9 +569,8 @@ verificarFormularioCarregado() {
       'input[type="text"]'
     ];
     
-    // Tentar cada seletor até encontrar o campo
     cy.get('body').then(($body) => {
-      let nameSelector = 'input[name="name"]'; // padrão
+      let nameSelector = 'input[name="name"]';
       
       for (let selector of nameSelectors) {
         if ($body.find(selector).length > 0) {
@@ -627,45 +582,36 @@ verificarFormularioCarregado() {
       
       cy.log(`📝 Usando seletor: ${nameSelector}`);
       
-      // Garantir que o elemento existe antes de interagir
       cy.get(nameSelector, { timeout: 10000 })
         .first()
         .should('exist')
         .should('be.visible')
         .then(($input) => {
-          // Focar no campo primeiro
           cy.wrap($input).focus();
           cy.wait(300);
           
-          // Selecionar todo o conteúdo e deletar
           cy.wrap($input)
             .type('{selectall}')
             .type('{del}')
             .should('have.value', '');
           
-          // Aguardar um pouco
           cy.wait(500);
           
-          // Digitar caractere por caractere com eventos
           cy.wrap($input).type(nomeAgente, { 
             delay: 150,
             force: true 
           });
           
-          // Disparar todos os eventos possíveis
           cy.wrap($input)
             .trigger('input', { bubbles: true })
             .trigger('change', { bubbles: true })
             .trigger('keyup', { bubbles: true })
             .trigger('blur', { bubbles: true });
           
-          // Aguardar processamento
           cy.wait(1000);
           
-          // Verificar se foi preenchido
           cy.wrap($input).should('have.value', nomeAgente);
           
-          // Clicar fora para garantir que perdeu o foco
           cy.get('body').click(0, 0);
           
           cy.log('✅ Campo nome preenchido com simulação humana');
@@ -675,11 +621,9 @@ verificarFormularioCarregado() {
     return this;
   }
 
-  // Método para preencher campo descrição
   preencherCampoDescricao(descricao = 'Descrição do Agente de Teste Automatizado') {
     cy.log('📝 Preenchendo campo descrição...');
     cy.get('body').then(($body) => {
-      // Lista de seletores específicos para descrição (EXCLUINDO o editor markdown)
       const descriptionSelectors = [
         'textarea[name="description"]',
         'textarea[placeholder*="descrição"]',
@@ -692,7 +636,6 @@ verificarFormularioCarregado() {
       
       let found = false;
       for (let selector of descriptionSelectors) {
-        // Excluir explicitamente o editor markdown
         const elements = $body.find(selector).not('.w-md-editor-text-input');
         if (elements.length > 0) {
           cy.log(`✅ Campo descrição encontrado com seletor: ${selector}`);
@@ -716,27 +659,18 @@ verificarFormularioCarregado() {
     return this;
   }
 
-  // Método para preencher campo de instruções (Editor Markdown)
   preencherCampoInstrucoes(instrucoes = 'Relacionado a teste automatizado com cypress.') {
-    cy.log('📝 Preenchendo campo de instruções (Editor Markdown)...');
+    cy.log('📝 Preenchendo campo de instruções...');
     cy.get('body').then(($body) => {
-      // Seletores específicos para o editor markdown de instruções
       const instructionSelectors = [
-        // Editor markdown específico
         '.w-md-editor-text-input',
         'textarea.w-md-editor-text-input',
-        
-        // Por atributos
         'textarea[name="instructions"]',
         'textarea[name="prompt"]',
-        
-        // Por placeholder
         'textarea[placeholder*="instrução"]',
         'textarea[placeholder*="Instrução"]',
         'textarea[placeholder*="instruction"]',
         'textarea[placeholder*="Instruction"]',
-        
-        // Último textarea (geralmente é o de instruções)
         'textarea:last-of-type'
       ];
       
@@ -744,7 +678,7 @@ verificarFormularioCarregado() {
       for (let selector of instructionSelectors) {
         if ($body.find(selector).length > 0) {
           cy.log(`✅ Campo instruções encontrado com seletor: ${selector}`);
-          cy.get(selector).last() // Usar .last() ao invés de .first() para pegar o editor markdown
+          cy.get(selector).last()
             .should('be.visible')
             .clear()
             .type(instrucoes, { delay: 100 })
@@ -764,28 +698,23 @@ verificarFormularioCarregado() {
     return this;
   }
 
-  // Método para rolar até o final do formulário
   rolarAteFinal() {
     cy.log('📜 Rolando até o final do formulário...');
     
-    // Aguardar um pouco para os campos serem processados
     cy.wait(2000);
 
-    // Rolar até o final com verificação de elemento
     cy.get('body').then(($body) => {
       if ($body.find('[data-radix-scroll-area-viewport]').length > 0) {
         cy.log('✅ Elemento de scroll encontrado');
         cy.get('[data-radix-scroll-area-viewport]')
           .first()
           .then(($el) => {
-            // Verificar se o elemento é scrollável
             const isScrollable = $el[0].scrollHeight > $el[0].clientHeight;
             if (isScrollable) {
               cy.log('✅ Elemento é scrollável, rolando...');
               cy.wrap($el).scrollTo('bottom', { duration: 1000 });
             } else {
               cy.log('⚠️ Elemento não é scrollável, tentando scroll da janela...');
-              // Verificar se a janela é scrollável
               cy.window().then((win) => {
                 const isWindowScrollable = win.document.body.scrollHeight > win.innerHeight;
                 if (isWindowScrollable) {
@@ -799,7 +728,6 @@ verificarFormularioCarregado() {
           });
       } else {
         cy.log('⚠️ Elemento de scroll não encontrado, tentando scroll da janela...');
-        // Verificar se a janela é scrollável
         cy.window().then((win) => {
           const isWindowScrollable = win.document.body.scrollHeight > win.innerHeight;
           if (isWindowScrollable) {
@@ -816,15 +744,12 @@ verificarFormularioCarregado() {
     return this;
   }
 
-  // Método para validar campos preenchidos
   validarCamposPreenchidos(nomeAgente) {
     cy.log('🔍 Validação final dos campos...');
     
-    // Verificar campo nome
     cy.get('body').then(($body) => {
-      let nameSelector = 'input[name="name"]'; // padrão
+      let nameSelector = 'input[name="name"]';
       
-      // Encontrar o seletor correto novamente
       const nameSelectors = [
         'input[name="name"]',
         'input[placeholder*="nome"]',
@@ -845,7 +770,7 @@ verificarFormularioCarregado() {
       
       cy.get(nameSelector).first()
         .should('have.value', nomeAgente)
-        .should('not.have.class', 'border-red-500') // Não deve ter erro
+        .should('not.have.class', 'border-red-500')
         .then(($input) => {
           const valor = $input.val();
           cy.log(`Campo nome: "${valor}"`);
@@ -853,7 +778,6 @@ verificarFormularioCarregado() {
         });
     });
     
-    // Verificar campo descrição
     cy.get('body').then(($body) => {
       const descriptionSelectors = [
         'textarea[name="description"]',
@@ -888,17 +812,14 @@ verificarFormularioCarregado() {
     return this;
   }
 
-  // Método para tratar campos obrigatórios
   tratarCamposObrigatorios(nomeAgente) {
     cy.get('body').then(($body) => {
       if ($body.find('*:contains("Obrigatório")').length > 0) {
         cy.log('⚠️ Ainda há campos obrigatórios - tentando abordagem alternativa');
         
-        // Abordagem alternativa: usar JavaScript direto
         cy.get('body').then(($body) => {
-          let nameSelector = 'input[name="name"]'; // padrão
+          let nameSelector = 'input[name="name"]';
           
-          // Encontrar o seletor correto
           const nameSelectors = [
             'input[name="name"]',
             'input[placeholder*="nome"]',
@@ -920,10 +841,8 @@ verificarFormularioCarregado() {
           cy.get(nameSelector).first().then(($el) => {
             const input = $el[0];
             
-            // Definir valor usando JavaScript nativo
             input.value = nomeAgente;
             
-            // Disparar eventos nativos
             input.dispatchEvent(new Event('input', { bubbles: true }));
             input.dispatchEvent(new Event('change', { bubbles: true }));
             input.dispatchEvent(new Event('blur', { bubbles: true }));
@@ -934,9 +853,8 @@ verificarFormularioCarregado() {
         
         cy.wait(1000);
         
-        // Verificar novamente com seletor dinâmico
         cy.get('body').then(($body) => {
-          let nameSelector = 'input[name="name"]'; // padrão
+          let nameSelector = 'input[name="name"]';
           
           const nameSelectors = [
             'input[name="name"]',
@@ -964,11 +882,9 @@ verificarFormularioCarregado() {
     return this;
   }
 
-  // Método para clicar em salvar
   clicarEmSalvar() {
     cy.log('🔍 Procurando botão "Salvar"...');
     cy.get('body').then(($body) => {
-      // Lista de seletores possíveis para o botão salvar
       const saveSelectors = [
         'button:contains("Salvar")',
         'button:contains("Save")',
@@ -1014,7 +930,6 @@ verificarFormularioCarregado() {
           cy.log('❌ Botão salvar não encontrado com nenhuma estratégia');
           cy.log('⚠️ Tentando encontrar qualquer botão de submit...');
           
-          // Última tentativa: procurar qualquer botão que pareça ser de submit
           cy.get('button').then(($buttons) => {
             let submitButton = null;
             $buttons.each((index, button) => {
@@ -1035,7 +950,7 @@ verificarFormularioCarregado() {
                 )
               ) {
                 submitButton = button;
-                return false; // break
+                return false;
               }
             });
             
@@ -1056,15 +971,11 @@ verificarFormularioCarregado() {
     return this;
   }
 
-  // Método para verificar toast de sucesso (captura rápida - toast fica apenas 3 segundos)
   verificarToastSucesso() {
-    cy.log('🔍 Capturando toast de sucesso (3 segundos de exibição)...');
+    cy.log('🔍 Capturando toast de sucesso...');
     
-    // IMPORTANTE: Toast aparece por apenas 3 segundos!
-    // Aguardar apenas 300ms para o toast aparecer
     cy.wait(300);
     
-    // Procurar rapidamente por toast de sucesso
     cy.get('body', { timeout: 3000 }).then(($body) => {
       const successMessages = [
         'O agente foi criado com sucesso!',
@@ -1078,7 +989,6 @@ verificarFormularioCarregado() {
       
       let found = false;
       
-      // Estratégia 1: Procurar por texto de sucesso
       for (let message of successMessages) {
         if ($body.find(`*:contains("${message}")`).length > 0) {
           cy.log(`✅ Toast encontrado com mensagem: "${message}"`);
@@ -1090,7 +1000,6 @@ verificarFormularioCarregado() {
         }
       }
       
-      // Estratégia 2: Procurar por elementos de toast
       if (!found) {
         const toastSelectors = [
           '.toast-description',
@@ -1116,7 +1025,6 @@ verificarFormularioCarregado() {
         }
       }
       
-      // Estratégia 3: Verificar se redirecionou da página /new
       if (!found) {
         cy.url().then((url) => {
           if (!url.includes('/new')) {
@@ -1136,8 +1044,6 @@ verificarFormularioCarregado() {
     return this;
   }
 
-  // Método principal para criar agente completo
-  // Método principal para criar agente completo (Refatorado)
   criarAgenteCompleto(nomeAgente, descricao = 'Descrição do Agente de Teste Automatizado', instrucoes = 'Relacionado a teste automatizado com cypress.') {
     cy.log(`🤖 Iniciando criação completa do agente: ${nomeAgente}`);
     
@@ -1158,7 +1064,6 @@ verificarFormularioCarregado() {
     return this;
   }
 
-  // Método auxiliar para aguardar o formulário carregar
   aguardarFormularioCarregar() {
     cy.log('🔍 Aguardando formulário de criação carregar...');
     cy.wait(5000);
@@ -1198,7 +1103,6 @@ verificarFormularioCarregado() {
       }
     });
     
-    // Aguardar campo nome estar disponível
     cy.log('📝 Procurando campo nome...');
     cy.get('body').then(($body) => {
       let nameFieldFound = false;
@@ -1259,7 +1163,6 @@ verificarFormularioCarregado() {
     cy.wait(2000);
     cy.log('✅ Navegação para Agentes concluída');
     
-    // Após clicar em "Agentes", clicar em "Meus Agentes"
     cy.log('📋 Clicando em "Meus Agentes"...');
     cy.get('body').then(($body) => {
       if ($body.find('button:contains("Meus Agentes")').length > 0) {
@@ -1316,7 +1219,6 @@ verificarFormularioCarregado() {
       .clear()
       .type('Teste automatizado Cypress', { delay: 150 });
     
-    // Rolar com verificação
     cy.get('body').then(($body) => {
       if ($body.find('[data-radix-scroll-area-viewport]').length > 0) {
         cy.get('[data-radix-scroll-area-viewport]')
@@ -1326,7 +1228,6 @@ verificarFormularioCarregado() {
             if (isScrollable) {
               cy.wrap($el).scrollTo('bottom', { duration: 2000 });
             } else {
-              // Verificar se a janela é scrollável
               cy.window().then((win) => {
                 const isWindowScrollable = win.document.body.scrollHeight > win.innerHeight;
                 if (isWindowScrollable) {
@@ -1336,7 +1237,6 @@ verificarFormularioCarregado() {
             }
           });
       } else {
-        // Verificar se a janela é scrollável
         cy.window().then((win) => {
           const isWindowScrollable = win.document.body.scrollHeight > win.innerHeight;
           if (isWindowScrollable) {
@@ -1476,7 +1376,6 @@ verificarFormularioCarregado() {
     this.validarDelecaoSucesso();
   }
 
-  // Método para aguardar tabela carregar
   aguardarTabelaCarregar() {
     cy.log('⏳ Aguardando tabela de agentes carregar...');
     cy.wait(5000);
@@ -1485,7 +1384,6 @@ verificarFormularioCarregado() {
     return this;
   }
 
-  // Método para verificar estrutura da tabela
   verificarEstruturaTabela() {
     cy.log('🔍 Verificando estrutura da tabela de agentes...');
     cy.get('body').then(($body) => {
@@ -1505,7 +1403,6 @@ verificarFormularioCarregado() {
     return this;
   }
 
-  // Método para encontrar agente com estratégias robustas
   encontrarAgenteParaDeletar(nomeAgente = 'Agente Teste Automatizado') {
     cy.log('🔍 Procurando agente para deletar...');
     cy.get('body').then(($body) => {
@@ -1539,26 +1436,21 @@ verificarFormularioCarregado() {
     return this;
   }
 
-  // Método para clicar no botão de deletar
   clicarBotaoDeletar() {
     cy.log('🔍 Procurando botão de deletar...');
     cy.get('body').then(($body) => {
-      // Estratégia 1: Tentar encontrar botão de deletar na linha do agente
       cy.log('🔍 Procurando botão de deletar na linha do agente...');
       
-      // Primeiro, tentar encontrar a linha que contém o agente
       const agentName = 'Agente Teste Automatizado';
       const agentRows = $body.find(`tr:contains("${agentName}"), .row:contains("${agentName}"), [role="row"]:contains("${agentName}")`);
       
       if (agentRows.length > 0) {
         cy.log(`✅ Encontrada linha do agente: ${agentRows.length} linha(s)`);
         
-        // Procurar botão de deletar especificamente na linha do agente
         cy.get(`tr:contains("${agentName}"), .row:contains("${agentName}"), [role="row"]:contains("${agentName}")`).first().then(($row) => {
           const rowButtons = $row.find('button');
           cy.log(`🔍 Encontrados ${rowButtons.length} botões na linha do agente`);
           
-          // Procurar botão de deletar na linha específica
           const deleteSelectors = [
             'button svg[class*="x"]',
             'button svg[class*="trash"]',
@@ -1598,7 +1490,6 @@ verificarFormularioCarregado() {
             }
           }
           
-          // Se não encontrou botão específico, tentar o último botão da linha
           if (!foundInRow && rowButtons.length > 0) {
             cy.log('⚠️ Botão específico não encontrado, tentando último botão da linha...');
             cy.get(`tr:contains("${agentName}"), .row:contains("${agentName}"), [role="row"]:contains("${agentName}")`).first()
@@ -1614,7 +1505,6 @@ verificarFormularioCarregado() {
       } else {
         cy.log('⚠️ Linha do agente não encontrada, tentando busca global...');
         
-        // Estratégia 2: Busca global por botões de deletar
         const selectorsDeletar = [
           'button:contains("Deletar")',
           'button:contains("Delete")',
@@ -1640,11 +1530,9 @@ verificarFormularioCarregado() {
           if ($body.find(selector).length > 0) {
             cy.log(`✅ Botão de deletar encontrado globalmente: ${selector}`);
             
-            // Estratégia especial para SVGs dentro de botões
             if (selector.includes('svg')) {
               cy.log('🔧 SVG encontrado, tentando encontrar botão pai...');
               
-              // Tentar encontrar botão pai, mas se não existir, clicar diretamente no SVG
               cy.get(selector).first().then(($svg) => {
                 const $button = $svg.parent('button');
                 if ($button.length > 0) {
@@ -1665,11 +1553,9 @@ verificarFormularioCarregado() {
           }
         }
         
-        // Estratégia 3: Se não encontrou, procurar qualquer botão que pareça ser de ação
         if (!botaoDeletarEncontrado) {
           cy.log('⚠️ Botão de deletar específico não encontrado, procurando botões de ação...');
           
-          // Procurar por qualquer botão que possa ser de deletar
           cy.get('button').then(($buttons) => {
             let actionButton = null;
             $buttons.each((index, button) => {
@@ -1700,7 +1586,7 @@ verificarFormularioCarregado() {
                 ))
               ) {
                 actionButton = button;
-                return false; // break
+                return false;
               }
             });
             
@@ -1719,17 +1605,14 @@ verificarFormularioCarregado() {
     return this;
   }
 
-  // Método para confirmar deleção no modal
   confirmarDelecaoNoModal() {
     cy.log('🔍 Aguardando modal de confirmação...');
     cy.wait(2000);
     
     cy.get('body').then(($body) => {
-      // Verificar se há elementos de modal/dialog
       const modalElements = $body.find('[role="dialog"], .modal, [class*="modal"], [class*="dialog"], .popup, [class*="popup"]');
       cy.log(`Elementos de modal encontrados: ${modalElements.length}`);
       
-      // Listar todos os botões disponíveis no modal
       if (modalElements.length > 0) {
         cy.log('🔍 Botões disponíveis no modal:');
         cy.get('[role="dialog"] button, .modal button, [class*="modal"] button, [class*="dialog"] button').each(($btn, index) => {
@@ -1740,13 +1623,10 @@ verificarFormularioCarregado() {
       }
     });
 
-    // Aguardar um pouco para o modal carregar completamente
     cy.wait(2000);
 
-    // Estratégia robusta para confirmar deleção
     cy.log('🔍 Procurando botão de confirmação...');
     cy.get('body').then(($body) => {
-      // Lista de botões de confirmação possíveis
       const confirmSelectors = [
         'button:contains("Deletar agente")',
         'button:contains("Deletar")',
@@ -1773,7 +1653,6 @@ verificarFormularioCarregado() {
       if (!confirmButtonFound) {
         cy.log('⚠️ Botão de confirmação não encontrado, tentando seletores por classe...');
         
-        // Estratégia 2: Tentar por classes específicas
         const classSelectors = [
           'button[class*="bg-red"]',
           'button[class*="danger"]',
@@ -1795,7 +1674,6 @@ verificarFormularioCarregado() {
           }
         }
         
-        // Estratégia 3: Tentar o último botão do modal
         if (!confirmButtonFound) {
           cy.log('⚠️ Tentando último botão do modal...');
           cy.get('[role="dialog"] button, .modal button, [class*="modal"] button')
@@ -1807,13 +1685,11 @@ verificarFormularioCarregado() {
     return this;
   }
 
-  // Método para verificar sucesso da deleção (com múltiplas estratégias)
   verificarDelecaoSucesso(nomeAgente = 'Agente Teste Automatizado') {
     cy.log('🔍 Aguardando mensagem de sucesso...');
     cy.wait(3000);
     
     cy.get('body').then(($body) => {
-      // Lista de possíveis mensagens de sucesso
       const mensagensSucesso = [
         'Agente removido',
         'Agente deletado',
@@ -1832,7 +1708,6 @@ verificarFormularioCarregado() {
       
       let mensagemEncontrada = false;
       
-      // Estratégia 1: Procurar por texto específico
       cy.log('🔍 Estratégia 1: Procurando mensagem de sucesso...');
       for (const mensagem of mensagensSucesso) {
         if ($body.text().toLowerCase().includes(mensagem.toLowerCase())) {
@@ -1843,7 +1718,6 @@ verificarFormularioCarregado() {
         }
       }
       
-      // Estratégia 2: Procurar por elementos de toast/notificação
       if (!mensagemEncontrada) {
         cy.log('🔍 Estratégia 2: Procurando elementos de toast/notificação...');
         const toastSelectors = [
@@ -1868,7 +1742,6 @@ verificarFormularioCarregado() {
         }
       }
       
-      // Estratégia 3: Verificar se o agente foi removido da tabela
       if (!mensagemEncontrada) {
         cy.log('🔍 Estratégia 3: Verificando se o agente foi removido da tabela...');
         if (!$body.text().includes(nomeAgente)) {
@@ -1877,7 +1750,6 @@ verificarFormularioCarregado() {
         } else {
           cy.log(`⚠️ Agente "${nomeAgente}" ainda encontrado no texto da página`);
           
-          // Verificar especificamente nas linhas da tabela
           cy.get('table tbody tr').then(($rows) => {
             let agenteEncontrado = false;
             $rows.each((index, row) => {
@@ -1896,7 +1768,6 @@ verificarFormularioCarregado() {
         }
       }
       
-      // Estratégia 4: Verificar se há indicadores de sucesso
       if (!mensagemEncontrada) {
         cy.log('🔍 Estratégia 4: Procurando indicadores de sucesso...');
         const indicadoresSucesso = [
@@ -1919,7 +1790,6 @@ verificarFormularioCarregado() {
         }
       }
       
-      // Estratégia 5: Verificar se a tabela foi atualizada
       if (!mensagemEncontrada) {
         cy.log('🔍 Estratégia 5: Verificando se a tabela foi atualizada...');
         cy.get('table tbody tr').then(($rows) => {
@@ -1932,7 +1802,6 @@ verificarFormularioCarregado() {
         });
       }
       
-      // Se nenhuma mensagem foi encontrada, logar informações de debug
       if (!mensagemEncontrada) {
         cy.log('⚠️ Nenhuma confirmação de deleção encontrada');
         cy.log('🔍 Tirando screenshot para debug...');
@@ -1945,7 +1814,6 @@ verificarFormularioCarregado() {
     return this;
   }
 
-  // Método para buscar agente no campo de busca
   buscarAgenteNoCampo(nomeAgente = 'Agente Teste Automatizado') {
     cy.log(`🔍 Buscando agente no campo de busca: ${nomeAgente}`);
     
@@ -1972,7 +1840,7 @@ verificarFormularioCarregado() {
             .clear()
             .type(nomeAgente, { delay: 100 });
           campoBuscaEncontrado = true;
-          cy.wait(2000); // Aguardar resultado da busca
+          cy.wait(2000);
           break;
         }
       }
@@ -1985,7 +1853,6 @@ verificarFormularioCarregado() {
     return this;
   }
 
-  // Método principal para deletar agente completo (COM NAVEGAÇÃO)
   deletarAgenteCompleto(nomeAgente = 'Agente Teste Automatizado') {
     cy.log(`🗑️ Iniciando deleção completa do agente: ${nomeAgente}`);
     
@@ -2002,7 +1869,6 @@ verificarFormularioCarregado() {
     return this;
   }
 
-  // Método para deletar agente (SEM navegação inicial - para usar quando já está na página)
   deletarAgenteSemNavegacao(nomeAgente = 'Agente Teste Automatizado') {
     cy.log(`🗑️ Deletando agente: ${nomeAgente}`);
     
@@ -2045,14 +1911,4 @@ verificarFormularioCarregado() {
     });
     cy.log('✅ Agente deletado com sucesso');
   }
-
-
-
-
-
-
-
-
-
-
 }
