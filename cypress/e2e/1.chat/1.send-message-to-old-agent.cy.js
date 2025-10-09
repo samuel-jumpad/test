@@ -30,6 +30,7 @@ describe("Acessar agente antigo e enviar um chat", () => {
         '[role="button"]:contains("Agentes")',
         '[data-testid*="agentes"]',
         '[data-testid*="agents"]',
+        '[data-testid*="assistants"]',
         '[aria-label*="agentes"]',
         '[aria-label*="agents"]',
         'nav button:contains("Agentes")',
@@ -60,7 +61,7 @@ describe("Acessar agente antigo e enviar um chat", () => {
       
       if (!agentesEncontrado) {
         cy.log('❌ Agentes NÃO encontrado com nenhum seletor, navegando diretamente...');
-        cy.visit('/dashboard/agents', { failOnStatusCode: false });
+        cy.visit('/dashboard/assistants', { failOnStatusCode: false });
       }
     });
     
