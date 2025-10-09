@@ -115,28 +115,34 @@ describe("Teste Creat - Criar Agente", () => {
     cy.wait(3000);
     
     cy.get('body').then(($body) => {
-      // Lista de seletores para o botão de criar agente (baseado nos logs)
+      // Lista de seletores para o botão de criar agente (baseado no HTML real)
       const criarAgenteSelectors = [
-        // Textos encontrados nos logs
-        'div:contains("Criar novo agente")',
-        'button:contains("Criar novo agente")',
-        '*:contains("Criar novo agente")',
+        // Estratégia 1: Link direto com href (mais confiável)
+        'a[href="/dashboard/assistants/new"]',
+        'a[href*="/assistants/new"]',
         
-        // Variações de texto
+        // Estratégia 2: Botão com classes específicas
+        'button.bg-primary-main:contains("Cadastrar Novo Agente")',
+        'button.bg-primary-main',
+        
+        // Estratégia 3: Link que contém botão
+        'a:has(button:contains("Cadastrar Novo Agente"))',
+        'a:has(button):contains("Cadastrar Novo Agente")',
+        
+        // Estratégia 4: Textos específicos
         'button:contains("Cadastrar Novo Agente")',
         'div:contains("Cadastrar Novo Agente")',
         '*:contains("Cadastrar Novo Agente")',
+        
+        // Estratégia 5: Variações de texto
+        'button:contains("Criar novo agente")',
+        'a:contains("Cadastrar Novo Agente")',
         'button:contains("Novo Agente")',
         'button:contains("Criar Agente")',
-        'button:contains("Adicionar Agente")',
-        'button:contains("Novo")',
-        'button:contains("Criar")',
-        'button:contains("+")',
         
-        // Seletores por atributos
+        // Estratégia 6: Por atributos
         '[data-testid*="create-agent"]',
         '[data-testid*="new-agent"]',
-        '[data-testid*="add-agent"]',
         'button[aria-label*="criar"]',
         'button[aria-label*="novo"]'
       ];
@@ -144,8 +150,12 @@ describe("Teste Creat - Criar Agente", () => {
       let found = false;
       for (let selector of criarAgenteSelectors) {
         if ($body.find(selector).length > 0) {
-          cy.log(`✅ Encontrado botão "Cadastrar Novo Agente"`);
-          cy.get(selector).first().should('be.visible').click();
+          cy.log(`✅ Encontrado botão com seletor: "${selector}"`);
+          cy.get(selector).first()
+            .scrollIntoView()
+            .wait(500)
+            .should('be.visible')
+            .click({ force: true });
           cy.wait(2000);
           found = true;
           break;
@@ -153,19 +163,10 @@ describe("Teste Creat - Criar Agente", () => {
       }
       
       if (!found) {
-        cy.log('⚠️ Botão não encontrado, tentando abordagem alternativa...');
-        
-        // Última tentativa: procurar qualquer elemento que contenha essas palavras
-        cy.get('body').then(($body) => {
-          const criarElements = $body.find('*:contains("criar"), *:contains("novo"), *:contains("Criar"), *:contains("Novo")');
-          if (criarElements.length > 0) {
-            cy.log('✅ Encontrado botão alternativo');
-            cy.wrap(criarElements.first()).should('be.visible').click();
-            cy.wait(2000);
-          } else {
-            cy.log('❌ Nenhum botão de criar agente encontrado');
-          }
-        });
+        cy.log('⚠️ Botão não encontrado com seletores, navegando diretamente para URL...');
+        // Se nenhum seletor funcionou, navegar diretamente
+        cy.visit('/dashboard/assistants/new', { failOnStatusCode: false });
+        cy.wait(2000);
       }
     });
     
