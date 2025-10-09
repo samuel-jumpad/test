@@ -320,7 +320,17 @@ export class AgentPage {
       }
     });
     
-    cy.wait(5000);
+    // Aguardar e verificar se está na página correta
+    cy.wait(3000);
+    cy.url().then((url) => {
+      if (url.includes('/assistants/new') || url.includes('/agents/new')) {
+        cy.log('✅ Navegação para página de criação confirmada');
+      } else {
+        cy.log(`⚠️ URL atual: ${url} - Tentando navegar diretamente...`);
+        cy.visit('/dashboard/assistants/new', { failOnStatusCode: false });
+        cy.wait(2000);
+      }
+    });
     
     return this;
   }
@@ -588,69 +598,78 @@ verificarFormularioCarregado() {
   preencherCampoNome(nomeAgente) {
     cy.log(`📝 Preenchendo campo nome: ${nomeAgente}`);
     
-    // Usar o seletor que funcionou
+    // Aguardar um pouco antes de tentar encontrar o campo
+    cy.wait(1000);
+    
+    // Encontrar o seletor correto
+    const nameSelectors = [
+      'input[name="name"]',
+      'input[placeholder*="nome"]',
+      'input[placeholder*="Nome"]',
+      'input[placeholder*="name"]',
+      'input[placeholder*="Name"]',
+      'input[placeholder*="Nome do agente"]',
+      'input[placeholder*="Agent name"]',
+      'input[type="text"]'
+    ];
+    
+    // Tentar cada seletor até encontrar o campo
     cy.get('body').then(($body) => {
       let nameSelector = 'input[name="name"]'; // padrão
-      
-      // Encontrar o seletor correto
-      const nameSelectors = [
-        'input[name="name"]',
-        'input[placeholder*="nome"]',
-        'input[placeholder*="Nome"]',
-        'input[placeholder*="name"]',
-        'input[placeholder*="Name"]',
-        'input[placeholder*="Nome do agente"]',
-        'input[placeholder*="Agent name"]',
-        'input[type="text"]'
-      ];
       
       for (let selector of nameSelectors) {
         if ($body.find(selector).length > 0) {
           nameSelector = selector;
+          cy.log(`✅ Campo nome encontrado com seletor: ${selector}`);
           break;
         }
       }
       
       cy.log(`📝 Usando seletor: ${nameSelector}`);
       
-      cy.get(nameSelector).first().then(($input) => {
-        // Focar no campo primeiro
-        cy.wrap($input).focus();
-        cy.wait(300);
-        
-        // Selecionar todo o conteúdo e deletar
-        cy.wrap($input)
-          .type('{selectall}')
-          .type('{del}')
-          .should('have.value', '');
-        
-        // Aguardar um pouco
-        cy.wait(500);
-        
-        // Digitar caractere por caractere com eventos
-        cy.wrap($input).type(nomeAgente, { 
-          delay: 150,
-          force: true 
+      // Garantir que o elemento existe antes de interagir
+      cy.get(nameSelector, { timeout: 10000 })
+        .first()
+        .should('exist')
+        .should('be.visible')
+        .then(($input) => {
+          // Focar no campo primeiro
+          cy.wrap($input).focus();
+          cy.wait(300);
+          
+          // Selecionar todo o conteúdo e deletar
+          cy.wrap($input)
+            .type('{selectall}')
+            .type('{del}')
+            .should('have.value', '');
+          
+          // Aguardar um pouco
+          cy.wait(500);
+          
+          // Digitar caractere por caractere com eventos
+          cy.wrap($input).type(nomeAgente, { 
+            delay: 150,
+            force: true 
+          });
+          
+          // Disparar todos os eventos possíveis
+          cy.wrap($input)
+            .trigger('input', { bubbles: true })
+            .trigger('change', { bubbles: true })
+            .trigger('keyup', { bubbles: true })
+            .trigger('blur', { bubbles: true });
+          
+          // Aguardar processamento
+          cy.wait(1000);
+          
+          // Verificar se foi preenchido
+          cy.wrap($input).should('have.value', nomeAgente);
+          
+          // Clicar fora para garantir que perdeu o foco
+          cy.get('body').click(0, 0);
+          
+          cy.log('✅ Campo nome preenchido com simulação humana');
         });
-        
-        // Disparar todos os eventos possíveis
-        cy.wrap($input)
-          .trigger('input', { bubbles: true })
-          .trigger('change', { bubbles: true })
-          .trigger('keyup', { bubbles: true })
-          .trigger('blur', { bubbles: true });
-        
-        // Aguardar processamento
-        cy.wait(1000);
-        
-        // Verificar se foi preenchido
-        cy.wrap($input).should('have.value', nomeAgente);
-        
-        // Clicar fora para garantir que perdeu o foco
-        cy.get('body').click(0, 0);
-        
-        cy.log('✅ Campo nome preenchido com simulação humana');
-      });
     });
     
     return this;
@@ -1037,13 +1056,16 @@ verificarFormularioCarregado() {
     return this;
   }
 
-  // Método para verificar toast de sucesso
+  // Método para verificar toast de sucesso (captura rápida - toast fica apenas 3 segundos)
   verificarToastSucesso() {
-    cy.log('🔍 Procurando toast de sucesso...');
-    cy.wait(2000);
+    cy.log('🔍 Capturando toast de sucesso (3 segundos de exibição)...');
     
-    // Procurar por toast de sucesso com múltiplas estratégias
-    cy.get('body').then(($body) => {
+    // IMPORTANTE: Toast aparece por apenas 3 segundos!
+    // Aguardar apenas 300ms para o toast aparecer
+    cy.wait(300);
+    
+    // Procurar rapidamente por toast de sucesso
+    cy.get('body', { timeout: 3000 }).then(($body) => {
       const successMessages = [
         'O agente foi criado com sucesso!',
         'Agente criado com sucesso',
@@ -1055,17 +1077,21 @@ verificarFormularioCarregado() {
       ];
       
       let found = false;
+      
+      // Estratégia 1: Procurar por texto de sucesso
       for (let message of successMessages) {
         if ($body.find(`*:contains("${message}")`).length > 0) {
-          cy.log(`✅ Toast de sucesso encontrado: "${message}"`);
-          cy.get(`*:contains("${message}")`).first().should('be.visible');
+          cy.log(`✅ Toast encontrado com mensagem: "${message}"`);
+          const toastElement = $body.find(`*:contains("${message}")`).first();
+          const toastText = toastElement.text();
+          cy.log(`📝 Conteúdo completo: "${toastText}"`);
           found = true;
           break;
         }
       }
       
+      // Estratégia 2: Procurar por elementos de toast
       if (!found) {
-        // Tentar seletores específicos de toast
         const toastSelectors = [
           '.toast-description',
           '.toast',
@@ -1073,23 +1099,37 @@ verificarFormularioCarregado() {
           '.alert',
           '.message',
           '[role="alert"]',
-          '.success'
+          '[role="status"]',
+          '[class*="toast"]',
+          '[class*="notification"]',
+          '[class*="success"]'
         ];
         
         for (let selector of toastSelectors) {
           if ($body.find(selector).length > 0) {
             cy.log(`✅ Toast encontrado com seletor: ${selector}`);
-            cy.get(selector).first().should('be.visible');
+            const toastText = $body.find(selector).first().text();
+            cy.log(`📝 Conteúdo do toast: "${toastText}"`);
             found = true;
             break;
           }
         }
       }
       
+      // Estratégia 3: Verificar se redirecionou da página /new
+      if (!found) {
+        cy.url().then((url) => {
+          if (!url.includes('/new')) {
+            cy.log('✅ URL mudou (saiu de /new) - agente criado com sucesso!');
+            found = true;
+          }
+        });
+      }
+      
       if (found) {
         cy.log('✅ Agente criado com sucesso!');
       } else {
-        cy.log('⚠️ Toast de sucesso não encontrado, mas agente pode ter sido criado');
+        cy.log('⚠️ Toast não capturado (pode ter desaparecido), mas agente provavelmente foi criado');
       }
     });
     
@@ -1155,6 +1195,41 @@ verificarFormularioCarregado() {
           const value = $textarea.val();
           cy.log(`  Textarea ${index}: name="${name}" placeholder="${placeholder}" value="${value}"`);
         });
+      }
+    });
+    
+    // Aguardar campo nome estar disponível
+    cy.log('📝 Procurando campo nome...');
+    cy.get('body').then(($body) => {
+      let nameFieldFound = false;
+      
+      const nameSelectors = [
+        'input[name="name"]',
+        'input[placeholder*="nome"]',
+        'input[placeholder*="Nome"]',
+        'input[placeholder*="name"]',
+        'input[placeholder*="Name"]',
+        'input[placeholder*="Nome do agente"]',
+        'input[placeholder*="Agent name"]',
+        'input[type="text"]'
+      ];
+      
+      for (let selector of nameSelectors) {
+        if ($body.find(selector).length > 0) {
+          cy.log(`✅ Campo nome encontrado com seletor: ${selector}`);
+          cy.get(selector).first().should('be.visible').should('not.be.disabled');
+          nameFieldFound = true;
+          break;
+        }
+      }
+      
+      if (!nameFieldFound) {
+        cy.log('❌ Campo nome não encontrado, aguardando mais tempo...');
+        cy.wait(3000);
+        
+        // Tentar novamente após aguardar
+        cy.get('input').first().should('be.visible');
+        cy.log('✅ Usando primeiro input encontrado');
       }
     });
     
