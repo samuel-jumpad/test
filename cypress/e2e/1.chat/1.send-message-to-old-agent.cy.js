@@ -325,7 +325,7 @@ describe("Acessar agente antigo e enviar um chat", () => {
 
     // Aguardar mensagem ser enviada
     cy.log('⏳ Aguardando mensagem ser enviada...');
-    cy.wait(15000);
+    cy.wait(10000);
 
     // Confirmar se a mensagem está sendo exibida
     cy.log('🔍 Confirmando se a mensagem está sendo exibida...');
@@ -374,7 +374,7 @@ describe("Acessar agente antigo e enviar um chat", () => {
 
     // Navegar para Chat
     cy.contains('Chat').click({ force: true });
-    cy.wait(3000);
+    cy.wait(10000);
     cy.log('✅ Navegação para Chat concluída');
 
     // Clicar no agente antigo com fallbacks para pipeline
